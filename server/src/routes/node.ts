@@ -1,8 +1,12 @@
+import log from "@/logger";
 import { Router, type Request, type Response } from "express";
 import { execSync } from "child_process";
 import { platform, arch } from "os";
 import fixPath from "fix-path";
 import { runShellCommand } from "../utils/runShellCommand";
+import { createFromTemplate } from "../utils/createFromTemplate";
+
+const logger = log.scope("node");
 
 const router = Router();
 
@@ -33,17 +37,16 @@ router.get("/nodejs-status", async (_req: Request, res: Response) => {
 
 // POST /api/node/reload-env-path
 router.post("/reload-env-path", async (_req: Request, res: Response) => {
-  try {
-    if (platform() === "win32") {
-      const newPath = execSync("cmd /c echo %PATH%", { encoding: "utf8" }).trim();
-      process.env.PATH = newPath;
-    } else {
-      fixPath();
-    }
-    res.json({ ok: true });
-  } catch (err: any) {
-    res.status(500).json({ ok: false, error: err?.message ?? String(err) });
-  }
+      logger.debug("Reloading env path, previously:", process.env.PATH);
+      if (platform() === "win32") {
+        const newPath = execSync("cmd /c echo %PATH%", {
+          encoding: "utf8",
+        }).trim();
+        process.env.PATH = newPath;
+      } else {
+        fixPath();
+      }
+      logger.debug("Reloaded env path, now:", process.env.PATH);
 });
 
 export default router;

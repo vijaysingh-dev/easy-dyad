@@ -6,9 +6,8 @@ import {
   SyncVirtualFileSystem,
   VirtualChanges,
   VirtualFile,
-} from "./tsc_types";
-import { normalizePath } from "./normalizePath";
-
+} from "./tscTypes";
+import { normalizePath } from "./lib/paths";
 export interface AsyncFileSystemDelegate {
   fileExists?: (fileName: string) => Promise<boolean>;
   readFile?: (fileName: string) => Promise<string | undefined>;

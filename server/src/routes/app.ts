@@ -10,16 +10,16 @@ import { getDyadAppPath } from "../paths/paths";
 import { gitCommit } from "../utils/git_utils";
 import { deploySupabaseFunctions, isServerFunction } from "../supabase_admin/supabase_management_client";
 
-const appsRouter = Router();
+const appRouter = Router();
 
 // GET /api/apps -> list apps
-appsRouter.get("/", async (_req: Request, res: Response) => {
+appRouter.get("/", async (_req: Request, res: Response) => {
   const allApps = await db.query.apps.findMany({ orderBy: [desc(apps.createdAt)] });
   res.json({ ok: true, result: { apps: allApps, appBasePath: getDyadAppPath("$APP_BASE_PATH") } });
 });
 
 // GET /api/apps/:appId -> get app
-appsRouter.get("/:appId", async (req: Request, res: Response) => {
+appRouter.get("/:appId", async (req: Request, res: Response) => {
   const appId = Number(req.params.appId);
   const app = await db.query.apps.findFirst({ where: eq(apps.id, appId) });
   if (!app) return res.status(404).json({ ok: false, error: "App not found" });
@@ -27,7 +27,7 @@ appsRouter.get("/:appId", async (req: Request, res: Response) => {
 });
 
 // POST /api/apps/read-file -> { appId, filePath }
-appsRouter.post("/read-file", async (req: Request, res: Response) => {
+appRouter.post("/read-file", async (req: Request, res: Response) => {
   try {
     const body = req.body ?? {};
     const params = Array.isArray(body.args) && body.args.length > 0 ? body.args[0] : body;
@@ -46,7 +46,7 @@ appsRouter.post("/read-file", async (req: Request, res: Response) => {
 });
 
 // POST /api/apps/edit-file -> { appId, filePath, content }
-appsRouter.post("/edit-file", async (req: Request, res: Response) => {
+appRouter.post("/edit-file", async (req: Request, res: Response) => {
   try {
     const body = req.body ?? {};
     const params = Array.isArray(body.args) && body.args.length > 0 ? body.args[0] : body;
@@ -85,7 +85,7 @@ appsRouter.post("/edit-file", async (req: Request, res: Response) => {
 });
 
 // POST /api/apps/search -> { searchQuery }
-appsRouter.post("/search", async (req: Request, res: Response) => {
+appRouter.post("/search", async (req: Request, res: Response) => {
   try {
     const body = req.body ?? {};
     const params = Array.isArray(body.args) && body.args.length > 0 ? body.args[0] : body;
@@ -101,7 +101,7 @@ appsRouter.post("/search", async (req: Request, res: Response) => {
 });
 
 // POST /api/apps/:appId/favorite -> toggle favorite
-appsRouter.post("/:appId/favorite", async (req: Request, res: Response) => {
+appRouter.post("/:appId/favorite", async (req: Request, res: Response) => {
   try {
     const appId = Number(req.params.appId);
     await db.transaction(async () => {
@@ -117,7 +117,7 @@ appsRouter.post("/:appId/favorite", async (req: Request, res: Response) => {
 });
 
 // GET /api/apps/version -> { version }
-appsRouter.get("/version", (req: Request, res: Response) => {
+appRouter.get("/version", (req: Request, res: Response) => {
   try {
     const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
@@ -127,4 +127,4 @@ appsRouter.get("/version", (req: Request, res: Response) => {
   }
 });
 
-export default appsRouter;
+export default appRouter;

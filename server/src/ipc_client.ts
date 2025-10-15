@@ -65,7 +65,7 @@ import type {
   UpdatePromptParamsDto,
   McpServerUpdate,
   CreateMcpServer,
-} from "@shared/types";
+} from "./ipc_types";
 import type { Template } from "../shared/templates";
 import type {
   AppChatContext,
@@ -269,9 +269,9 @@ export class IpcClient {
     return IpcClient.instance;
   }
 
-  public async restartDyad(): Promise<void> {
-    await this.ipcRenderer.invoke("restart-dyad");
-  }
+  // public async restartDyad(): Promise<void> {
+  //   await this.ipcRenderer.invoke("restart-dyad");
+  // }
 
   public async reloadEnvPath(): Promise<void> {
     await this.ipcRenderer.invoke("reload-env-path");

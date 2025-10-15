@@ -1,12 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
-import { getUserDataPath } from "../paths/paths";
+import { getUserDataPath } from "../../../server/src/paths/paths";
 import {
   UserSettingsSchema,
   type UserSettings,
   Secret,
   VertexProviderSetting,
-} from "../../../server/src/lib/schemas";
+} from "../../../shared/lib/schemas";
 import { safeStorage } from "electron";
 import { v4 as uuidv4 } from "uuid";
 import log from "electron-log";

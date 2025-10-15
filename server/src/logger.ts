@@ -19,12 +19,12 @@ const winstonLogger = winston.createLogger({
         winston.format.simple()
       )
     }),
-    new winston.transports.File({ 
-      filename: 'logs/error.log', 
+    new winston.transports.File({
+      filename: 'logs/error.log',
       level: 'error',
       format: winston.format.json()
     }),
-    new winston.transports.File({ 
+    new winston.transports.File({
       filename: 'logs/combined.log',
       format: winston.format.json()
     })
@@ -39,7 +39,7 @@ const createLogger = () => {
     warn: (message: string, ...args: any[]) => winstonLogger.warn(message, ...args),
     error: (message: string, ...args: any[]) => winstonLogger.error(message, ...args),
     debug: (message: string, ...args: any[]) => winstonLogger.debug(message, ...args),
-    
+
     // electron-log scope method
     scope: (scopeName: string) => {
       return {
@@ -51,7 +51,7 @@ const createLogger = () => {
       };
     }
   };
-  
+
   return logger;
 };
 

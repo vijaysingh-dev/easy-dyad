@@ -11,7 +11,7 @@ import {
   QueryClientProvider,
   MutationCache,
 } from "@tanstack/react-query";
-import { showError, showMcpConsentToast } from "../../server/src/lib/toast";
+import { showError, showMcpConsentToast } from "../../shared/lib/toast";
 import { IpcClient } from "../../server/src/ipc_client";
 
 // @ts-ignore

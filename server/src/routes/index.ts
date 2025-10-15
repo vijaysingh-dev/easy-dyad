@@ -1,5 +1,5 @@
 import { Router } from "express";
-import appsRouter from "./app";
+import appRouter from "./app";
 import chatRouter from "./chat";
 import settingsRouter from "./settings";
 import helpRouter from "./help";
@@ -17,7 +17,7 @@ import promptsRouter from "./prompts";
 
 const router = Router();
 
-router.use("/apps", appsRouter);
+router.use("/apps", appRouter);
 router.use("/chat", chatRouter);
 router.use("/settings", settingsRouter);
 router.use("/help", helpRouter);

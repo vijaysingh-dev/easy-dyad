@@ -6,7 +6,7 @@ import fixPath from "fix-path";
 import { runShellCommand } from "../utils/runShellCommand";
 import log from "electron-log";
 
-const logger = log.scope("node_handlers");
+const logger = log.scope("node");
 
 export function registerNodeHandlers() {
   ipcMain.handle("nodejs-status", async (): Promise<NodeSystemInfo> => {

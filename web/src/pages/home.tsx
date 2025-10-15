@@ -2,8 +2,7 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useAtom, useSetAtom } from "jotai";
 import { homeChatInputValueAtom } from "../atoms/chatAtoms";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
-import { IpcClient } from "@server/ipc_client";
-import { generateCuteAppName } from "@/lib/utils";
+import { generateCuteAppName } from "@shared/lib/utils";
 import { useLoadApps } from "@/hooks/useLoadApps";
 import { useSettings } from "@/hooks/useSettings";
 import { SetupBanner } from "@/components/SetupBanner";
@@ -25,14 +24,16 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { ImportAppButton } from "@/components/ImportAppButton";
-import { showError } from "@/lib/toast";
+import { showError } from "@/components/toast";
 import { invalidateAppQuery } from "@/hooks/useLoadApp";
 import { useQueryClient } from "@tanstack/react-query";
 
-import type { FileAttachment } from "@shared/types";
+import type { FileAttachment } from "@shared/eeziTypes";
 import { NEON_TEMPLATE_IDS } from "@/shared/templates";
 import { neonTemplateHook } from "@/client_logic/template_hook";
 import { ProBanner } from "@/components/ProBanner";
+import api from "@/api";
+
 
 // Adding an export for attachments
 export interface HomeSubmitOptions {
@@ -73,7 +74,7 @@ export default function HomePage() {
         }
 
         try {
-          const result = await IpcClient.getInstance().doesReleaseNoteExist({
+          const result = await api.version.doesReleaseNoteExist({
             version: appVersion,
           });
 
@@ -82,10 +83,7 @@ export default function HomePage() {
             setReleaseNotesOpen(true);
           }
         } catch (err) {
-          console.warn(
-            "Unable to check if release note exists for: " + appVersion,
-            err,
-          );
+          console.warn("Unable to check if release note exists for: " + appVersion, err);
         }
       }
     };
@@ -96,9 +94,7 @@ export default function HomePage() {
   const appId = search.appId ? Number(search.appId) : null;
 
   // State for random prompts
-  const [randomPrompts, setRandomPrompts] = useState<
-    typeof INSPIRATION_PROMPTS
-  >([]);
+  const [randomPrompts, setRandomPrompts] = useState<typeof INSPIRATION_PROMPTS>([]);
 
   // Function to get random prompts
   const getRandomPrompts = useCallback(() => {
@@ -126,7 +122,7 @@ export default function HomePage() {
     try {
       setIsLoading(true);
       // Create the chat and navigate
-      const result = await IpcClient.getInstance().createApp({
+      const result = await api.app.createApp({
         name: generateCuteAppName(),
       });
       if (
@@ -146,7 +142,7 @@ export default function HomePage() {
         attachments,
       });
       await new Promise((resolve) =>
-        setTimeout(resolve, settings?.isTestMode ? 0 : 2000),
+        setTimeout(resolve, settings?.isTestMode ? 0 : 2000)
       );
 
       setInputValue("");
@@ -210,9 +206,7 @@ export default function HomePage() {
                            dark:bg-gray-800/50 dark:border-gray-700
                            dark:hover:bg-gray-800 dark:hover:border-gray-600"
               >
-                <span className="text-gray-700 dark:text-gray-300">
-                  {item.icon}
-                </span>
+                <span className="text-gray-700 dark:text-gray-300">{item.icon}</span>
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {item.label}
                 </span>
@@ -265,7 +259,7 @@ export default function HomePage() {
               onClick={() =>
                 window.open(
                   releaseUrl.replace("?hideHeader=true&theme=" + theme, ""),
-                  "_blank",
+                  "_blank"
                 )
               }
             >

@@ -8,7 +8,7 @@ import * as schema from "./schema";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import path from "node:path";
 import fs from "node:fs";
-import { getDyadAppPath, getUserDataPath } from "../../../web/src/paths/paths";
+import { getDyadAppPath, getUserDataPath } from "../paths/paths";
 import { log } from "@src/logger";
 
 const logger = log.scope("db");

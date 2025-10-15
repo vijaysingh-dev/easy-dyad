@@ -15,7 +15,6 @@ import { providerSettingsRoute } from "@/routes/settings/providers/$provider";
 import SetupProviderCard from "@/components/SetupProviderCard";
 
 import { useState, useEffect, useCallback } from "react";
-import { IpcClient } from "@/ipc/ipc_client";
 import {
   Accordion,
   AccordionContent,
@@ -23,7 +22,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "@shared/lib/utils";
 import { NodeSystemInfo } from "@/ipc/ipc_types";
 import { usePostHog } from "posthog-js/react";
 import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";
@@ -31,6 +30,7 @@ import { useScrollAndNavigateTo } from "@/hooks/useScrollAndNavigateTo";
 // @ts-ignore
 import logo from "../../assets/logo.svg";
 import { OnboardingBanner } from "./home/OnboardingBanner";
+import api from "@/api";
 
 type NodeInstallStep =
   | "install"
@@ -53,7 +53,7 @@ export function SetupBanner() {
   const checkNode = useCallback(async () => {
     try {
       setNodeCheckError(false);
-      const status = await IpcClient.getInstance().getNodejsStatus();
+      const status = await api.settings.getNodejsStatus();
       setNodeSystemInfo(status);
     } catch (error) {
       console.error("Failed to check Node.js status:", error);
@@ -88,7 +88,7 @@ export function SetupBanner() {
   };
   const handleDyadProSetupClick = () => {
     posthog.capture("setup-flow:ai-provider-setup:dyad:click");
-    IpcClient.getInstance().openExternalUrl(
+    api.app.openExternalUrl(
       "https://www.dyad.sh/pro?utm_source=dyad-app&utm_medium=app&utm_campaign=setup-banner",
     );
   };
@@ -101,13 +101,13 @@ export function SetupBanner() {
   const handleNodeInstallClick = useCallback(async () => {
     posthog.capture("setup-flow:start-node-install-click");
     setNodeInstallStep("waiting-for-continue");
-    IpcClient.getInstance().openExternalUrl(nodeSystemInfo!.nodeDownloadUrl);
+    api.app.openExternalUrl(nodeSystemInfo!.nodeDownloadUrl);
   }, [nodeSystemInfo, setNodeInstallStep]);
 
   const finishNodeInstall = useCallback(async () => {
     posthog.capture("setup-flow:continue-node-install-click");
     setNodeInstallStep("continue-processing");
-    await IpcClient.getInstance().reloadEnvPath();
+    await api.app.reloadEnvPath();
     await checkNode();
     setNodeInstallStep("finished-checking");
   }, [checkNode, setNodeInstallStep]);
@@ -208,7 +208,7 @@ export function SetupBanner() {
                       <a
                         className="text-blue-500 dark:text-blue-400 hover:underline"
                         onClick={() => {
-                          IpcClient.getInstance().openExternalUrl(
+                          api.app.openExternalUrl(
                             "https://nodejs.org/en/download",
                           );
                         }}
@@ -343,7 +343,7 @@ function NodeJsHelpCallout() {
         If you run into issues, read our{" "}
         <a
           onClick={() => {
-            IpcClient.getInstance().openExternalUrl(
+            api.app.openExternalUrl(
               "https://www.dyad.sh/docs/help/nodejs",
             );
           }}
