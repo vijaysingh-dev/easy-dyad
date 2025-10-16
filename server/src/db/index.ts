@@ -1,15 +1,11 @@
-// db.ts
-import {
-  type BetterSQLite3Database,
-  drizzle,
-} from "drizzle-orm/better-sqlite3";
+import log from "@/logger";
 import Database from "better-sqlite3";
-import * as schema from "./schema";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import path from "node:path";
+import { type BetterSQLite3Database, drizzle } from "drizzle-orm/better-sqlite3";
 import fs from "node:fs";
-import { getDyadAppPath, getUserDataPath } from "../paths/paths";
-import { log } from "@src/logger";
+import path from "node:path";
+import * as schema from "./schema";
+import { getDyadAppPath, getUserDataPath } from "@shared/lib/paths";
 
 const logger = log.scope("db");
 
@@ -77,14 +73,12 @@ export function getDb(): BetterSQLite3Database<typeof schema> & {
   $client: Database.Database;
 } {
   if (!_db) {
-    throw new Error(
-      "Database not initialized. Call initializeDatabase() first.",
-    );
+    throw new Error("Database not initialized. Call initializeDatabase() first.");
   }
   return _db as any;
 }
 
-export const db = new Proxy({} as any, {
+const db = new Proxy({} as any, {
   get(target, prop) {
     const database = getDb();
     return database[prop as keyof typeof database];
@@ -92,3 +86,5 @@ export const db = new Proxy({} as any, {
 }) as BetterSQLite3Database<typeof schema> & {
   $client: Database.Database;
 };
+
+export default db;

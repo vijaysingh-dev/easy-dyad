@@ -1,6 +1,6 @@
-import { normalizePath } from "../../../shared/normalizePath";
-import log from "electron-log";
-import { SqlQuery } from "../../lib/schemas";
+import log from "@/logger";
+import { normalizePath } from "@shared/lib/paths";
+import { SqlQuery } from "@shared/lib/schemas";
 
 const logger = log.scope("dyad_tag_parser");
 

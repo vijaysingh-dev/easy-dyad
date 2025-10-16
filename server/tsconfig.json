@@ -1,22 +1,15 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "incremental": true,
     "tsBuildInfoFile": "./.tsbuildinfo",
-    "moduleResolution": "bundler",
-    "module": "esnext",
-    "target": "es2022",
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "strict": true,
-    "skipLibCheck": true,
+    "rootDir": "../",
+    "outDir": "./dist",
     "baseUrl": "./src",
     "paths": {
-      "@/*": ["./*"],
-      "@shared/*": ["../shared/*"]
+      "@/*": ["*"],
+      "@shared/*": ["../../shared/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "../shared"]
 }
-

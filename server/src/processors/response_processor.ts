@@ -2,10 +2,10 @@ import { db } from "../../db";
 import { chats, messages } from "../../db/schema";
 import { and, eq } from "drizzle-orm";
 import fs from "node:fs";
-import { getDyadAppPath } from "../../paths/paths";
+import { getDyadAppPath } from "../../../../shared/lib/paths";
 import path from "node:path";
 import git from "isomorphic-git";
-import { safeJoin } from "../utils/path_utils";
+import { safeJoin } from "../path_utils";
 
 import log from "electron-log";
 import { executeAddDependency } from "./executeAddDependency";
@@ -16,19 +16,19 @@ import {
 } from "../../supabase_admin/supabase_management_client";
 import { isServerFunction } from "../../supabase_admin/supabase_utils";
 import { UserSettings } from "../../lib/schemas";
-import { gitCommit } from "../utils/git_utils";
-import { readSettings } from "@/main/settings";
-import { writeMigrationFile } from "../utils/file_utils";
+import { gitCommit } from "../git_utils";
+import { readSettings } from "@shared/settings";
+import { writeMigrationFile } from "../file_utils";
 import {
   getDyadWriteTags,
   getDyadRenameTags,
   getDyadDeleteTags,
   getDyadAddDependencyTags,
   getDyadExecuteSqlTags,
-} from "../utils/dyad_tag_parser";
-import { storeDbTimestampAtCurrentVersion } from "../utils/neon_timestamp_utils";
+} from "../dyad_tag_parser";
+import { storeDbTimestampAtCurrentVersion } from "../neon_timestamp_utils";
 
-import { FileUploadsState } from "../utils/file_uploads_state";
+import { FileUploadsState } from "../file_uploads_state";
 
 const readFile = fs.promises.readFile;
 const logger = log.scope("response_processor");

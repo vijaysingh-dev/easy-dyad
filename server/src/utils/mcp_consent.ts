@@ -1,7 +1,7 @@
-import { db } from "../../db";
-import { mcpToolConsents } from "../../db/schema";
+import db from "@/db";
+import { Response } from "express";
 import { and, eq } from "drizzle-orm";
-import { IpcMainInvokeEvent } from "electron";
+import { mcpToolConsents } from "@/db/schema";
 
 export type Consent = "ask" | "always" | "denied";
 
@@ -11,7 +11,7 @@ const pendingConsentResolvers = new Map<
 >();
 
 export function waitForConsent(
-  requestId: string,
+  requestId: string
 ): Promise<"accept-once" | "accept-always" | "decline"> {
   return new Promise((resolve) => {
     pendingConsentResolvers.set(requestId, resolve);
@@ -20,7 +20,7 @@ export function waitForConsent(
 
 export function resolveConsent(
   requestId: string,
-  decision: "accept-once" | "accept-always" | "decline",
+  decision: "accept-once" | "accept-always" | "decline"
 ) {
   const resolver = pendingConsentResolvers.get(requestId);
   if (resolver) {
@@ -31,16 +31,13 @@ export function resolveConsent(
 
 export async function getStoredConsent(
   serverId: number,
-  toolName: string,
+  toolName: string
 ): Promise<Consent> {
   const rows = await db
     .select()
     .from(mcpToolConsents)
     .where(
-      and(
-        eq(mcpToolConsents.serverId, serverId),
-        eq(mcpToolConsents.toolName, toolName),
-      ),
+      and(eq(mcpToolConsents.serverId, serverId), eq(mcpToolConsents.toolName, toolName))
     );
   if (rows.length === 0) return "ask";
   return (rows[0].consent as Consent) ?? "ask";
@@ -49,16 +46,13 @@ export async function getStoredConsent(
 export async function setStoredConsent(
   serverId: number,
   toolName: string,
-  consent: Consent,
+  consent: Consent
 ): Promise<void> {
   const rows = await db
     .select()
     .from(mcpToolConsents)
     .where(
-      and(
-        eq(mcpToolConsents.serverId, serverId),
-        eq(mcpToolConsents.toolName, toolName),
-      ),
+      and(eq(mcpToolConsents.serverId, serverId), eq(mcpToolConsents.toolName, toolName))
     );
   if (rows.length > 0) {
     await db
@@ -67,8 +61,8 @@ export async function setStoredConsent(
       .where(
         and(
           eq(mcpToolConsents.serverId, serverId),
-          eq(mcpToolConsents.toolName, toolName),
-        ),
+          eq(mcpToolConsents.toolName, toolName)
+        )
       );
   } else {
     await db.insert(mcpToolConsents).values({ serverId, toolName, consent });
@@ -76,14 +70,15 @@ export async function setStoredConsent(
 }
 
 export async function requireMcpToolConsent(
-  event: IpcMainInvokeEvent,
+  res: Response,
+  chatId: number,
   params: {
     serverId: number;
     serverName: string;
     toolName: string;
     toolDescription?: string | null;
     inputPreview?: string | null;
-  },
+  }
 ): Promise<boolean> {
   const current = await getStoredConsent(params.serverId, params.toolName);
   if (current === "always") return true;
@@ -91,10 +86,14 @@ export async function requireMcpToolConsent(
 
   // Ask renderer for a decision via event bridge
   const requestId = `${params.serverId}:${params.toolName}:${Date.now()}`;
-  (event.sender as any).send("mcp:tool-consent-request", {
-    requestId,
-    ...params,
-  });
+  res.write(
+    `data: ${JSON.stringify({
+      chatId: chatId,
+      type: "mcp:tool-consent-request",
+      requestId,
+      ...params,
+    })}\n\n`
+  );
   const response = await waitForConsent(requestId);
 
   if (response === "accept-always") {

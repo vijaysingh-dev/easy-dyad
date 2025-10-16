@@ -4,7 +4,7 @@ import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
 import { app } from "electron";
 import { copyDirectoryRecursive } from "../utils/file_utils";
-import { readSettings } from "@/main/settings";
+import { readSettings } from "@shared/settings";
 import { getTemplateOrThrow } from "../utils/template_utils";
 import log from "electron-log";
 

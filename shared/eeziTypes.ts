@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ProblemReport } from "./tscTypes";
 
 export interface AppOutput {
   type: "stdout" | "stderr" | "info" | "client-error" | "input-requested";
@@ -31,7 +32,7 @@ export interface ChatStreamParams {
 }
 
 export interface ChatResponseEnd {
-  chatId: number;
+  chatId?: number;
   updatedFiles: boolean;
   extraFiles?: string[];
   extraFilesError?: string;

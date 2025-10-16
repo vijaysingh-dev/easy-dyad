@@ -2,26 +2,30 @@ import express, { type Request, type Response, type NextFunction } from "express
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
-import apiRouter from "./routes";
+import appRoutes from "./routes/app";
+import chatRoutes from "./routes/chat";
+import integrationRoutes from "./routes/integration";
+import settingsRoutes from "./routes/settings";
+import mcpRoutes from "./routes/mcp";
+import versionRoutes from "./routes/version";
+import streamRoutes from "./routes/stream";
 
 dotenv.config();
 
 const app = express();
-app.use("/api", apiRouter);
+
+// API Routes
+app.use("/api/app", appRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/integration", integrationRoutes);
+app.use("/api/settings", settingsRoutes);
+app.use("/api/mcp", mcpRoutes);
+app.use("/api/version", versionRoutes);
+app.use("/stream", streamRoutes);
 
 app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") ?? true }));
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
-
-// Health route
-app.get("/health", (_req: Request, res: Response) => {
-  res.json({ ok: true, env: process.env.NODE_ENV ?? "development" });
-});
-
-// Version endpoint
-app.get("/api/version", (_req: Request, res: Response) => {
-  res.json({ version: "0.1.0" });
-});
 
 // Error handler
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
