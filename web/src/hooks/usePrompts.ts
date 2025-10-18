@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { IpcClient } from "@/ipc/ipc_client";
-
+import api from "@/api";
+import { app } from "electron";
 export interface PromptItem {
   id: number;
   title: string;
@@ -15,8 +15,7 @@ export function usePrompts() {
   const listQuery = useQuery({
     queryKey: ["prompts"],
     queryFn: async (): Promise<PromptItem[]> => {
-      const ipc = IpcClient.getInstance();
-      return ipc.listPrompts();
+      return api.app.listPrompts();
     },
     meta: { showErrorToast: true },
   });
@@ -27,8 +26,7 @@ export function usePrompts() {
       description?: string;
       content: string;
     }): Promise<PromptItem> => {
-      const ipc = IpcClient.getInstance();
-      return ipc.createPrompt(params);
+      return api.app.createPrompt(params);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["prompts"] });
@@ -45,8 +43,7 @@ export function usePrompts() {
       description?: string;
       content: string;
     }): Promise<void> => {
-      const ipc = IpcClient.getInstance();
-      return ipc.updatePrompt(params);
+      return api.app.updatePrompt(params);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["prompts"] });
@@ -58,8 +55,7 @@ export function usePrompts() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number): Promise<void> => {
-      const ipc = IpcClient.getInstance();
-      return ipc.deletePrompt(id);
+      return api.app.deletePrompt(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["prompts"] });

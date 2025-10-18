@@ -1,8 +1,7 @@
-import React, { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
-
+import React, { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App";
 
 import { PostHogProvider } from "posthog-js/react";
 import posthog from "posthog-js";
@@ -12,7 +11,7 @@ import {
   QueryClientProvider,
   MutationCache,
 } from "@tanstack/react-query";
-import { showError, showMcpConsentToast } from "../../shared/lib/toast";
+import { showError } from "@/components/Toast";
 import { getTelemetryUserId, isTelemetryOptedIn } from "./hooks/useSettings";
 
 // @ts-ignore
@@ -54,42 +53,32 @@ const queryClient = new QueryClient({
   }),
 });
 
-const posthogClient = posthog.init(
-  "phc_5Vxx0XT8Ug3eWROhP6mm4D6D2DgIIKT232q4AKxC2ab",
-  {
-    api_host: "https://us.i.posthog.com",
-    // @ts-ignore
-    debug: import.meta.env.MODE === "development",
-    autocapture: false,
-    capture_exceptions: true,
-    capture_pageview: false,
-    before_send: (event) => {
-      if (!isTelemetryOptedIn()) {
-        console.debug("Telemetry not opted in, skipping event");
-        return null;
-      }
-      const telemetryUserId = getTelemetryUserId();
-      if (telemetryUserId) {
-        posthogClient.identify(telemetryUserId);
-      }
+const posthogClient = posthog.init("phc_5Vxx0XT8Ug3eWROhP6mm4D6D2DgIIKT232q4AKxC2ab", {
+  api_host: "https://us.i.posthog.com",
+  // @ts-ignore
+  debug: import.meta.env.MODE === "development",
+  autocapture: false,
+  capture_exceptions: true,
+  capture_pageview: false,
+  before_send: (event) => {
+    if (!isTelemetryOptedIn()) {
+      console.debug("Telemetry not opted in, skipping event");
+      return null;
+    }
+    const telemetryUserId = getTelemetryUserId();
+    if (telemetryUserId) {
+      posthogClient.identify(telemetryUserId);
+    }
 
-      if (event?.properties["$ip"]) {
-        event.properties["$ip"] = null;
-      }
+    if (event?.properties["$ip"]) {
+      event.properties["$ip"] = null;
+    }
 
-      console.debug(
-        "Telemetry opted in - UUID:",
-        telemetryUserId,
-        "sending event",
-        event,
-      );
-      return event;
-    },
-    persistence: "localStorage",
+    console.debug("Telemetry opted in - UUID:", telemetryUserId, "sending event", event);
+    return event;
   },
-);
-
-
+  persistence: "localStorage",
+});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -98,5 +87,5 @@ createRoot(document.getElementById("root")!).render(
         <App />
       </PostHogProvider>
     </QueryClientProvider>
-  </StrictMode>,
+  </StrictMode>
 );

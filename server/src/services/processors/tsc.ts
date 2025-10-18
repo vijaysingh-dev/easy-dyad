@@ -1,16 +1,15 @@
+import log from "@/logger";
 import * as path from "node:path";
 import { Worker } from "node:worker_threads";
-
-import { ProblemReport } from "../ipc_types";
-import log from "electron-log";
-import { WorkerInput, WorkerOutput } from "../../../shared/tsc_types";
 
 import {
   getDyadDeleteTags,
   getDyadRenameTags,
   getDyadWriteTags,
-} from "../dyad_tag_parser";
-import { getTypeScriptCachePath } from "@/paths/paths";
+} from "@/utils/dyad_tag_parser";
+import { getTypeScriptCachePath } from "@/services/paths";
+import { WorkerInput, WorkerOutput } from "@shared/tscTypes";
+import { ProblemReport } from "@shared/eeziTypes";
 
 const logger = log.scope("tsc");
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { IpcClient } from "@/ipc/ipc_client";
+import api from "@/api";
 
 export function useAppVersion() {
   const [appVersion, setAppVersion] = useState<string | null>(null);
@@ -7,7 +7,7 @@ export function useAppVersion() {
   useEffect(() => {
     const fetchVersion = async () => {
       try {
-        const version = await IpcClient.getInstance().getAppVersion();
+        const version = await api.version.getAppVersion();
         setAppVersion(version);
       } catch {
         setAppVersion(null);

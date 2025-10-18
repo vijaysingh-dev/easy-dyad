@@ -6,8 +6,9 @@ import {
   SyncVirtualFileSystem,
   VirtualChanges,
   VirtualFile,
-} from "./tscTypes";
-import { normalizePath } from "./lib/paths";
+} from "@shared/tscTypes";
+import { normalizePath } from "@/services/paths";
+
 export interface AsyncFileSystemDelegate {
   fileExists?: (fileName: string) => Promise<boolean>;
   readFile?: (fileName: string) => Promise<string | undefined>;
@@ -129,10 +130,7 @@ export abstract class BaseVirtualFileSystem {
         this.virtualFiles.set(toNormalized, content);
       } catch (error) {
         // If we can't read the source file, we'll let the consumer handle it
-        console.warn(
-          `Could not read source file for rename: ${fromPath}`,
-          error,
-        );
+        console.warn(`Could not read source file for rename: ${fromPath}`, error);
       }
     }
 
@@ -144,17 +142,15 @@ export abstract class BaseVirtualFileSystem {
    * Get all virtual files (files that have been written or modified)
    */
   public getVirtualFiles(): VirtualFile[] {
-    return Array.from(this.virtualFiles.entries()).map(
-      ([normalizedKey, content]) => {
-        // Convert normalized key back to relative path
-        const denormalizedPath = this.denormalizePath(normalizedKey);
+    return Array.from(this.virtualFiles.entries()).map(([normalizedKey, content]) => {
+      // Convert normalized key back to relative path
+      const denormalizedPath = this.denormalizePath(normalizedKey);
 
-        return {
-          path: path.relative(this.baseDir, denormalizedPath),
-          content,
-        };
-      },
-    );
+      return {
+        path: path.relative(this.baseDir, denormalizedPath),
+        content,
+      };
+    });
   }
 
   /**

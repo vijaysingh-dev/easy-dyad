@@ -5,7 +5,7 @@ import { type BetterSQLite3Database, drizzle } from "drizzle-orm/better-sqlite3"
 import fs from "node:fs";
 import path from "node:path";
 import * as schema from "./schema";
-import { getDyadAppPath, getUserDataPath } from "@shared/lib/paths";
+import { getDyadAppPath, getUserDataPath } from "@/shared/paths";
 
 const logger = log.scope("db");
 

@@ -1,26 +1,14 @@
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "strict": true,
-    "skipLibCheck": true,
+    "rootDir": ".",
+    "outDir": "./dist",
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@shared/*": ["../shared/*"],
-      "@server/*": ["../server/src/*"]
+      "@shared/*": ["../shared/*"]
     }
   },
-  "include": [
-    "src",
-    "../server/src/handlers",
-    "../server/src/processors",
-    "../server/src/db",
-    "../server/src/shared",
-    "../server/src/utils",
-    "../server/src/http_client.ts",
-    "../server/src/ipc_client.ts",
-    "../server/src/ipc_types.ts",
-    "../shared/lib",
-    "../server/src/paths"
-  ]
+  "include": ["src", "../shared"]
 }

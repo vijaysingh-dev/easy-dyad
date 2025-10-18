@@ -10,8 +10,8 @@ import {
   hasToolCall,
 } from "ai";
 import { cleanFullResponse } from "./cleanFullResponse";
-import { db } from "../../db";
-import { chats, messages } from "../../db/schema";
+import { db } from "../db";
+import { chats, messages } from "../db/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import { constructSystemPrompt, readAiRules } from "../../prompts/system_prompt";
 import {
@@ -19,13 +19,13 @@ import {
   SUPABASE_NOT_AVAILABLE_SYSTEM_PROMPT,
 } from "../../prompts/supabase_prompt";
 import { getDyadAppPath } from "../../../../shared/lib/paths";
-import { readSettings } from "../../../../shared/settings";
+import { readSettings } from "../services/settings";
 import type { ChatResponseEnd, ChatStreamParams } from "../ipc_types";
-import { extractCodebase, readFileWithCache } from "../../utils/codebase";
-import { processFullResponseActions } from "../processors/response_processor";
+import { extractCodebase, readFileWithCache } from "./codebase";
+import { processFullResponseActions } from "../services/processors/response_processor";
 import { streamTestResponse } from "./testing_chat_handlers";
 import { getTestResponse } from "./testing_chat_handlers";
-import { getModelClient, ModelClient } from "../utils/get_model_client";
+import { getModelClient, ModelClient } from "./get_model_client";
 import log from "electron-log";
 import {
   getSupabaseContext,
@@ -37,35 +37,35 @@ import * as path from "path";
 import * as os from "os";
 import * as crypto from "crypto";
 import { readFile, writeFile, unlink } from "fs/promises";
-import { getMaxTokens, getTemperature } from "../utils/token_utils";
+import { getMaxTokens, getTemperature } from "./token_utils";
 import { MAX_CHAT_TURNS_IN_CONTEXT } from "@/constants/settings_constants";
-import { validateChatContext } from "../utils/context_paths_utils";
+import { validateChatContext } from "./context_paths_utils";
 import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
-import { mcpServers } from "../../db/schema";
-import { requireMcpToolConsent } from "../utils/mcp_consent";
+import { mcpServers } from "../db/schema";
+import { requireMcpToolConsent } from "./mcp_consent";
 
-import { getExtraProviderOptions } from "../utils/thinking_utils";
+import { getExtraProviderOptions } from "./thinking_utils";
 
-import { safeSend } from "../../utils/safe_sender";
-import { cleanFullResponse } from "../utils/cleanFullResponse";
-import { generateProblemReport } from "../processors/tsc";
+import { safeSend } from "../services/utils/safe_sender";
+import { cleanFullResponse } from "./cleanFullResponse";
+import { generateProblemReport } from "../services/processors/tsc";
 import { createProblemFixPrompt } from "@/shared/problem_prompt";
-import { AsyncVirtualFileSystem } from "../../../shared/VirtualFilesystem";
+import { AsyncVirtualFileSystem } from "../services/VirtualFilesystem";
 import {
   getDyadAddDependencyTags,
   getDyadWriteTags,
   getDyadDeleteTags,
   getDyadRenameTags,
-} from "../utils/dyad_tag_parser";
-import { fileExists } from "../utils/file_utils";
-import { FileUploadsState } from "../utils/file_uploads_state";
+} from "./dyad_tag_parser";
+import { fileExists } from "./file_utils";
+import { FileUploadsState } from "./file_uploads_state";
 import { OpenAIResponsesProviderOptions } from "@ai-sdk/openai";
-import { extractMentionedAppsCodebases } from "../utils/mention_apps";
-import { parseAppMentions } from "@/shared/parse_mention_apps";
-import { prompts as promptsTable } from "../../db/schema";
+import { extractMentionedAppsCodebases } from "./mention_apps";
+import { parseAppMentions } from "@/services/llm/parse_mention_apps";
+import { prompts as promptsTable } from "../db/schema";
 import { inArray } from "drizzle-orm";
-import { replacePromptReference } from "../utils/replacePromptReference";
-import { mcpManager } from "../utils/mcp_manager";
+import { replacePromptReference } from "./replacePromptReference";
+import { mcpManager } from "./mcp_manager";
 import z from "zod";
 
 type AsyncIterableStream<T> = AsyncIterable<T> & ReadableStream<T>;

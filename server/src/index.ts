@@ -5,10 +5,10 @@ import dotenv from "dotenv";
 import appRoutes from "./routes/app";
 import chatRoutes from "./routes/chat";
 import integrationRoutes from "./routes/integration";
-import settingsRoutes from "./routes/settings";
 import mcpRoutes from "./routes/mcp";
+import miscRoutes from "./routes/misc";
+import settingsRoutes from "./routes/settings";
 import versionRoutes from "./routes/version";
-import streamRoutes from "./routes/stream";
 
 dotenv.config();
 
@@ -18,10 +18,10 @@ const app = express();
 app.use("/api/app", appRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/integration", integrationRoutes);
-app.use("/api/settings", settingsRoutes);
 app.use("/api/mcp", mcpRoutes);
+app.use("/api/misc", miscRoutes);
+app.use("/api/settings", settingsRoutes);
 app.use("/api/version", versionRoutes);
-app.use("/stream", streamRoutes);
 
 app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") ?? true }));
 app.use(express.json({ limit: "10mb" }));

@@ -20,7 +20,7 @@ import { useRouter } from "@tanstack/react-router";
 
 import { Loader2 } from "lucide-react";
 import { neonTemplateHook } from "@/client_logic/template_hook";
-import { showError } from "@/lib/toast";
+import { showError } from "./Toast";
 
 interface CreateAppDialogProps {
   open: boolean;

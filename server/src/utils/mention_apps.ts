@@ -1,7 +1,7 @@
-import { db } from "../../db";
+import { db } from "../db";
 import { getDyadAppPath } from "../../paths/paths";
-import { CodebaseFile, extractCodebase } from "../../utils/codebase";
-import { validateChatContext } from "../utils/context_paths_utils";
+import { CodebaseFile, extractCodebase } from "./codebase";
+import { validateChatContext } from "./context_paths_utils";
 import log from "electron-log";
 
 const logger = log.scope("mention_apps");

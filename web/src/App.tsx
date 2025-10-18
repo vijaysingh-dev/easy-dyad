@@ -1,8 +1,8 @@
-import { useEffect } from 'react'
-import { posthog } from 'posthog-js'
+import { useEffect } from "react";
+import { posthog } from "posthog-js";
 import { RouterProvider } from "@tanstack/react-router";
 import { router } from "./router";
-import './App.css'
+import "./App.css";
 
 export default function App() {
   useEffect(() => {

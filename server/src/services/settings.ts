@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { getUserDataPath } from "./lib/paths";
+import { getUserDataPath } from "./paths";
 import {
   UserSettingsSchema,
   type UserSettings,
@@ -10,7 +10,7 @@ import {
 import { safeStorage } from "electron";
 import { v4 as uuidv4 } from "uuid";
 import log from "electron-log";
-import { DEFAULT_TEMPLATE_ID } from "@/shared/templates";
+import { DEFAULT_TEMPLATE_ID } from "@/services/llm/templates";
 import { IS_TEST_BUILD } from "@/ipc/utils/test_utils";
 
 const logger = log.scope("settings");

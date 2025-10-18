@@ -1,3 +1,5 @@
+import { ProblemReport } from "./eeziTypes";
+
 export interface SyncVirtualFileSystem {
   fileExists: (fileName: string) => boolean;
   readFile: (fileName: string) => string | undefined;
@@ -9,19 +11,6 @@ export interface SyncVirtualFileSystem {
 export interface SyncFileSystemDelegate {
   fileExists?: (fileName: string) => boolean;
   readFile?: (fileName: string) => string | undefined;
-}
-
-export interface Problem {
-  file: string;
-  line: number;
-  column: number;
-  message: string;
-  code: number;
-  snippet: string;
-}
-
-export interface ProblemReport {
-  problems: Problem[];
 }
 
 export interface WorkerInput {

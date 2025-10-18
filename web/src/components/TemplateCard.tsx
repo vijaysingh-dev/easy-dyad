@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { IpcClient } from "@/ipc/ipc_client";
 import { useSettings } from "@/hooks/useSettings";
 import { CommunityCodeConsentDialog } from "./CommunityCodeConsentDialog";
 import type { Template } from "@/shared/templates";
 import { Button } from "./ui/button";
-import { cn } from "@/lib/utils";
-import { showWarning } from "@/lib/toast";
+import { cn } from "@shared/utils";
+import { showWarning } from "./Toast";
+import api from "@/api";
 
 interface TemplateCardProps {
   template: Template;
@@ -59,7 +59,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
   const handleGithubClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (template.githubUrl) {
-      IpcClient.getInstance().openExternalUrl(template.githubUrl);
+      api.app.openExternalUrl(template.githubUrl);
     }
   };
 
@@ -68,8 +68,8 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
       <div
         onClick={handleCardClick}
         className={`
-          bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden 
-          transform transition-all duration-300 ease-in-out 
+          bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden
+          transform transition-all duration-300 ease-in-out
           cursor-pointer group relative
           ${
             isSelected
@@ -132,8 +132,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
               }`}
               onClick={handleGithubClick}
             >
-              View on GitHub{" "}
-              <ArrowLeft className="w-4 h-4 ml-1 transform rotate-180" />
+              View on GitHub <ArrowLeft className="w-4 h-4 ml-1 transform rotate-180" />
             </a>
           )}
 
@@ -145,7 +144,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
             size="sm"
             className={cn(
               "w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold mt-2",
-              settings?.selectedTemplateId !== template.id && "invisible",
+              settings?.selectedTemplateId !== template.id && "invisible"
             )}
           >
             Create App

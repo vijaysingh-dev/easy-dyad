@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { IpcClient, DeepLinkData } from "../../../server/src/ipc_client";
+import { DeepLinkData } from "@shared/eeziTypes";
+import api from "@/api";
 
 type DeepLinkContextType = {
   lastDeepLink: (DeepLinkData & { timestamp: number }) | null;
@@ -15,8 +16,7 @@ export function DeepLinkProvider({ children }: { children: React.ReactNode }) {
   >(null);
 
   useEffect(() => {
-    const ipcClient = IpcClient.getInstance();
-    const unsubscribe = ipcClient.onDeepLinkReceived((data) => {
+    const unsubscribe = api.integration.onDeepLinkReceived((data) => {
       // Update with timestamp to ensure state change even if same type comes twice
       setLastDeepLink({ ...data, timestamp: Date.now() });
     });

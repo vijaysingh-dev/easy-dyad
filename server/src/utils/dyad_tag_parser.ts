@@ -1,6 +1,6 @@
 import log from "@/logger";
-import { normalizePath } from "@shared/lib/paths";
-import { SqlQuery } from "@shared/lib/schemas";
+import { normalizePath } from "@/shared/paths";
+import { SqlQuery } from "@shared/schemas";
 
 const logger = log.scope("dyad_tag_parser");
 

@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { useQuery, QueryClient } from "@tanstack/react-query";
-import { IpcClient } from "@/ipc/ipc_client";
 import { useAtom } from "jotai";
+import { useQuery, QueryClient } from "@tanstack/react-query";
 import { currentAppAtom } from "@/atoms/appAtoms";
-import { App } from "@/ipc/ipc_types";
+import api from "@/api";
+
 
 export function useLoadApp(appId: number | null) {
   const [, setApp] = useAtom(currentAppAtom);
@@ -19,8 +19,7 @@ export function useLoadApp(appId: number | null) {
       if (appId === null) {
         return null;
       }
-      const ipcClient = IpcClient.getInstance();
-      return ipcClient.getApp(appId);
+      return api.app.getApp(appId);
     },
     enabled: appId !== null,
     // Deliberately not showing error toast here because
@@ -42,7 +41,7 @@ export function useLoadApp(appId: number | null) {
 // Function to invalidate the app query
 export const invalidateAppQuery = (
   queryClient: QueryClient,
-  { appId }: { appId: number | null },
+  { appId }: { appId: number | null }
 ) => {
   return queryClient.invalidateQueries({ queryKey: ["app", appId] });
 };

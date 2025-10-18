@@ -1,27 +1,23 @@
+import log from "@/logger";
 import path from "path";
 import fs from "fs-extra";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
 import { app } from "electron";
-import { copyDirectoryRecursive } from "../utils/file_utils";
-import { readSettings } from "@shared/settings";
-import { getTemplateOrThrow } from "../utils/template_utils";
-import log from "electron-log";
+import { copyDirectoryRecursive } from "@/utils/file_utils";
+import { getTemplateOrThrow } from "@/utils/template_utils";
+import { readSettings } from "@/services/settings";
 
 const logger = log.scope("createFromTemplate");
 
-export async function createFromTemplate({
-  fullAppPath,
-}: {
-  fullAppPath: string;
-}) {
+export async function createFromTemplate({ fullAppPath }: { fullAppPath: string }) {
   const settings = readSettings();
   const templateId = settings.selectedTemplateId;
 
   if (templateId === "react") {
     await copyDirectoryRecursive(
       path.join(__dirname, "..", "..", "scaffold"),
-      fullAppPath,
+      fullAppPath
     );
     return;
   }
@@ -51,7 +47,7 @@ async function cloneRepo(repoUrl: string): Promise<string> {
 
   if (pathParts.length !== 2) {
     throw new Error(
-      "Invalid repository URL format. Expected 'https://github.com/org/repo'",
+      "Invalid repository URL format. Expected 'https://github.com/org/repo'"
     );
   }
 
@@ -60,23 +56,16 @@ async function cloneRepo(repoUrl: string): Promise<string> {
 
   if (!orgName || !repoName) {
     // This case should ideally be caught by pathParts.length !== 2
-    throw new Error(
-      "Failed to parse organization or repository name from URL.",
-    );
+    throw new Error("Failed to parse organization or repository name from URL.");
   }
   logger.info(`Parsed org: ${orgName}, repo: ${repoName} from ${repoUrl}`);
 
-  const cachePath = path.join(
-    app.getPath("userData"),
-    "templates",
-    orgName,
-    repoName,
-  );
+  const cachePath = path.join(app.getPath("userData"), "templates", orgName, repoName);
 
   if (fs.existsSync(cachePath)) {
     try {
       logger.info(
-        `Repo ${repoName} already exists in cache at ${cachePath}. Checking for updates.`,
+        `Repo ${repoName} already exists in cache at ${cachePath}. Checking for updates.`
       );
 
       // Construct GitHub API URL
@@ -109,7 +98,7 @@ async function cloneRepo(repoUrl: string): Promise<string> {
         logger.info(`Successfully fetched remote SHA: ${remoteSha}`);
       } else {
         throw new Error(
-          `GitHub API request failed with status ${response.statusCode}: ${response.statusMessage}`,
+          `GitHub API request failed with status ${response.statusCode}: ${response.statusMessage}`
         );
       }
 
@@ -121,12 +110,12 @@ async function cloneRepo(repoUrl: string): Promise<string> {
 
       if (remoteSha === localSha) {
         logger.info(
-          `Local cache for ${repoName} is up to date (SHA: ${localSha}). Skipping clone.`,
+          `Local cache for ${repoName} is up to date (SHA: ${localSha}). Skipping clone.`
         );
         return cachePath;
       } else {
         logger.info(
-          `Local cache for ${repoName} (SHA: ${localSha}) is outdated (Remote SHA: ${remoteSha}). Removing and re-cloning.`,
+          `Local cache for ${repoName} (SHA: ${localSha}) is outdated (Remote SHA: ${remoteSha}). Removing and re-cloning.`
         );
         fs.rmSync(cachePath, { recursive: true, force: true });
         // Proceed to clone
@@ -134,7 +123,7 @@ async function cloneRepo(repoUrl: string): Promise<string> {
     } catch (err) {
       logger.warn(
         `Error checking for updates or comparing SHAs for ${repoName} at ${cachePath}. Will attempt to re-clone. Error: `,
-        err,
+        err
       );
       return cachePath;
     }
@@ -176,10 +165,7 @@ async function copyRepoToApp(repoCachePath: string, appPath: string) {
     });
     logger.info("Finished copying repository contents.");
   } catch (err) {
-    logger.error(
-      `Error copying repository from ${repoCachePath} to ${appPath}: `,
-      err,
-    );
+    logger.error(`Error copying repository from ${repoCachePath} to ${appPath}: `, err);
     throw err; // Re-throw the error after logging
   }
 }

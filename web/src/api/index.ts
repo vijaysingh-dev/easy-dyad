@@ -4,6 +4,7 @@ import settingsApi from "./settings";
 import integrationApi from "./integration";
 import mcpApi from "./mcp";
 import versionApi from "./version";
+import miscApi from "./misc";
 
 const api = {
   app: appApi,
@@ -12,6 +13,7 @@ const api = {
   integration: integrationApi,
   mcp: mcpApi,
   version: versionApi,
+  misc: miscApi,
 };
 
 export default api;

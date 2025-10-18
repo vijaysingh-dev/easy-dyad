@@ -1,4 +1,4 @@
-import type { ProblemReport } from "../ipc/ipc_types";
+import type { ProblemReport } from "@shared/eeziTypes";
 
 /**
  * Creates a more concise version of the problem fix prompt for cases where

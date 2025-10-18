@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAtom } from "jotai";
 import { userSettingsAtom, envVarsAtom } from "@/atoms/appAtoms";
-import { type UserSettings } from "@shared/lib/schemas";
+import { type UserSettings } from "@shared/schemas";
 import { usePostHog } from "posthog-js/react";
 import { useAppVersion } from "./useAppVersion";
 import api from "@/api";

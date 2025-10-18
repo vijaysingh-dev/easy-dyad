@@ -1,5 +1,5 @@
-import { db } from "../../db";
-import { mcpServers } from "../../db/schema";
+import { db } from "../db";
+import { mcpServers } from "../db/schema";
 import { experimental_createMCPClient, experimental_MCPClient } from "ai";
 import { eq } from "drizzle-orm";
 

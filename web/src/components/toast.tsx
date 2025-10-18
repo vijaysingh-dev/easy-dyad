@@ -1,9 +1,9 @@
 import { toast } from "sonner";
 import { PostHog } from "posthog-js";
 import React from "react";
-import { CustomErrorToast } from "../../../web/src/components/CustomErrorToast";
-import { InputRequestToast } from "../../../web/src/components/InputRequestToast";
-import { McpConsentToast } from "../../../web/src/components/McpConsentToast";
+import { CustomErrorToast } from "./CustomErrorToast";
+import { InputRequestToast } from "./InputRequestToast";
+import { McpConsentToast } from "./McpConsentToast";
 
 /**
  * Toast utility functions for consistent notifications across the app

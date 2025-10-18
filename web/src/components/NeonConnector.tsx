@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { IpcClient } from "@/ipc/ipc_client";
 import { toast } from "sonner";
 import { useSettings } from "@/hooks/useSettings";
 
@@ -8,6 +7,7 @@ import { useDeepLink } from "@/contexts/DeepLinkContext";
 import { ExternalLink } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { NeonDisconnectButton } from "@/components/NeonDisconnectButton";
+import api from "@/api";
 
 export function NeonConnector() {
   const { settings, refreshSettings } = useSettings();
@@ -33,9 +33,7 @@ export function NeonConnector() {
             <Button
               variant="outline"
               onClick={() => {
-                IpcClient.getInstance().openExternalUrl(
-                  "https://console.neon.tech/",
-                );
+                api.app.openExternalUrl("https://console.neon.tech/");
               }}
               className="ml-2 px-2 py-1 h-8 mb-2"
               style={{ display: "inline-flex", alignItems: "center" }}
@@ -66,10 +64,10 @@ export function NeonConnector() {
         <div
           onClick={async () => {
             if (settings?.isTestMode) {
-              await IpcClient.getInstance().fakeHandleNeonConnect();
+              await api.integration.fakeHandleNeonConnect();
             } else {
-              await IpcClient.getInstance().openExternalUrl(
-                "https://oauth.dyad.sh/api/integrations/neon/login",
+              await api.app.openExternalUrl(
+                "https://oauth.dyad.sh/api/integrations/neon/login"
               );
             }
           }}

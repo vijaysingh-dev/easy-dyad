@@ -1,28 +1,25 @@
-import { db } from "@/db";
+import db from "@/db";
+import { eq } from "drizzle-orm";
 import {
   language_model_providers as languageModelProvidersSchema,
   language_models as languageModelsSchema,
 } from "@/db/schema";
-import type { LanguageModelProvider, LanguageModel } from "@/ipc/ipc_types";
-import { eq } from "drizzle-orm";
 import {
   LOCAL_PROVIDERS,
   CLOUD_PROVIDERS,
   MODEL_OPTIONS,
   PROVIDER_TO_ENV_VAR,
 } from "./language_model_constants";
+import type { LanguageModelProvider, LanguageModel } from "@shared/eeziTypes";
+
 /**
  * Fetches language model providers from both the database (custom) and hardcoded constants (cloud),
  * merging them with custom providers taking precedence.
  * @returns A promise that resolves to an array of LanguageModelProvider objects.
  */
-export async function getLanguageModelProviders(): Promise<
-  LanguageModelProvider[]
-> {
+export async function getLanguageModelProviders(): Promise<LanguageModelProvider[]> {
   // Fetch custom providers from the database
-  const customProvidersDb = await db
-    .select()
-    .from(languageModelProvidersSchema);
+  const customProvidersDb = await db.select().from(languageModelProvidersSchema);
 
   const customProvidersMap = new Map<string, LanguageModelProvider>();
   for (const cp of customProvidersDb) {
@@ -112,7 +109,7 @@ export async function getLanguageModels({
       .where(
         isCustomProvider({ providerId })
           ? eq(languageModelsSchema.customProviderId, providerId)
-          : eq(languageModelsSchema.builtinProviderId, providerId),
+          : eq(languageModelsSchema.builtinProviderId, providerId)
       );
 
     customModels = customModelsDb.map((model) => ({
@@ -126,7 +123,7 @@ export async function getLanguageModels({
   } catch (error) {
     console.error(
       `Error fetching custom models for provider "${providerId}" from DB:`,
-      error,
+      error
     );
     // Continue with empty custom models array
   }
@@ -143,7 +140,7 @@ export async function getLanguageModels({
       }));
     } else {
       console.warn(
-        `Provider "${providerId}" is cloud type but not found in MODEL_OPTIONS.`,
+        `Provider "${providerId}" is cloud type but not found in MODEL_OPTIONS.`
       );
     }
   }

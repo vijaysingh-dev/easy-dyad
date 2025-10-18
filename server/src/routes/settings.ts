@@ -1,19 +1,18 @@
+import db from "@/db";
+import logger from "@/logger";
 import { Router } from "express";
-import logger from "../logger";
-import { type UserSettings, type NodeSystemInfo } from "../ipc/ipc_types";
-import { readSettings, writeSettings } from "../../../shared/settings";
-import { db } from "../db";
-import { apps } from "../db/schema";
+import { apps } from "@/db/schema";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
-import os from "node:os";
-import path from "node:path";
-import { getLanguageModelProviders } from "../shared/language_model_helpers";
-import { getEnvVar } from "../utils/read_env";
+import { getLanguageModelProviders } from "@/services/llm/language_model_helpers";
+import { getEnvVar } from "@/utils/read_env";
 import { execSync } from "child_process";
 import { platform, arch } from "os";
 import fixPath from "fix-path";
 import { runShellCommand } from "@/utils/runShellCommand";
+import { readSettings, writeSettings } from "@/services/settings";
+import { type UserSettings } from "@shared/schemas";
+
 const execAsync = promisify(exec);
 const router = Router();
 
@@ -113,29 +112,6 @@ router.post("/reload-env-path", async (_req, res) => {
   } catch (error) {
     logger.error("Error reloading env path:", error);
     res.status(500).json({ error: "Failed to reload env path" });
-  }
-});
-
-// Reset all data
-router.post("/reset", async (_req, res) => {
-  try {
-    // Reset user settings to defaults
-    writeSettings({
-      selectedModel: undefined,
-      selectedChatMode: "ask",
-      maxChatTurnsInContext: 10,
-      enableAutoFixProblems: false,
-      autoApproveChanges: false,
-      runtimeMode2: "host",
-    });
-
-    // Delete all apps from database
-    await db.delete(apps);
-
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error resetting all data:", error);
-    res.status(500).json({ error: "Failed to reset all data" });
   }
 });
 

@@ -1,19 +1,19 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import path from "path";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  root: '.',
-  publicDir: '../public',
+  root: ".",
+  publicDir: "../public",
   server: {
     port: 5173,
-    strictPort: true
+    strictPort: true,
   },
   resolve: {
     alias: {
-      '@': '/src'
-    }
-  }
-})
-
-
+      "@": path.resolve(__dirname, "./src"),
+      "@shared": path.resolve(__dirname, "../shared"),
+    },
+  },
+});

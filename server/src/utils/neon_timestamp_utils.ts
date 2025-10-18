@@ -1,5 +1,5 @@
-import { db } from "../../db";
-import { versions, apps } from "../../db/schema";
+import { db } from "../db";
+import { versions, apps } from "../db/schema";
 import { eq, and } from "drizzle-orm";
 import fs from "node:fs";
 import git from "isomorphic-git";

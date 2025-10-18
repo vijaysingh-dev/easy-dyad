@@ -1,6 +1,6 @@
-import type { Config } from "drizzle-kit";
 import path from "path";
-import { getUserDataPath } from "./src/paths/paths";
+import type { Config } from "drizzle-kit";
+import { getUserDataPath } from "./server/src/shared/paths";
 
 const dbPath = path.join(getUserDataPath(), "sqlite.db");
 

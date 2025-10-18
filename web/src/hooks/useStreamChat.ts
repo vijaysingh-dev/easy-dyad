@@ -12,14 +12,13 @@ import {
   isStreamingByIdAtom,
   recentStreamChatIdsAtom,
 } from "@/atoms/chatAtoms";
-import { IpcClient } from "@/ipc/ipc_client";
 import { isPreviewOpenAtom } from "@/atoms/viewAtoms";
 import type { ChatResponseEnd } from "@/ipc/ipc_types";
 import { useChats } from "./useChats";
 import { useLoadApp } from "./useLoadApp";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
 import { useVersions } from "./useVersions";
-import { showExtraFilesToast } from "@/lib/toast";
+import { showExtraFilesToast } from "@/components/Toast";
 import { useProposal } from "./useProposal";
 import { useSearch } from "@tanstack/react-router";
 import { useRunApp } from "./useRunApp";
@@ -28,6 +27,7 @@ import { useUserBudgetInfo } from "./useUserBudgetInfo";
 import { usePostHog } from "posthog-js/react";
 import { useCheckProblems } from "./useCheckProblems";
 import { useSettings } from "./useSettings";
+import api from "@/api";
 
 export function getRandomNumberId() {
   return Math.floor(Math.random() * 1_000_000_000_000_000);
@@ -103,7 +103,7 @@ export function useStreamChat({
 
       let hasIncrementedStreamCount = false;
       try {
-        IpcClient.getInstance().streamMessage(prompt, {
+        api.chat.streamMessage(prompt, {
           selectedComponent: selectedComponent ?? null,
           chatId,
           redo,

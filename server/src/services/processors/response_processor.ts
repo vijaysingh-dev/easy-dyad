@@ -2,7 +2,7 @@ import { db } from "../../db";
 import { chats, messages } from "../../db/schema";
 import { and, eq } from "drizzle-orm";
 import fs from "node:fs";
-import { getDyadAppPath } from "../../../../shared/lib/paths";
+import { getDyadAppPath } from "../../shared/paths";
 import path from "node:path";
 import git from "isomorphic-git";
 import { safeJoin } from "../path_utils";
@@ -13,11 +13,11 @@ import {
   deleteSupabaseFunction,
   deploySupabaseFunctions,
   executeSupabaseSql,
-} from "../../supabase_admin/supabase_management_client";
-import { isServerFunction } from "../../supabase_admin/supabase_utils";
+} from "../../supabase/supabase_management_client";
+import { isServerFunction } from "../../supabase/supabase_utils";
 import { UserSettings } from "../../lib/schemas";
 import { gitCommit } from "../git_utils";
-import { readSettings } from "@shared/settings";
+import { readSettings } from "@/services/settings";
 import { writeMigrationFile } from "../file_utils";
 import {
   getDyadWriteTags,

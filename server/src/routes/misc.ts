@@ -1,7 +1,7 @@
 import { Router } from "express";
 import logger from "../logger";
 import { type UserSettings, type NodeSystemInfo } from "../ipc/ipc_types";
-import { readSettings, writeSettings } from "../../../shared/settings";
+import { readSettings, writeSettings } from "../services/settings";
 import { db } from "../db";
 import { apps } from "../db/schema";
 import { exec } from "node:child_process";

@@ -1,10 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-  chatMessagesByIdAtom,
-  chatStreamCountByIdAtom,
-} from "../atoms/chatAtoms";
-import { IpcClient } from "@/ipc/ipc_client";
+import { chatMessagesByIdAtom, chatStreamCountByIdAtom } from "../atoms/chatAtoms";
 
 import { ChatHeader } from "./chat/ChatHeader";
 import { MessagesList } from "./chat/MessagesList";
@@ -13,6 +9,7 @@ import { VersionPane } from "./chat/VersionPane";
 import { ChatError } from "./chat/ChatError";
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
+import api from "@/api";
 
 interface ChatPanelProps {
   chatId?: number;
@@ -20,11 +17,7 @@ interface ChatPanelProps {
   onTogglePreview: () => void;
 }
 
-export function ChatPanel({
-  chatId,
-  isPreviewOpen,
-  onTogglePreview,
-}: ChatPanelProps) {
+export function ChatPanel({ chatId, isPreviewOpen, onTogglePreview }: ChatPanelProps) {
   const messagesById = useAtomValue(chatMessagesByIdAtom);
   const setMessagesById = useSetAtom(chatMessagesByIdAtom);
   const [isVersionPaneOpen, setIsVersionPaneOpen] = useState(false);
@@ -53,9 +46,7 @@ export function ChatPanel({
   const getDistanceFromBottom = () => {
     if (!messagesContainerRef.current) return 0;
     const container = messagesContainerRef.current;
-    return (
-      container.scrollHeight - (container.scrollTop + container.clientHeight)
-    );
+    return container.scrollHeight - (container.scrollTop + container.clientHeight);
   };
 
   const isNearBottom = (threshold: number = 100) => {
@@ -118,7 +109,7 @@ export function ChatPanel({
       // no-op when no chat
       return;
     }
-    const chat = await IpcClient.getInstance().getChat(chatId);
+    const chat = await api.chat.getChat(chatId);
     setMessagesById((prev) => {
       const next = new Map(prev);
       next.set(chatId, chat.messages);
@@ -133,11 +124,7 @@ export function ChatPanel({
   const messages = chatId ? (messagesById.get(chatId) ?? []) : [];
   // Auto-scroll effect when messages change
   useEffect(() => {
-    if (
-      !isUserScrolling &&
-      messagesContainerRef.current &&
-      messages.length > 0
-    ) {
+    if (!isUserScrolling && messagesContainerRef.current && messages.length > 0) {
       // Only auto-scroll if user is close to bottom
       if (isNearBottom(280)) {
         requestAnimationFrame(() => {

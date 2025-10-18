@@ -8,7 +8,7 @@ import {
 import { ChatPanel } from "../components/ChatPanel";
 import { PreviewPanel } from "../components/preview_panel/PreviewPanel";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { cn } from "@/lib/utils";
+import { cn } from "@shared/utils";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { isPreviewOpenAtom } from "@/atoms/viewAtoms";
 import { useChats } from "@/hooks/useChats";
@@ -70,9 +70,7 @@ export default function ChatPage() {
           ref={ref}
           id="preview-panel"
           minSize={20}
-          className={cn(
-            !isResizing && "transition-all duration-100 ease-in-out",
-          )}
+          className={cn(!isResizing && "transition-all duration-100 ease-in-out")}
         >
           <PreviewPanel />
         </Panel>

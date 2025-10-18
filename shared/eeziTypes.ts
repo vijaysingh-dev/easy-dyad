@@ -1,5 +1,17 @@
 import { z } from "zod";
-import { ProblemReport } from "./tscTypes";
+
+export interface Problem {
+  file: string;
+  line: number;
+  column: number;
+  message: string;
+  code: number;
+  snippet: string;
+}
+
+export interface ProblemReport {
+  problems: Problem[];
+}
 
 export interface AppOutput {
   type: "stdout" | "stderr" | "info" | "client-error" | "input-requested";
@@ -19,7 +31,6 @@ export interface ListAppsResponse {
 }
 
 export interface ChatStreamParams {
-  chatId: number;
   prompt: string;
   redo?: boolean;
   attachments?: Array<{
@@ -32,7 +43,7 @@ export interface ChatStreamParams {
 }
 
 export interface ChatResponseEnd {
-  chatId?: number;
+  chatId: number;
   updatedFiles: boolean;
   extraFiles?: string[];
   extraFilesError?: string;
@@ -485,4 +496,27 @@ export interface McpToolConsent {
   toolName: string;
   consent: McpToolConsentType;
   updatedAt: number;
+}
+
+export interface GitHubDeviceFlowUpdateData {
+  userCode?: string;
+  verificationUri?: string;
+  message?: string;
+}
+
+export interface GitHubDeviceFlowSuccessData {
+  message?: string;
+}
+
+export interface GitHubDeviceFlowErrorData {
+  error: string;
+}
+
+export interface DeepLinkData {
+  type: string;
+}
+
+interface DeleteCustomModelParams {
+  providerId: string;
+  modelApiName: string;
 }

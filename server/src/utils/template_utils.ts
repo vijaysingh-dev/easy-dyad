@@ -1,9 +1,9 @@
+import log from "@/logger";
 import {
   type Template,
   type ApiTemplate,
   localTemplatesData,
-} from "../../shared/templates";
-import log from "electron-log";
+} from "../services/llm/templates";
 
 const logger = log.scope("template_utils");
 
