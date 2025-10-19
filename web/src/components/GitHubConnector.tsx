@@ -1,13 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Github,
-  Clipboard,
-  Check,
-  AlertTriangle,
-  ChevronRight,
-} from "lucide-react";
-import { IpcClient } from "@/ipc/ipc_client";
+import { Github, Clipboard, Check, AlertTriangle, ChevronRight } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
 import { useLoadApp } from "@/hooks/useLoadApp";
 import {
@@ -27,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import api from "@/api";
 
 interface GitHubConnectorProps {
   appId: number | null;
@@ -81,7 +75,7 @@ function ConnectedGitHubConnector({
     setIsDisconnecting(true);
     setDisconnectError(null);
     try {
-      await IpcClient.getInstance().disconnectGithubRepo(appId);
+      await api.integration.disconnectGithubRepo(appId);
       refreshApp();
     } catch (err: any) {
       setDisconnectError(err.message || "Failed to disconnect repository.");
@@ -98,10 +92,7 @@ function ConnectedGitHubConnector({
       setShowForceDialog(false);
 
       try {
-        const result = await IpcClient.getInstance().syncGithubRepo(
-          appId,
-          force,
-        );
+        const result = await api.integration.syncGithubRepo(appId, force);
         if (result.success) {
           setSyncSuccess(true);
         } else {
@@ -120,7 +111,7 @@ function ConnectedGitHubConnector({
         setIsSyncing(false);
       }
     },
-    [appId],
+    [appId]
   );
 
   // Auto-sync when triggerAutoSync prop is true
@@ -142,8 +133,8 @@ function ConnectedGitHubConnector({
       <a
         onClick={(e) => {
           e.preventDefault();
-          IpcClient.getInstance().openExternalUrl(
-            `https://github.com/${app.githubOrg}/${app.githubRepo}`,
+          api.app.openExternalUrl(
+            `https://github.com/${app.githubOrg}/${app.githubRepo}`
           );
         }}
         className="cursor-pointer text-blue-600 hover:underline dark:text-blue-400"
@@ -203,8 +194,8 @@ function ConnectedGitHubConnector({
             <a
               onClick={(e) => {
                 e.preventDefault();
-                IpcClient.getInstance().openExternalUrl(
-                  "https://www.dyad.sh/docs/integrations/github#troubleshooting",
+                api.app.openExternalUrl(
+                  "https://www.dyad.sh/docs/integrations/github#troubleshooting"
                 );
               }}
               className="cursor-pointer text-blue-600 hover:underline dark:text-blue-400"
@@ -231,9 +222,7 @@ function ConnectedGitHubConnector({
       {syncSuccess && (
         <p className="text-green-600 mt-2">Successfully pushed to GitHub!</p>
       )}
-      {disconnectError && (
-        <p className="text-red-600 mt-2">{disconnectError}</p>
-      )}
+      {disconnectError && <p className="text-red-600 mt-2">{disconnectError}</p>}
 
       {/* Force Push Warning Dialog */}
       <Dialog open={showForceDialog} onOpenChange={setShowForceDialog}>
@@ -246,20 +235,17 @@ function ConnectedGitHubConnector({
             <DialogDescription>
               <div className="space-y-3">
                 <p>
-                  You are about to perform a <strong>force push</strong> to your
-                  GitHub repository.
+                  You are about to perform a <strong>force push</strong> to your GitHub
+                  repository.
                 </p>
                 <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-md border border-orange-200 dark:border-orange-800">
                   <p className="text-sm text-orange-800 dark:text-orange-200">
-                    <strong>
-                      This is dangerous and non-reversible and will:
-                    </strong>
+                    <strong>This is dangerous and non-reversible and will:</strong>
                   </p>
                   <ul className="text-sm text-orange-700 dark:text-orange-300 list-disc list-inside mt-2 space-y-1">
                     <li>Overwrite the remote repository history</li>
                     <li>
-                      Permanently delete commits that exist on the remote but
-                      not locally
+                      Permanently delete commits that exist on the remote but not locally
                     </li>
                   </ul>
                 </div>
@@ -300,31 +286,23 @@ function UnconnectedGitHubConnector({
 
   // --- GitHub Device Flow State ---
   const [githubUserCode, setGithubUserCode] = useState<string | null>(null);
-  const [githubVerificationUri, setGithubVerificationUri] = useState<
-    string | null
-  >(null);
+  const [githubVerificationUri, setGithubVerificationUri] = useState<string | null>(
+    null
+  );
   const [githubError, setGithubError] = useState<string | null>(null);
   const [isConnectingToGithub, setIsConnectingToGithub] = useState(false);
-  const [githubStatusMessage, setGithubStatusMessage] = useState<string | null>(
-    null,
-  );
+  const [githubStatusMessage, setGithubStatusMessage] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
 
   // --- Repo Setup State ---
-  const [repoSetupMode, setRepoSetupMode] = useState<"create" | "existing">(
-    "create",
-  );
+  const [repoSetupMode, setRepoSetupMode] = useState<"create" | "existing">("create");
   const [availableRepos, setAvailableRepos] = useState<GitHubRepo[]>([]);
   const [isLoadingRepos, setIsLoadingRepos] = useState(false);
   const [selectedRepo, setSelectedRepo] = useState<string>("");
-  const [availableBranches, setAvailableBranches] = useState<GitHubBranch[]>(
-    [],
-  );
+  const [availableBranches, setAvailableBranches] = useState<GitHubBranch[]>([]);
   const [isLoadingBranches, setIsLoadingBranches] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<string>("main");
-  const [branchInputMode, setBranchInputMode] = useState<"select" | "custom">(
-    "select",
-  );
+  const [branchInputMode, setBranchInputMode] = useState<"select" | "custom">("select");
   const [customBranchName, setCustomBranchName] = useState<string>("");
 
   // Create new repo state
@@ -350,17 +328,8 @@ function UnconnectedGitHubConnector({
     setGithubStatusMessage("Requesting device code from GitHub...");
 
     // Send IPC message to main process to start the flow
-    IpcClient.getInstance().startGithubDeviceFlow(appId);
-  };
-
-  useEffect(() => {
-    if (!appId) return; // Don't set up listeners if appId is null initially
-
-    const cleanupFunctions: (() => void)[] = [];
-
-    // Listener for updates (user code, verification uri, status messages)
-    const removeUpdateListener =
-      IpcClient.getInstance().onGithubDeviceFlowUpdate((data) => {
+    api.integration.startGithubDeviceFlow(appId, {
+      onGithubDeviceFlowUpdate: (data) => {
         console.log("Received github:flow-update", data);
         if (data.userCode) {
           setGithubUserCode(data.userCode);
@@ -380,12 +349,8 @@ function UnconnectedGitHubConnector({
         if (data.userCode && data.verificationUri) {
           setIsConnectingToGithub(true); // Still connecting until success/error
         }
-      });
-    cleanupFunctions.push(removeUpdateListener);
-
-    // Listener for success
-    const removeSuccessListener =
-      IpcClient.getInstance().onGithubDeviceFlowSuccess((data) => {
+      },
+      onGithubDeviceFlowSuccess: (data) => {
         console.log("Received github:flow-success", data);
         setGithubStatusMessage("Successfully connected to GitHub!");
         setGithubUserCode(null); // Clear user-facing info
@@ -394,12 +359,8 @@ function UnconnectedGitHubConnector({
         setIsConnectingToGithub(false);
         refreshSettings();
         setIsExpanded(true);
-      });
-    cleanupFunctions.push(removeSuccessListener);
-
-    // Listener for errors
-    const removeErrorListener = IpcClient.getInstance().onGithubDeviceFlowError(
-      (data) => {
+      },
+      onGithubDeviceFlowError: (data) => {
         console.log("Received github:flow-error", data);
         setGithubError(data.error || "An unknown error occurred.");
         setGithubStatusMessage(null);
@@ -407,20 +368,8 @@ function UnconnectedGitHubConnector({
         setGithubVerificationUri(null);
         setIsConnectingToGithub(false);
       },
-    );
-    cleanupFunctions.push(removeErrorListener);
-
-    // Cleanup function to remove all listeners when component unmounts or appId changes
-    return () => {
-      cleanupFunctions.forEach((cleanup) => cleanup());
-      // Reset state when appId changes or component unmounts
-      setGithubUserCode(null);
-      setGithubVerificationUri(null);
-      setGithubError(null);
-      setIsConnectingToGithub(false);
-      setGithubStatusMessage(null);
-    };
-  }, [appId]); // Re-run effect if appId changes
+    });
+  };
 
   // Load available repos when GitHub is connected
   useEffect(() => {
@@ -432,7 +381,7 @@ function UnconnectedGitHubConnector({
   const loadAvailableRepos = async () => {
     setIsLoadingRepos(true);
     try {
-      const repos = await IpcClient.getInstance().listGithubRepos();
+      const repos = await api.integration.listGithubRepos();
       setAvailableRepos(repos);
     } catch (error) {
       console.error("Failed to load GitHub repos:", error);
@@ -456,15 +405,11 @@ function UnconnectedGitHubConnector({
     setCustomBranchName(""); // Clear custom branch name
     try {
       const [owner, repo] = selectedRepo.split("/");
-      const branches = await IpcClient.getInstance().getGithubRepoBranches(
-        owner,
-        repo,
-      );
+      const branches = await api.integration.getGithubRepoBranches(owner, repo);
       setAvailableBranches(branches);
       // Default to main if available, otherwise first branch
       const defaultBranch =
-        branches.find((b) => b.name === "main" || b.name === "master") ||
-        branches[0];
+        branches.find((b) => b.name === "main" || b.name === "master") || branches[0];
       if (defaultBranch) {
         setSelectedBranch(defaultBranch.name);
       }
@@ -482,15 +427,10 @@ function UnconnectedGitHubConnector({
       if (!name) return;
       setIsCheckingRepo(true);
       try {
-        const result = await IpcClient.getInstance().checkGithubRepoAvailable(
-          githubOrg,
-          name,
-        );
+        const result = await api.integration.checkGithubRepoAvailable(githubOrg, name);
         setRepoAvailable(result.available);
         if (!result.available) {
-          setRepoCheckError(
-            result.error || "Repository name is not available.",
-          );
+          setRepoCheckError(result.error || "Repository name is not available.");
         }
       } catch (err: any) {
         setRepoCheckError(err.message || "Failed to check repo availability.");
@@ -498,7 +438,7 @@ function UnconnectedGitHubConnector({
         setIsCheckingRepo(false);
       }
     },
-    [githubOrg],
+    [githubOrg]
   );
 
   const debouncedCheckRepoAvailability = useCallback(
@@ -510,7 +450,7 @@ function UnconnectedGitHubConnector({
         checkRepoAvailability(name);
       }, 500);
     },
-    [checkRepoAvailability],
+    [checkRepoAvailability]
   );
 
   const handleSetupRepo = async (e: React.FormEvent) => {
@@ -523,21 +463,21 @@ function UnconnectedGitHubConnector({
 
     try {
       if (repoSetupMode === "create") {
-        await IpcClient.getInstance().createGithubRepo(
+        await api.integration.createGithubRepo(
           githubOrg,
           repoName,
           appId,
-          selectedBranch,
+          selectedBranch
         );
       } else {
         const [owner, repo] = selectedRepo.split("/");
         const branchToUse =
           branchInputMode === "custom" ? customBranchName : selectedBranch;
-        await IpcClient.getInstance().connectToExistingGithubRepo(
+        await api.integration.connectToExistingGithubRepo(
           owner,
           repo,
           branchToUse,
-          appId,
+          appId
         );
       }
 
@@ -547,7 +487,7 @@ function UnconnectedGitHubConnector({
     } catch (err: any) {
       setCreateRepoError(
         err.message ||
-          `Failed to ${repoSetupMode === "create" ? "create" : "connect to"} repository.`,
+          `Failed to ${repoSetupMode === "create" ? "create" : "connect to"} repository.`
       );
     } finally {
       setIsCreatingRepo(false);
@@ -594,9 +534,7 @@ function UnconnectedGitHubConnector({
           <div className="mt-6 p-4 border rounded-md bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600">
             <h4 className="font-medium mb-2">GitHub Connection</h4>
             {githubError && (
-              <p className="text-red-600 dark:text-red-400 mb-2">
-                Error: {githubError}
-              </p>
+              <p className="text-red-600 dark:text-red-400 mb-2">Error: {githubError}</p>
             )}
             {githubUserCode && githubVerificationUri && (
               <div className="mb-2">
@@ -606,9 +544,7 @@ function UnconnectedGitHubConnector({
                     href={githubVerificationUri} // Make it a direct link
                     onClick={(e) => {
                       e.preventDefault();
-                      IpcClient.getInstance().openExternalUrl(
-                        githubVerificationUri,
-                      );
+                      api.app.openExternalUrl(githubVerificationUri);
                     }}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -632,9 +568,7 @@ function UnconnectedGitHubConnector({
                             setCodeCopied(true);
                             setTimeout(() => setCodeCopied(false), 2000);
                           })
-                          .catch((err) =>
-                            console.error("Failed to copy code:", err),
-                          );
+                          .catch((err) => console.error("Failed to copy code:", err));
                       }
                     }}
                     title="Copy to clipboard"
@@ -666,15 +600,11 @@ function UnconnectedGitHubConnector({
         type="button"
         onClick={!isExpanded ? () => setIsExpanded(true) : undefined}
         className={`w-full p-4 text-left transition-colors rounded-md flex items-center justify-between ${
-          !isExpanded
-            ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
-            : ""
+          !isExpanded ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50" : ""
         }`}
       >
         <span className="font-medium">Set up your GitHub repo</span>
-        {isExpanded ? undefined : (
-          <ChevronRight className="h-4 w-4 text-gray-500" />
-        )}
+        {isExpanded ? undefined : <ChevronRight className="h-4 w-4 text-gray-500" />}
       </button>
 
       {/* Collapsible Content */}
@@ -726,9 +656,7 @@ function UnconnectedGitHubConnector({
             {repoSetupMode === "create" ? (
               <>
                 <div>
-                  <Label className="block text-sm font-medium">
-                    Repository Name
-                  </Label>
+                  <Label className="block text-sm font-medium">Repository Name</Label>
                   <Input
                     data-testid="github-create-repo-name-input"
                     className="w-full mt-1"
@@ -753,18 +681,14 @@ function UnconnectedGitHubConnector({
                     </p>
                   )}
                   {repoAvailable === false && (
-                    <p className="text-xs text-red-600 mt-1">
-                      {repoCheckError}
-                    </p>
+                    <p className="text-xs text-red-600 mt-1">{repoCheckError}</p>
                   )}
                 </div>
               </>
             ) : (
               <>
                 <div>
-                  <Label className="block text-sm font-medium">
-                    Select Repository
-                  </Label>
+                  <Label className="block text-sm font-medium">Select Repository</Label>
                   <Select
                     value={selectedRepo}
                     onValueChange={setSelectedRepo}
@@ -800,9 +724,7 @@ function UnconnectedGitHubConnector({
               {repoSetupMode === "existing" && selectedRepo ? (
                 <div className="space-y-2">
                   <Select
-                    value={
-                      branchInputMode === "select" ? selectedBranch : "custom"
-                    }
+                    value={branchInputMode === "select" ? selectedBranch : "custom"}
                     onValueChange={(value) => {
                       if (value === "custom") {
                         setBranchInputMode("custom");
@@ -820,9 +742,7 @@ function UnconnectedGitHubConnector({
                     >
                       <SelectValue
                         placeholder={
-                          isLoadingBranches
-                            ? "Loading branches..."
-                            : "Select a branch"
+                          isLoadingBranches ? "Loading branches..." : "Select a branch"
                         }
                       />
                     </SelectTrigger>
@@ -833,9 +753,7 @@ function UnconnectedGitHubConnector({
                         </SelectItem>
                       ))}
                       <SelectItem value="custom">
-                        <span className="font-medium">
-                          ✏️ Type custom branch name
-                        </span>
+                        <span className="font-medium">✏️ Type custom branch name</span>
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -866,8 +784,7 @@ function UnconnectedGitHubConnector({
               type="submit"
               disabled={
                 isCreatingRepo ||
-                (repoSetupMode === "create" &&
-                  (repoAvailable === false || !repoName)) ||
+                (repoSetupMode === "create" && (repoAvailable === false || !repoName)) ||
                 (repoSetupMode === "existing" &&
                   (!selectedRepo ||
                     !selectedBranch ||
@@ -884,9 +801,7 @@ function UnconnectedGitHubConnector({
             </Button>
           </form>
 
-          {createRepoError && (
-            <p className="text-red-600 mt-2">{createRepoError}</p>
-          )}
+          {createRepoError && <p className="text-red-600 mt-2">{createRepoError}</p>}
           {createRepoSuccess && (
             <p className="text-green-600 mt-2">
               {repoSetupMode === "create"
@@ -900,11 +815,7 @@ function UnconnectedGitHubConnector({
   );
 }
 
-export function GitHubConnector({
-  appId,
-  folderName,
-  expanded,
-}: GitHubConnectorProps) {
+export function GitHubConnector({ appId, folderName, expanded }: GitHubConnectorProps) {
   const { app, refreshApp } = useLoadApp(appId);
   const { settings, refreshSettings } = useSettings();
   const [pendingAutoSync, setPendingAutoSync] = useState(false);

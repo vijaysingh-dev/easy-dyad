@@ -7,7 +7,7 @@ import {
   getDyadDeleteTags,
 } from "../../../server/src/utils/dyad_tag_parser";
 
-import { processFullResponseActions } from "../../../server/src/processors/response_processor";
+import { processFullResponseActions } from "../../../server/src/utils/processors/response_processor";
 import {
   removeDyadTags,
   hasUnclosedDyadWrite,

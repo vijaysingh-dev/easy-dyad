@@ -1,15 +1,8 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { IpcClient } from "@/ipc/ipc_client";
-import { showSuccess } from "@/lib/toast";
-import {
-  Smartphone,
-  TabletSmartphone,
-  Loader2,
-  ExternalLink,
-  Copy,
-} from "lucide-react";
+import { showSuccess } from "@/components/Toast";
+import { Smartphone, TabletSmartphone, Loader2, ExternalLink, Copy } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import api from "@/api";
 
 interface CapacitorControlsProps {
   appId: number;
@@ -43,7 +37,7 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
   // Check if Capacitor is installed
   const { data: isCapacitor, isLoading } = useQuery({
     queryKey: ["is-capacitor", appId],
-    queryFn: () => IpcClient.getInstance().isCapacitor({ appId }),
+    queryFn: () => api.app.isCapacitor({ appId }),
     enabled: appId !== undefined && appId !== null,
   });
 
@@ -58,10 +52,10 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
     mutationFn: async () => {
       setIosStatus("syncing");
       // First sync
-      await IpcClient.getInstance().syncCapacitor({ appId });
+      await api.app.syncCapacitor({ appId });
       setIosStatus("opening");
       // Then open iOS
-      await IpcClient.getInstance().openIos({ appId });
+      await api.app.openIos({ appId });
     },
     onSuccess: () => {
       setIosStatus("idle");
@@ -78,10 +72,10 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
     mutationFn: async () => {
       setAndroidStatus("syncing");
       // First sync
-      await IpcClient.getInstance().syncCapacitor({ appId });
+      await api.app.syncCapacitor({ appId });
       setAndroidStatus("opening");
       // Then open Android
-      await IpcClient.getInstance().openAndroid({ appId });
+      await api.app.openAndroid({ appId });
     },
     onSuccess: () => {
       setAndroidStatus("idle");
@@ -135,8 +129,8 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
               size="sm"
               onClick={() => {
                 // TODO: Add actual help link
-                IpcClient.getInstance().openExternalUrl(
-                  "https://dyad.sh/docs/guides/mobile-app#troubleshooting",
+                api.app.openExternalUrl(
+                  "https://dyad.sh/docs/guides/mobile-app#troubleshooting"
                 );
               }}
               className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center gap-1"
@@ -145,9 +139,7 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
               <ExternalLink className="h-3 w-3" />
             </Button>
           </CardTitle>
-          <CardDescription>
-            Sync and open your Capacitor mobile projects
-          </CardDescription>
+          <CardDescription>Sync and open your Capacitor mobile projects</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-2">
@@ -182,12 +174,8 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
                 <TabletSmartphone className="h-4 w-4" />
               )}
               <div className="text-left">
-                <div className="text-xs font-medium">
-                  {androidButtonText.main}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {androidButtonText.sub}
-                </div>
+                <div className="text-xs font-medium">{androidButtonText.main}</div>
+                <div className="text-xs text-gray-500">{androidButtonText.sub}</div>
               </div>
             </Button>
           </div>
@@ -202,8 +190,7 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
               {errorDetails?.title}
             </DialogTitle>
             <DialogDescription>
-              An error occurred while running the Capacitor command. See details
-              below:
+              An error occurred while running the Capacitor command. See details below:
             </DialogDescription>
           </DialogHeader>
 

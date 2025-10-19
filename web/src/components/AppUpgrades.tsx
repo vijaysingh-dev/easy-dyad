@@ -1,10 +1,9 @@
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
-import { IpcClient } from "@/ipc/ipc_client";
+import { Terminal, Loader2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AppUpgrade } from "@/ipc/ipc_types";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AppUpgrade } from "@shared/eeziTypes";
+import api from "@/api";
 
 export function AppUpgrades({ appId }: { appId: number | null }) {
   const queryClient = useQueryClient();
@@ -19,7 +18,7 @@ export function AppUpgrades({ appId }: { appId: number | null }) {
       if (!appId) {
         return Promise.resolve([]);
       }
-      return IpcClient.getInstance().getAppUpgrades({ appId });
+      return api.app.getAppUpgrades({ appId });
     },
     enabled: !!appId,
   });
@@ -34,7 +33,7 @@ export function AppUpgrades({ appId }: { appId: number | null }) {
       if (!appId) {
         throw new Error("appId is not set");
       }
-      return IpcClient.getInstance().executeAppUpgrade({
+      return api.app.executeAppUpgrade({
         appId,
         upgradeId,
       });
@@ -111,21 +110,16 @@ export function AppUpgrades({ appId }: { appId: number | null }) {
                   {upgrade.description}
                 </p>
                 {mutationError && upgradingVariables === upgrade.id && (
-                  <Alert
-                    variant="destructive"
-                    className="mt-3 dark:bg-destructive/15"
-                  >
+                  <Alert variant="destructive" className="mt-3 dark:bg-destructive/15">
                     <Terminal className="h-4 w-4" />
-                    <AlertTitle className="dark:text-red-200">
-                      Upgrade Failed
-                    </AlertTitle>
+                    <AlertTitle className="dark:text-red-200">Upgrade Failed</AlertTitle>
                     <AlertDescription className="text-xs text-red-400 dark:text-red-300">
                       {(mutationError as Error).message}{" "}
                       <a
                         onClick={(e) => {
                           e.stopPropagation();
-                          IpcClient.getInstance().openExternalUrl(
-                            upgrade.manualUpgradeUrl ?? "https://dyad.sh/docs",
+                          api.app.openExternalUrl(
+                            upgrade.manualUpgradeUrl ?? "https://dyad.sh/docs"
                           );
                         }}
                         className="underline font-medium hover:dark:text-red-200"

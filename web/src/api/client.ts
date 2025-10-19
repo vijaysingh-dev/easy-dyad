@@ -1,4 +1,11 @@
-import { ChatResponseEnd, Message, AppOutput } from "@shared/eeziTypes";
+import {
+  ChatResponseEnd,
+  Message,
+  AppOutput,
+  GitHubDeviceFlowUpdateData,
+  GitHubDeviceFlowSuccessData,
+  GitHubDeviceFlowErrorData,
+} from "@shared/eeziTypes";
 
 export interface AppStreamCallbacks {
   onOutput: (output: AppOutput) => void;
@@ -16,14 +23,22 @@ export interface HelpStreamCallbacks {
   onError: (error: string) => void;
 }
 
+export interface GithubStreamCallbacks {
+  onGithubDeviceFlowUpdate: (data: GitHubDeviceFlowUpdateData) => void;
+  onGithubDeviceFlowSuccess: (data: GitHubDeviceFlowSuccessData) => void;
+  onGithubDeviceFlowError: (data: GitHubDeviceFlowErrorData) => void;
+}
+
 class EeziClient {
-  private baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+  public baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
   // Streams
   public chatStreams = new Map<number, ChatStreamCallbacks>();
   public appStreams = new Map<number, AppStreamCallbacks>();
   public helpStreams = new Map<string, HelpStreamCallbacks>();
   public mcpConsentHandlers = new Map<string, (payload: any) => void>();
+  public githubStreams = new Map<number, GithubStreamCallbacks>();
+  public deepLinkHandler: (data: any) => void = () => {};
 
   // EventSource connections per type
   public eventSources: {
@@ -31,6 +46,8 @@ class EeziClient {
     app?: EventSource;
     help?: EventSource;
     mcp?: EventSource;
+    github?: EventSource;
+    deeplink?: EventSource;
   } = {};
 
   // Retry management
@@ -39,6 +56,8 @@ class EeziClient {
     app: 0,
     help: 0,
     mcp: 0,
+    github: 0,
+    deeplink: 0,
   };
   private maxRetryDelay = 30000;
 
@@ -49,11 +68,10 @@ class EeziClient {
   // ----------------------------
   private initEventSource(
     key: keyof typeof this.eventSources,
-    streamId: string | number,
+    url: string,
     onData: (data: any) => void
   ) {
     if (this.eventSources[key]) return; // already connected
-    const url = `${this.baseURL}/${key}/stream/${streamId}`;
     const es = new EventSource(url);
 
     es.onopen = () => {
@@ -74,7 +92,7 @@ class EeziClient {
       console.error(`[${key}] SSE error:`, err);
       es.close();
       this.eventSources[key] = undefined;
-      this.retryConnection(key, streamId, onData);
+      this.retryConnection(key, url, onData);
     };
 
     this.eventSources[key] = es;
@@ -82,7 +100,7 @@ class EeziClient {
 
   private retryConnection(
     key: keyof typeof this.eventSources,
-    streamId: string | number,
+    url: string,
     onData: (data: any) => void
   ) {
     this.retryCounts[key]++;
@@ -90,15 +108,13 @@ class EeziClient {
     console.warn(`[${key}] Retrying connection in ${delay / 1000}s...`);
 
     setTimeout(() => {
-      this.initEventSource(key, streamId, onData);
+      this.initEventSource(key, url, onData);
     }, delay);
   }
 
-  // ----------------------------
   // Chat Stream
-  // ----------------------------
-  public initChatStreamSSE(chatId: number) {
-    this.initEventSource("chat", chatId.toString(), (data) => {
+  public initChatStreamSSE(url: string) {
+    this.initEventSource("chat", url, (data) => {
       switch (data.type) {
         case "chat:response:chunk": {
           const { chatId, messages } = data;
@@ -123,11 +139,9 @@ class EeziClient {
     });
   }
 
-  // ----------------------------
   // App Output Stream
-  // ----------------------------
-  public initAppStreamSSE(appId: number) {
-    this.initEventSource("app", appId.toString(), (data) => {
+  public initAppStreamSSE(url: string) {
+    this.initEventSource("app", url, (data) => {
       if (data.type === "app:output") {
         const { appId, type, message } = data as AppOutput;
         this.appStreams
@@ -137,18 +151,9 @@ class EeziClient {
     });
   }
 
-  public registerAppStream(appId: number, callbacks: AppStreamCallbacks) {
-    this.appStreams.set(appId, callbacks);
-    if (!this.eventSources.app) {
-      this.initAppStreamSSE(appId);
-    }
-  }
-
-  // ----------------------------
   // Help Bot Stream
-  // ----------------------------
-  public initHelpStreamSSE(helpId: string) {
-    this.initEventSource("help", helpId, (data) => {
+  public initHelpStreamSSE(url: string) {
+    this.initEventSource("help", url, (data) => {
       switch (data.type) {
         case "help:chat:response:chunk": {
           const { sessionId, delta } = data;
@@ -173,16 +178,7 @@ class EeziClient {
     });
   }
 
-  public registerHelpStream(sessionId: string, callbacks: HelpStreamCallbacks) {
-    this.helpStreams.set(sessionId, callbacks);
-    if (!this.eventSources.help) {
-      this.initHelpStreamSSE(sessionId);
-    }
-  }
-
-  // ----------------------------
   // MCP Stream
-  // ----------------------------
   public initMcpStreamSSE(key: string) {
     this.initEventSource("mcp", key, (data) => {
       if (data.type === "mcp:tool-consent-request") {
@@ -193,32 +189,56 @@ class EeziClient {
     });
   }
 
-  public registerMcpConsentHandler(key: string, handler: (payload: any) => void) {
-    this.mcpConsentHandlers.set(key, handler);
-    if (!this.eventSources.mcp) {
-      this.initMcpStreamSSE(key);
-    }
+  // Github Stream
+  public initGithubStreamSSE(url: string) {
+    this.initEventSource("github", url, (data) => {
+      if (data.type === "github:flow-update") {
+        this.githubStreams.get(data.appId)?.onGithubDeviceFlowUpdate(data);
+      } else if (data.type == "github:flow-success") {
+        this.githubStreams.get(data.appId)?.onGithubDeviceFlowSuccess(data);
+      } else if (data.type == "github:flow-error") {
+        this.githubStreams.get(data.appId)?.onGithubDeviceFlowError(data);
+      } else {
+        console.warn("[github] Unknown event type:", data.type);
+      }
+    });
+  }
+
+  // DeepLink Stream
+  public initDeepLinkSSE(url: string) {
+    this.initEventSource("deeplink", url, (data) => {
+      if (data.type === "deep-link:register") {
+        localStorage.setItem("clientId", data.clientId);
+      } else if (data.type === "deep-link:received") {
+        this.deepLinkHandler(data);
+      } else {
+        console.warn("[deeplink] Unknown event type:", data.type);
+      }
+    });
   }
 
   // ----------------------------
   // Utilities
   // ----------------------------
-  public reconnectNow(type: keyof typeof this.eventSources, streamId: string | number) {
+  public reconnectNow(type: keyof typeof this.eventSources, url: string) {
     this.eventSources[type]?.close();
     this.retryCounts[type] = 0;
     this.eventSources[type] = undefined;
     switch (type) {
       case "chat":
-        this.initChatStreamSSE(streamId as number);
+        this.initChatStreamSSE(url);
         break;
       case "app":
-        this.initAppStreamSSE(streamId as number);
+        this.initAppStreamSSE(url);
         break;
       case "help":
-        this.initHelpStreamSSE(streamId as string);
+        this.initHelpStreamSSE(url);
         break;
       case "mcp":
-        this.initMcpStreamSSE(streamId as string);
+        this.initMcpStreamSSE(url);
+        break;
+      case "github":
+        this.initGithubStreamSSE(url);
         break;
     }
   }

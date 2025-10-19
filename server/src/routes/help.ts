@@ -12,7 +12,6 @@ import { getLanguageModelProviders } from "../shared/language_model_helpers";
 import { getEnvVar } from "../utils/read_env";
 import { execSync } from "child_process";
 import { platform, arch } from "os";
-import fixPath from "fix-path";
 import { runShellCommand } from "@/utils/runShellCommand";
 
 const router = Router();

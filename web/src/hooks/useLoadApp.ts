@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { useAtom } from "jotai";
 import { useQuery, QueryClient } from "@tanstack/react-query";
 import { currentAppAtom } from "@/atoms/appAtoms";
+import { App } from "@shared/eeziTypes";
 import api from "@/api";
-
 
 export function useLoadApp(appId: number | null) {
   const [, setApp] = useAtom(currentAppAtom);

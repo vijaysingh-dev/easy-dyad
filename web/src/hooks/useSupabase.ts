@@ -6,17 +6,13 @@ import {
   supabaseErrorAtom,
   selectedSupabaseProjectAtom,
 } from "@/atoms/supabaseAtoms";
-import { IpcClient } from "@/ipc/ipc_client";
+import api from "@/api";
 
 export function useSupabase() {
   const [projects, setProjects] = useAtom(supabaseProjectsAtom);
   const [loading, setLoading] = useAtom(supabaseLoadingAtom);
   const [error, setError] = useAtom(supabaseErrorAtom);
-  const [selectedProject, setSelectedProject] = useAtom(
-    selectedSupabaseProjectAtom,
-  );
-
-  const ipcClient = IpcClient.getInstance();
+  const [selectedProject, setSelectedProject] = useAtom(selectedSupabaseProjectAtom);
 
   /**
    * Load Supabase projects from the API
@@ -24,7 +20,7 @@ export function useSupabase() {
   const loadProjects = useCallback(async () => {
     setLoading(true);
     try {
-      const projectList = await ipcClient.listSupabaseProjects();
+      const projectList = await api.integration.listSupabaseProjects();
       setProjects(projectList);
       setError(null);
     } catch (error) {
@@ -33,7 +29,7 @@ export function useSupabase() {
     } finally {
       setLoading(false);
     }
-  }, [ipcClient, setProjects, setError, setLoading]);
+  }, [setProjects, setError, setLoading]);
 
   /**
    * Associate a Supabase project with an app
@@ -42,7 +38,7 @@ export function useSupabase() {
     async (projectId: string, appId: number) => {
       setLoading(true);
       try {
-        await ipcClient.setSupabaseAppProject(projectId, appId);
+        await api.integration.setSupabaseAppProject(projectId, appId);
         setError(null);
       } catch (error) {
         console.error("Error setting Supabase project for app:", error);
@@ -52,7 +48,7 @@ export function useSupabase() {
         setLoading(false);
       }
     },
-    [ipcClient, setError, setLoading],
+    [setError, setLoading]
   );
 
   /**
@@ -62,7 +58,7 @@ export function useSupabase() {
     async (appId: number) => {
       setLoading(true);
       try {
-        await ipcClient.unsetSupabaseAppProject(appId);
+        await api.integration.unsetSupabaseAppProject(appId);
         setError(null);
       } catch (error) {
         console.error("Error unsetting Supabase project for app:", error);
@@ -72,7 +68,7 @@ export function useSupabase() {
         setLoading(false);
       }
     },
-    [ipcClient, setError, setLoading],
+    [setError, setLoading]
   );
 
   /**
@@ -82,7 +78,7 @@ export function useSupabase() {
     (projectId: string | null) => {
       setSelectedProject(projectId);
     },
-    [setSelectedProject],
+    [setSelectedProject]
   );
 
   return {

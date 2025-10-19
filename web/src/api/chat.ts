@@ -124,7 +124,8 @@ class ChatApiService {
         })
           .then((res) => {
             if (!eeziClient.eventSources.chat) {
-              eeziClient.initChatStreamSSE(chatId);
+              const url = eeziClient.baseURL + `/stream/${chatId}`;
+              eeziClient.initChatStreamSSE(url);
             }
           })
           .catch((err) => {

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
@@ -5,9 +6,7 @@ import {
   appsListAtom,
   selectedAppIdAtom,
 } from "@/atoms/appAtoms";
-import { IpcClient } from "@/ipc/ipc_client";
 import { useLoadApps } from "@/hooks/useLoadApps";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
@@ -32,7 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { GitHubConnector } from "@/components/GitHubConnector";
 import { SupabaseConnector } from "@/components/SupabaseConnector";
-import { showError } from "@/lib/toast";
+import { showError } from "@/components/Toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
@@ -41,6 +40,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useCheckName } from "@/hooks/useCheckName";
 import { AppUpgrades } from "@/components/AppUpgrades";
 import { CapacitorControls } from "@/components/CapacitorControls";
+import api from "@/api";
 
 export default function AppDetailsPage() {
   const navigate = useNavigate();
@@ -82,7 +82,7 @@ export default function AppDetailsPage() {
 
     try {
       setIsDeleting(true);
-      await IpcClient.getInstance().deleteApp(appId);
+      await api.app.deleteApp(appId);
       setIsDeleteDialogOpen(false);
       await refreshApps();
       navigate({ to: "/", search: {} });

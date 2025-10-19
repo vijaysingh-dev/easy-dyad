@@ -5,7 +5,7 @@ import { isIgnored } from "isomorphic-git";
 import log from "electron-log";
 import { IS_TEST_BUILD } from "../../../server/src/utils/test_utils";
 import { glob } from "glob";
-import { AppChatContext } from "../../../shared/lib/schemas";
+import { AppChatContext } from "../../../shared/schemas";
 import { readSettings } from "@/main/settings";
 import { AsyncVirtualFileSystem } from "../../shared/VirtualFilesystem";
 

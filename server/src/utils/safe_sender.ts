@@ -3,7 +3,6 @@ import { Response } from "express";
 
 export function safeSend(
   res: Response,
-  chatId: number,
   type: string,
   payload: any
 ): void {

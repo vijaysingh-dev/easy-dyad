@@ -6,7 +6,7 @@ import {
   type UserSettings,
   Secret,
   VertexProviderSetting,
-} from "../../../shared/lib/schemas";
+} from "../../../shared/schemas";
 import { safeStorage } from "electron";
 import { v4 as uuidv4 } from "uuid";
 import log from "electron-log";

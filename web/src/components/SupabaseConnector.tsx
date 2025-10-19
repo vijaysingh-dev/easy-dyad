@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 
 import { Label } from "@/components/ui/label";
 
-import { IpcClient } from "@/ipc/ipc_client";
 import { toast } from "sonner";
 import { useSettings } from "@/hooks/useSettings";
 import { useSupabase } from "@/hooks/useSupabase";
@@ -36,6 +35,7 @@ import connectSupabaseLight from "../../assets/supabase/connect-supabase-light.s
 
 import { ExternalLink } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
+import api from "@/api";
 
 export function SupabaseConnector({ appId }: { appId: number }) {
   const { settings, refreshSettings } = useSettings();
@@ -99,8 +99,8 @@ export function SupabaseConnector({ appId }: { appId: number }) {
               <Button
                 variant="outline"
                 onClick={() => {
-                  IpcClient.getInstance().openExternalUrl(
-                    `https://supabase.com/dashboard/project/${app.supabaseProjectId}`,
+                  api.app.openExternalUrl(
+                    `https://supabase.com/dashboard/project/${app.supabaseProjectId}`
                   );
                 }}
                 className="ml-2 px-2 py-1"
@@ -146,11 +146,7 @@ export function SupabaseConnector({ appId }: { appId: number }) {
           ) : error ? (
             <div className="text-red-500">
               Error loading projects: {error.message}
-              <Button
-                variant="outline"
-                className="mt-2"
-                onClick={() => loadProjects()}
-              >
+              <Button variant="outline" className="mt-2" onClick={() => loadProjects()}>
                 Retry
               </Button>
             </div>
@@ -204,13 +200,13 @@ export function SupabaseConnector({ appId }: { appId: number }) {
         <img
           onClick={async () => {
             if (settings?.isTestMode) {
-              await IpcClient.getInstance().fakeHandleSupabaseConnect({
+              api.integration.fakeHandleSupabaseConnect({
                 appId,
                 fakeProjectId: "fake-project-id",
               });
             } else {
-              await IpcClient.getInstance().openExternalUrl(
-                "https://supabase-oauth.dyad.sh/api/connect-supabase/login",
+              await api.app.openExternalUrl(
+                "https://supabase-oauth.dyad.sh/api/connect-supabase/login"
               );
             }
           }}

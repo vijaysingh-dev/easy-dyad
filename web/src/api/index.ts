@@ -1,19 +1,19 @@
 import appApi from "./app";
 import chatApi from "./chat";
-import settingsApi from "./settings";
+import helpApi from "./help";
 import integrationApi from "./integration";
 import mcpApi from "./mcp";
+import settingsApi from "./settings";
 import versionApi from "./version";
-import miscApi from "./misc";
 
 const api = {
   app: appApi,
   chat: chatApi,
-  settings: settingsApi,
+  help: helpApi,
   integration: integrationApi,
   mcp: mcpApi,
+  settings: settingsApi,
   version: versionApi,
-  misc: miscApi,
 };
 
 export default api;
