@@ -2,7 +2,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Star } from "lucide-react";
 import { SidebarMenuItem } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { App } from "@/ipc/ipc_types";
+import { App } from "@shared/eeziTypes";
 
 type AppItemProps = {
   app: App;

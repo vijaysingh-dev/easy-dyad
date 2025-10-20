@@ -19,7 +19,7 @@ import {
   HelpCircle,
   ArrowRight,
 } from "lucide-react";
-import { showError, showSuccess } from "@/lib/toast";
+import { showError, showSuccess } from "@/components/Toast";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
 import { IpcClient } from "@/ipc/ipc_client";
 import { useNavigate } from "@tanstack/react-router";

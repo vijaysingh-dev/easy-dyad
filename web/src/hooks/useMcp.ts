@@ -7,7 +7,7 @@ import type {
   McpTool,
   McpToolConsent,
   CreateMcpServer,
-} from "@/ipc/ipc_types";
+} from "@shared/eeziTypes";
 
 export type Transport = "stdio" | "http";
 

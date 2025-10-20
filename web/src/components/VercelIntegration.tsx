@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks/useSettings";
-import { showSuccess, showError } from "@/lib/toast";
+import { showSuccess, showError } from "@/components/Toast";
 
 export function VercelIntegration() {
   const { settings, updateSettings } = useSettings();
@@ -19,9 +19,7 @@ export function VercelIntegration() {
         showError("Failed to disconnect from Vercel");
       }
     } catch (err: any) {
-      showError(
-        err.message || "An error occurred while disconnecting from Vercel",
-      );
+      showError(err.message || "An error occurred while disconnecting from Vercel");
     } finally {
       setIsDisconnecting(false);
     }

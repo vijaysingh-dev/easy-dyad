@@ -115,7 +115,7 @@ class EeziClient {
   // Chat Stream
   public initChatStreamSSE(url: string) {
     this.initEventSource("chat", url, (data) => {
-      switch (data.type) {
+      switch (data.eventType) {
         case "chat:response:chunk": {
           const { chatId, messages } = data;
           this.chatStreams.get(chatId)?.onUpdate(messages);
@@ -134,7 +134,7 @@ class EeziClient {
           break;
         }
         default:
-          console.warn("[chat] Unknown event type:", data.type);
+          console.warn("[chat] Unknown event type:", data.eventType);
       }
     });
   }
@@ -142,11 +142,15 @@ class EeziClient {
   // App Output Stream
   public initAppStreamSSE(url: string) {
     this.initEventSource("app", url, (data) => {
-      if (data.type === "app:output") {
+      if (data.eventType === "app:output") {
         const { appId, type, message } = data as AppOutput;
         this.appStreams
           .get(appId)
           ?.onOutput({ appId, type, message, timestamp: Date.now() });
+      } else if (data.eventType === "app:error") {
+        console.error(`[app] Error for app ${data.appId}:`, data.error);
+      } else {
+        console.warn("[app] Unknown event type:", data.eventType);
       }
     });
   }
@@ -154,7 +158,7 @@ class EeziClient {
   // Help Bot Stream
   public initHelpStreamSSE(url: string) {
     this.initEventSource("help", url, (data) => {
-      switch (data.type) {
+      switch (data.eventType) {
         case "help:chat:response:chunk": {
           const { sessionId, delta } = data;
           this.helpStreams.get(sessionId)?.onChunk(delta);
@@ -173,7 +177,7 @@ class EeziClient {
           break;
         }
         default:
-          console.warn("[help] Unknown event type:", data.type);
+          console.warn("[help] Unknown event type:", data.eventType);
       }
     });
   }
@@ -181,10 +185,10 @@ class EeziClient {
   // MCP Stream
   public initMcpStreamSSE(key: string) {
     this.initEventSource("mcp", key, (data) => {
-      if (data.type === "mcp:tool-consent-request") {
+      if (data.eventType === "mcp:tool-consent-request") {
         this.mcpConsentHandlers.get("consent")?.(data.payload);
       } else {
-        console.warn("[mcp] Unknown event type:", data.type);
+        console.warn("[mcp] Unknown event type:", data.eventType);
       }
     });
   }
@@ -192,14 +196,14 @@ class EeziClient {
   // Github Stream
   public initGithubStreamSSE(url: string) {
     this.initEventSource("github", url, (data) => {
-      if (data.type === "github:flow-update") {
+      if (data.eventType === "github:flow-update") {
         this.githubStreams.get(data.appId)?.onGithubDeviceFlowUpdate(data);
-      } else if (data.type == "github:flow-success") {
+      } else if (data.eventType == "github:flow-success") {
         this.githubStreams.get(data.appId)?.onGithubDeviceFlowSuccess(data);
-      } else if (data.type == "github:flow-error") {
+      } else if (data.eventType == "github:flow-error") {
         this.githubStreams.get(data.appId)?.onGithubDeviceFlowError(data);
       } else {
-        console.warn("[github] Unknown event type:", data.type);
+        console.warn("[github] Unknown event type:", data.eventType);
       }
     });
   }
@@ -207,12 +211,12 @@ class EeziClient {
   // DeepLink Stream
   public initDeepLinkSSE(url: string) {
     this.initEventSource("deeplink", url, (data) => {
-      if (data.type === "deep-link:register") {
+      if (data.eventType === "deep-link:register") {
         localStorage.setItem("clientId", data.clientId);
-      } else if (data.type === "deep-link:received") {
+      } else if (data.eventType === "deep-link:received") {
         this.deepLinkHandler(data);
       } else {
-        console.warn("[deeplink] Unknown event type:", data.type);
+        console.warn("[deeplink] Unknown event type:", data.eventType);
       }
     });
   }

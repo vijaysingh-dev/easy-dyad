@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { IpcClient } from "@/ipc/ipc_client";
-import type { LanguageModel } from "@/ipc/ipc_types";
+import type { LanguageModel } from "@shared/eeziTypes";
 
 /**
  * Fetches all available language models grouped by their provider IDs.

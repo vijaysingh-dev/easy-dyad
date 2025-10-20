@@ -1,4 +1,4 @@
-import { ComponentSelection } from "@/ipc/ipc_types";
+import { ComponentSelection } from "@shared/eeziTypes";
 import { atom } from "jotai";
 
 export const selectedComponentPreviewAtom = atom<ComponentSelection | null>(

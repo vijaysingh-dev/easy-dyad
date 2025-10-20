@@ -1,16 +1,75 @@
 import Api from "./api";
 import { AxiosRequestConfig } from "axios";
+import {
+  CreateCustomLanguageModelParams,
+  CreateCustomLanguageModelProviderParams,
+  DeleteCustomModelParams,
+} from "@shared/eeziTypes";
 
 class McpApiService {
-  async getAllChoices(choice: string, qParams = { nested: false }) {
-    const config: AxiosRequestConfig = { params: qParams };
-
-    return Api.get(`core/choices/${choice}/`, { config })
-      .then((res) => Promise.resolve(res))
-      .catch((err) => Promise.reject(err));
+  // --- Language Model Providers ---
+  public async getLanguageModelProviders() {
+    const { data } = await Api.get("/mcp/get-language-model-providers");
+    return data;
   }
 
+  public async getLanguageModels(params: { providerId: string }) {
+    const config: AxiosRequestConfig = { params };
+    const { data } = await Api.get("/mcp/get-language-models", { config });
+    return data;
+  }
 
+  public async getLanguageModelsByProviders() {
+    const { data } = await Api.get("/mcp/get-language-models-by-providers");
+    return data;
+  }
+
+  public async createCustomLanguageModelProvider({
+    id,
+    name,
+    apiBaseUrl,
+    envVarName,
+  }: CreateCustomLanguageModelProviderParams) {
+    const { data } = await Api.post("/mcp/create-custom-language-model-provider", {
+      id,
+      name,
+      apiBaseUrl,
+      envVarName,
+    });
+    return data;
+  }
+
+  public async editCustomLanguageModelProvider(
+    params: CreateCustomLanguageModelProviderParams
+  ) {
+    const { data } = await Api.patch("/mcp/edit-custom-language-model-provider", params);
+    return data;
+  }
+
+  public async createCustomLanguageModel(params: CreateCustomLanguageModelParams) {
+    const { data } = await Api.post("/mcp/create-custom-language-model", params);
+    return data;
+  }
+
+  public async deleteCustomLanguageModel(modelId: string) {
+    const { data } = await Api.delete(`/mcp/delete-custom-language-model/${modelId}`);
+    return data;
+  }
+
+  async deleteCustomModel(params: DeleteCustomModelParams) {
+    const config: AxiosRequestConfig = { params };
+    const { data } = await Api.delete("/mcp/delete-custom-model", { config });
+    return data;
+    ``;
+  }
+
+  async deleteCustomLanguageModelProvider(providerId: string) {
+    const { data } = await Api.delete(
+      `/mcp/delete-custom-language-model-provider/${providerId}`
+    );
+    return data;
+  }
+  // --- End Language Model Providers ---
 }
 
 const mcpApi = new McpApiService();

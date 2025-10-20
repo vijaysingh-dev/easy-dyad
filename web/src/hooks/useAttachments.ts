@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import type { FileAttachment } from "@/ipc/ipc_types";
+import type { FileAttachment } from "@shared/eeziTypes";
 
 export function useAttachments() {
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);

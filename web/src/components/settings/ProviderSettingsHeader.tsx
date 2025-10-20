@@ -8,13 +8,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { IpcClient } from "@/ipc/ipc_client";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {} from "react";
+import api from "@/api";
 
 interface ProviderSettingsHeaderProps {
   providerDisplayName: string;
@@ -34,9 +30,7 @@ function getKeyButtonText({
   isDyad: boolean;
 }) {
   if (isDyad) {
-    return isConfigured
-      ? "Manage Dyad Pro Subscription"
-      : "Setup Dyad Pro Subscription";
+    return isConfigured ? "Manage Dyad Pro Subscription" : "Setup Dyad Pro Subscription";
   }
   return isConfigured ? "Manage API Keys" : "Setup API Key";
 }
@@ -53,7 +47,7 @@ export function ProviderSettingsHeader({
   const handleGetApiKeyClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (providerWebsiteUrl) {
-      IpcClient.getInstance().openExternalUrl(providerWebsiteUrl);
+      api.app.openExternalUrl(providerWebsiteUrl);
     }
   };
 
@@ -97,11 +91,7 @@ export function ProviderSettingsHeader({
             />
           )}
           <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-            {isLoading
-              ? "Loading..."
-              : isConfigured
-                ? "Setup Complete"
-                : "Not Setup"}
+            {isLoading ? "Loading..." : isConfigured ? "Setup Complete" : "Not Setup"}
           </span>
         </div>
         {!isLoading && hasFreeTier && (

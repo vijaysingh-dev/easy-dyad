@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { cn } from "../../../shared/utils";
-import { NodeSystemInfo } from "@/ipc/ipc_types";
+import { NodeSystemInfo } from "@shared/eeziTypes";
 import { usePostHog } from "posthog-js/react";
 import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";
 import { useScrollAndNavigateTo } from "@/hooks/useScrollAndNavigateTo";

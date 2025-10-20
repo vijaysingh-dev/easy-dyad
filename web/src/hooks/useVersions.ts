@@ -5,7 +5,7 @@ import { IpcClient } from "@/ipc/ipc_client";
 
 import { chatMessagesByIdAtom, selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { RevertVersionResponse, Version } from "@/ipc/ipc_types";
+import type { RevertVersionResponse, Version } from "@shared/eeziTypes";
 import { toast } from "sonner";
 
 export function useVersions(appId: number | null) {

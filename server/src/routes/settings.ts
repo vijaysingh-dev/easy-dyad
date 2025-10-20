@@ -9,12 +9,73 @@ import { getEnvVar } from "@/utils/read_env";
 import { execSync } from "child_process";
 import { platform, arch } from "os";
 import fixPath from "fix-path";
+import { IS_TEST_BUILD } from "@/utils/test_utils";
 import { runShellCommand } from "@/utils/runShellCommand";
 import { readSettings, writeSettings } from "@/services/settings";
 import { type UserSettings } from "@shared/schemas";
+import { UserBudgetInfoSchema } from "@shared/eeziTypes";
 
-const execAsync = promisify(exec);
 const router = Router();
+
+const CONVERSION_RATIO = (10 * 3) / 2;
+
+// This method should try to avoid throwing errors because this is auxiliary
+// information and isn't critical to using the app
+router.get("/get-user-budget", async (req, res) => {
+  if (IS_TEST_BUILD) {
+    // Avoid spamming the API in E2E tests.
+    res.send(null);
+    return;
+  }
+  logger.info("Attempting to fetch user budget information.");
+
+  const settings = readSettings();
+
+  const apiKey = settings.providerSettings?.auto?.apiKey?.value;
+
+  if (!apiKey) {
+    logger.error("LLM Gateway API key (Dyad Pro) is not configured.");
+    res.send(null);
+    return;
+  }
+
+  const url = "https://llm-gateway.dyad.sh/user/info";
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${apiKey}`,
+  };
+
+  try {
+    // Use native fetch if available, otherwise node-fetch will be used via import
+    const response = await fetch(url, {
+      method: "GET",
+      headers: headers,
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      logger.error(
+        `Failed to fetch user budget. Status: ${response.status}. Body: ${errorBody}`
+      );
+      res.send(null);
+      return;
+    }
+
+    const data = await response.json();
+    const userInfoData = data["user_info"];
+    logger.info("Successfully fetched user budget information.");
+    res.send(
+      UserBudgetInfoSchema.parse({
+        usedCredits: userInfoData["spend"] * CONVERSION_RATIO,
+        totalCredits: userInfoData["max_budget"] * CONVERSION_RATIO,
+        budgetResetDate: new Date(userInfoData["budget_reset_at"]),
+      })
+    );
+  } catch (error: any) {
+    logger.error(`Error fetching user budget: ${error.message}`, error);
+    res.status(500).json({ error: "Failed to fetch user budget" });
+  }
+});
 
 // Get user settings
 router.get("/get-user-settings", async (_req, res) => {

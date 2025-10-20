@@ -1,21 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
-import { IpcClient } from "@/ipc/ipc_client";
-import type { LanguageModelProvider } from "@/ipc/ipc_types";
 import { useSettings } from "./useSettings";
 import {
   cloudProviders,
   VertexProviderSetting,
   AzureProviderSetting,
-} from "@/lib/schemas";
+} from "@shared/schemas";
+import type { LanguageModelProvider } from "@shared/eeziTypes";
+import api from "@/api";
 
 export function useLanguageModelProviders() {
-  const ipcClient = IpcClient.getInstance();
   const { settings, envVars } = useSettings();
 
   const queryResult = useQuery<LanguageModelProvider[], Error>({
     queryKey: ["languageModelProviders"],
     queryFn: async () => {
-      return ipcClient.getLanguageModelProviders();
+      return api.mcp.getLanguageModelProviders();
     },
   });
 
@@ -40,7 +39,7 @@ export function useLanguageModelProviders() {
       const azureSettings = providerSettings as AzureProviderSetting;
       const hasSavedSettings = Boolean(
         (azureSettings?.apiKey?.value ?? "").trim() &&
-          (azureSettings?.resourceName ?? "").trim(),
+          (azureSettings?.resourceName ?? "").trim()
       );
       if (hasSavedSettings) {
         return true;

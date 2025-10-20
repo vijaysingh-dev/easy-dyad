@@ -8,7 +8,7 @@ import { Database, GitBranch } from "lucide-react";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
 import { useLoadApp } from "@/hooks/useLoadApp";
 import { IpcClient } from "@/ipc/ipc_client";
-import type { GetNeonProjectResponse, NeonBranch } from "@/ipc/ipc_types";
+import type { GetNeonProjectResponse, NeonBranch } from "@shared/eeziTypes";
 import { NeonDisconnectButton } from "@/components/NeonDisconnectButton";
 
 const getBranchTypeColor = (type: NeonBranch["type"]) => {

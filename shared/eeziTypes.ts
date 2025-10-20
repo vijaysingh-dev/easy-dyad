@@ -233,6 +233,11 @@ export interface CreateCustomLanguageModelParams {
   contextWindow?: number;
 }
 
+export interface DeleteCustomModelParams {
+  providerId: string;
+  modelApiName: string;
+}
+
 export interface DoesReleaseNoteExistParams {
   version: string;
 }
@@ -514,9 +519,4 @@ export interface GitHubDeviceFlowErrorData {
 
 export interface DeepLinkData {
   type: string;
-}
-
-interface DeleteCustomModelParams {
-  providerId: string;
-  modelApiName: string;
 }

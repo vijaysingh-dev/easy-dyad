@@ -5,6 +5,7 @@ import {
   GitHubDeviceFlowUpdateData,
   GitHubDeviceFlowSuccessData,
   GitHubDeviceFlowErrorData,
+  RenameBranchParams,
 } from "@shared/eeziTypes";
 import eeziClient from "./client";
 import { r } from "happy-dom/lib/PropertySymbol.js";
@@ -85,6 +86,11 @@ class IntegrationApiService {
     const { data } = await Api.get(
       `/integration/github/get-repo-branches/${owner}/${repo}`
     );
+    return data;
+  }
+
+  public async renameBranch(params: RenameBranchParams) {
+    const { data } = await Api.post("/integration/github/rename-branch", params);
     return data;
   }
 

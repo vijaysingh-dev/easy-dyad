@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { IpcClient } from "@/ipc/ipc_client";
-import { showError, showSuccess } from "@/lib/toast";
+import { showError, showSuccess } from "@/components/Toast";
 import {
   Dialog,
   DialogContent,

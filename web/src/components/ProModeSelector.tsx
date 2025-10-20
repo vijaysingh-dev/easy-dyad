@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Sparkles, Info } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
 import { IpcClient } from "@/ipc/ipc_client";
-import { hasDyadProKey, type UserSettings } from "@/lib/schemas";
+import { hasDyadProKey, type UserSettings } from "@shared/schemas";
 
 export function ProModeSelector() {
   const { settings, updateSettings } = useSettings();

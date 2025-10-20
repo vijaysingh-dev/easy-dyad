@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { IpcClient } from "@/ipc/ipc_client";
-import { showError } from "@/lib/toast";
-import type { CreateAppParams, CreateAppResult } from "@/ipc/ipc_types";
+import { showError } from "@/components/Toast";
+import type { CreateAppParams, CreateAppResult } from "@shared/eeziTypes";
 
 export function useCreateApp() {
   const queryClient = useQueryClient();

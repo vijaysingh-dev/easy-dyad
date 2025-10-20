@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
 import { useAtomValue } from "jotai";
-import { showError } from "@/lib/toast";
+import { showError } from "@/components/Toast";
 import { useLoadApp } from "@/hooks/useLoadApp";
 
 interface DyadAddIntegrationProps {

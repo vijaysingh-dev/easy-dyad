@@ -10,9 +10,9 @@ import { AzureConfiguration } from "./AzureConfiguration";
 import { VertexConfiguration } from "./VertexConfiguration";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { UserSettings } from "@/lib/schemas";
+import { UserSettings } from "@shared/schemas";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { showError } from "@/lib/toast";
+import { showError } from "@/components/Toast";
 
 // Helper function to mask ENV API keys (move or duplicate if needed elsewhere)
 const maskEnvApiKey = (key: string | undefined): string => {

@@ -129,9 +129,9 @@ router.get("/get-chats", async (req, res) => {
   }
 });
 
-router.post("/create-chat/:appId", async (req, res) => {
+router.post("/create-chat/", async (req, res) => {
   try {
-    const appId = parseInt(req.params.appId);
+    const appId = parseInt(req.body.appId);
     // Get the app's path first
     const app = await db.query.apps.findFirst({
       where: eq(apps.id, appId),
@@ -526,7 +526,8 @@ ${componentSnippet}
     }
 
     // Send the messages right away so that the loading state is shown for the message.
-    safeSend(res, chatId, "chat:response:chunk", {
+    safeSend(res, "chat:response:chunk", {
+      chatId,
       messages: updatedChat.messages,
     });
 
@@ -948,8 +949,8 @@ This conversation includes one or more image attachments. When the user uploads 
         }
 
         // Update the assistant message in the database
-        safeSend(res, chatId, "chat:response:chunk", {
-          chatId: chatId,
+        safeSend(res, "chat:response:chunk", {
+          chatId,
           messages: currentMessages,
         });
         return fullResponse;
@@ -1243,25 +1244,27 @@ ${problemReport.problems
           },
         });
 
-        safeSend(res, chatId, "chat:response:chunk", {
+        safeSend(res, "chat:response:chunk", {
+          chatId,
           messages: chat!.messages,
         });
 
         if (status.error) {
-          safeSend(res, chatId, "chat:response:error", {
+          safeSend(res, "chat:response:error", {
+            chatId,
             error: `Sorry, there was an error applying the AI's changes: ${status.error}`,
           });
         }
 
         // Signal that the stream has completed
-        safeSend(res, chatId, "chat:response:end", {
+        safeSend(res, "chat:response:end", {
           chatId,
           updatedFiles: status.updatedFiles ?? false,
           extraFiles: status.extraFiles,
           extraFilesError: status.extraFilesError,
         } satisfies ChatResponseEnd);
       } else {
-        safeSend(res, chatId, "chat:response:end", {
+        safeSend(res, "chat:response:end", {
           chatId,
           updatedFiles: false,
         } satisfies ChatResponseEnd);
@@ -1293,7 +1296,8 @@ ${problemReport.problems
     return chatId;
   } catch (error) {
     logger.error("Error streaming chat:", error);
-    safeSend(res, chatId, "chat:response:error", {
+    safeSend(res, "chat:response:error", {
+      chatId,
       error: `Sorry, there was an error processing your request: ${error}`,
     });
     // Clean up the abort controller

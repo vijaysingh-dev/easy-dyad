@@ -1,5 +1,5 @@
 import type React from "react";
-import type { Message } from "@/ipc/ipc_types";
+import type { Message } from "@shared/eeziTypes";
 import { forwardRef, useState } from "react";
 import ChatMessage from "./ChatMessage";
 import { OpenRouterSetupBanner, SetupBanner } from "../SetupBanner";
@@ -11,7 +11,7 @@ import { Loader2, RefreshCw, Undo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVersions } from "@/hooks/useVersions";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
-import { showError, showWarning } from "@/lib/toast";
+import { showError, showWarning } from "@/components/Toast";
 import { IpcClient } from "@/ipc/ipc_client";
 import { chatMessagesByIdAtom } from "@/atoms/chatAtoms";
 import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";

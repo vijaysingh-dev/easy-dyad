@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { IpcClient } from "@/ipc/ipc_client";
 import { useMutation } from "@tanstack/react-query";
-import { showError, showSuccess } from "@/lib/toast";
+import { showError, showSuccess } from "@/components/Toast";
 
 interface CreateCustomModelDialogProps {
   isOpen: boolean;

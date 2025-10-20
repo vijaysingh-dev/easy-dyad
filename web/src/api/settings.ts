@@ -5,13 +5,11 @@ import { UserSettings } from "../../../shared/schemas";
 import { showError } from "@/components/Toast";
 
 class SettingsApiService {
-  // async getAllChoices(choice: string, qParams = { nested: false }) {
-  //   const config: AxiosRequestConfig = { params: qParams };
-
-  //   return Api.get(`core/choices/${choice}/`, { config })
-  //     .then((res) => Promise.resolve(res))
-  //     .catch((err) => Promise.reject(err));
-  // }
+  // Method to get user budget information
+  public async getUserBudget() {
+    const { data } = await Api.get("get-user-budget");
+    return data;
+  }
 
   // Get user settings
   public async getUserSettings() {
@@ -44,7 +42,7 @@ class SettingsApiService {
       throw error;
     }
   }
-    public async reloadEnvPath(): Promise<void> {
+  public async reloadEnvPath(): Promise<void> {
     // await this.ipcRenderer.invoke("reload-env-path");
     window.location.reload();
   }

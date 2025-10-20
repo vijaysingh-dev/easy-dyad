@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Github } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
-import { showSuccess, showError } from "@/lib/toast";
+import { showSuccess, showError } from "@/components/Toast";
 
 export function GitHubIntegration() {
   const { settings, updateSettings } = useSettings();
@@ -20,9 +20,7 @@ export function GitHubIntegration() {
         showError("Failed to disconnect from GitHub");
       }
     } catch (err: any) {
-      showError(
-        err.message || "An error occurred while disconnecting from GitHub",
-      );
+      showError(err.message || "An error occurred while disconnecting from GitHub");
     } finally {
       setIsDisconnecting(false);
     }

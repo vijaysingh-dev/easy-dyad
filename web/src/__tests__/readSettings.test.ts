@@ -4,7 +4,7 @@ import path from "node:path";
 import { safeStorage } from "electron";
 import { readSettings, getSettingsFilePath } from "@/main/settings";
 import { getUserDataPath } from "@/paths/paths";
-import { UserSettings } from "@/lib/schemas";
+import { UserSettings } from "@shared/schemas";
 
 // Mock dependencies
 vi.mock("node:fs");

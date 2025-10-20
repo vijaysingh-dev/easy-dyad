@@ -1,4 +1,4 @@
-import type { Message } from "@/ipc/ipc_types";
+import type { Message } from "@shared/eeziTypes";
 import {
   DyadMarkdownParser,
   VanillaMarkdownParser,

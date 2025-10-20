@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getAllChats } from "@/lib/chat";
-import type { ChatSummary } from "@/lib/schemas";
+import type { ChatSummary } from "@shared/schemas";
 import { useAtomValue } from "jotai";
 import {
   isStreamingByIdAtom,

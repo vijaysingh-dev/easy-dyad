@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { LightbulbIcon } from "lucide-react";
 import { ErrorComponentProps } from "@tanstack/react-router";
 import { usePostHog } from "posthog-js/react";
-import { IpcClient } from "@/ipc/ipc_client";
+import api from "@/api";
 
 export function ErrorBoundary({ error }: ErrorComponentProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +18,7 @@ export function ErrorBoundary({ error }: ErrorComponentProps) {
     setIsLoading(true);
     try {
       // Get system debug info
-      const debugInfo = await IpcClient.getInstance().getSystemDebugInfo();
+      const debugInfo = await api.app.getSystemDebugInfo();
 
       // Create a formatted issue body with the debug info and error information
       const issueBody = `
@@ -56,19 +56,15 @@ ${debugInfo.logs.slice(-3_500) || "No logs available"}
 
       // Create the GitHub issue URL with the pre-filled body
       const encodedBody = encodeURIComponent(issueBody);
-      const encodedTitle = encodeURIComponent(
-        "[bug] Error in Dyad application",
-      );
+      const encodedTitle = encodeURIComponent("[bug] Error in Dyad application");
       const githubIssueUrl = `https://github.com/dyad-sh/dyad/issues/new?title=${encodedTitle}&labels=bug,filed-from-app,client-error&body=${encodedBody}`;
 
       // Open the pre-filled GitHub issue page
-      await IpcClient.getInstance().openExternalUrl(githubIssueUrl);
+      await api.app.openExternalUrl(githubIssueUrl);
     } catch (err) {
       console.error("Failed to prepare bug report:", err);
       // Fallback to opening the regular GitHub issue page
-      IpcClient.getInstance().openExternalUrl(
-        "https://github.com/dyad-sh/dyad/issues/new",
-      );
+      api.app.openExternalUrl("https://github.com/dyad-sh/dyad/issues/new");
     } finally {
       setIsLoading(false);
     }
@@ -77,9 +73,7 @@ ${debugInfo.logs.slice(-3_500) || "No logs available"}
   return (
     <div className="flex flex-col items-center justify-center h-screen p-6">
       <div className="max-w-md w-full bg-background p-6 rounded-lg shadow-lg">
-        <h2 className="text-xl font-bold mb-4">
-          Sorry, that shouldn't have happened!
-        </h2>
+        <h2 className="text-xl font-bold mb-4">Sorry, that shouldn't have happened!</h2>
 
         <p className="text-sm mb-3">There was an error loading the app...</p>
 

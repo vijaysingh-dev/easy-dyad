@@ -1,17 +1,20 @@
-import db from "@/db";
 import log from "@/logger";
-import { Router } from "express";
+import db, { getDatabasePath } from "@/db";
+import { apps, chats, prompts, messages } from "@/db/schema";
+import { Router, Response } from "express";
 import { desc, eq, like } from "drizzle-orm";
 import * as git from "isomorphic-git";
 import * as fs from "fs";
 import fsPromises from "fs/promises";
 import path from "path";
 import fixPath from "fix-path";
-import { apps, chats, prompts } from "@/db/schema";
 import { createFromTemplate } from "@/utils/createFromTemplate";
 import {
   getApp,
   copyDir,
+  cleanUpPort,
+  executeApp,
+  getSystemDebugInfo,
   isComponentTaggerUpgradeNeeded,
   applyComponentTagger,
   isCapacitorInstalled,
@@ -24,7 +27,7 @@ import {
   removeAppIfCurrentProcess,
   stopAppByInfo,
   removeDockerVolumesForApp,
-} from "../utils/process_manager";
+} from "@/utils/process_manager";
 import { getFilesRecursively, copyDirectoryRecursive } from "@/utils/file_utils";
 import { withLock } from "@/utils/lock_utils";
 import { gitCommit } from "@/utils/git_utils";
@@ -32,6 +35,9 @@ import { getVercelTeamSlug } from "@/utils/vercel_utils";
 import { getAllTemplates } from "@/utils/template_utils";
 import { simpleSpawn } from "@/utils/simpleSpawn";
 import { IS_TEST_BUILD } from "@/utils/test_utils";
+import { safeSend } from "@/utils/safe_sender";
+import { extractCodebase } from "@/utils/codebase";
+import { validateChatContext } from "@/utils/context_paths_utils";
 import { storeDbTimestampAtCurrentVersion } from "@/utils/neon_timestamp_utils";
 import { isServerFunction } from "@/services/supabase/supabase_utils";
 import { readSettings } from "@/services/settings";
@@ -40,11 +46,11 @@ import {
   deploySupabaseFunctions,
   getSupabaseProjectName,
 } from "@/services/supabase/supabase_management_client";
-
 import { localTemplatesData } from "@/services/llm/templates";
-import { getEeziAppPath, normalizePath } from "@/services/paths";
-import { CreateAppParams, AppUpgrade } from "@shared/eeziTypes";
-import { success } from "zod/v4";
+import { getEeziAppPath, normalizePath, getUserDataPath } from "@/services/paths";
+import { type AppSearchResult } from "@shared/schemas";
+import { AppUpgrade } from "@shared/eeziTypes";
+import { tr } from "zod/v4/locales";
 
 const logger = log.scope("app-route");
 const router = Router();
@@ -269,7 +275,7 @@ router.get("/read-app-file/:appId/:filePath", async (req, res) => {
   try {
     const { appId, filePath } = req.params;
     const app = await db.query.apps.findFirst({
-      where: eq(apps.id, appId),
+      where: eq(apps.id, parseInt(appId)),
     });
 
     if (!app) {
@@ -301,12 +307,15 @@ router.get("/read-app-file/:appId/:filePath", async (req, res) => {
   }
 });
 
-ipcMain.handle(
-  "run-app",
-  async (
-    event: Electron.IpcMainInvokeEvent,
-    { appId }: { appId: number }
-  ): Promise<void> => {
+router.get("/run-app/:appId", async (req, res) => {
+  const appId = parseInt(req.params.appId, 10);
+  try {
+    // Set up SSE
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
     return withLock(appId, async () => {
       // Check if app is already running
       if (runningApps.has(appId)) {
@@ -331,7 +340,7 @@ ipcMain.handle(
         await executeApp({
           appPath,
           appId,
-          event,
+          res,
           isNeon: !!app.neonProjectId,
           installCommand: app.installCommand,
           startCommand: app.startCommand,
@@ -350,10 +359,15 @@ ipcMain.handle(
         throw new Error(`Failed to run app ${appId}: ${error.message}`);
       }
     });
+  } catch (error: any) {
+    logger.error(`Error running app ${appId}:`, error);
+    safeSend(res, "app:error", { appId, error: error.message });
+  } finally {
+    res.end();
   }
-);
+});
 
-router.post("stop-app", async (req, res): Promise<void> => {
+router.post("/stop-app", async (req, res): Promise<void> => {
   try {
     const { appId } = req.body;
     logger.log(
@@ -407,12 +421,16 @@ router.post("stop-app", async (req, res): Promise<void> => {
   }
 });
 
-ipcMain.handle(
-  "restart-app",
-  async (
-    event: Electron.IpcMainInvokeEvent,
-    { appId, removeNodeModules }: { appId: number; removeNodeModules?: boolean }
-  ): Promise<void> => {
+router.get("/restart-app/:appId", async (req, res) => {
+  const appId = parseInt(req.params.appId, 10);
+  const removeNodeModules = req.query.removeNodeModules === "true";
+  try {
+    // Set up SSE
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
     logger.log(`Restarting app ${appId}`);
     return withLock(appId, async () => {
       try {
@@ -481,7 +499,7 @@ ipcMain.handle(
         await executeApp({
           appPath,
           appId,
-          event,
+          res,
           isNeon: !!app.neonProjectId,
           installCommand: app.installCommand,
           startCommand: app.startCommand,
@@ -493,8 +511,13 @@ ipcMain.handle(
         throw error;
       }
     });
+  } catch (error: any) {
+    logger.error(`Error restarting app ${appId}:`, error);
+    safeSend(res, "app:error", { appId, error: error.message });
+  } finally {
+    res.end();
   }
-);
+});
 
 router.post("/edit-app-file", async (req, res) => {
   try {
@@ -792,114 +815,79 @@ router.post("/rename-app", async (req, res) => {
   }
 });
 
-ipcMain.handle("reset-all", async (): Promise<void> => {
-  logger.log("start: resetting all apps and settings.");
-  // Stop all running apps first
-  logger.log("stopping all running apps...");
-  const runningAppIds = Array.from(runningApps.keys());
-  for (const appId of runningAppIds) {
-    try {
-      const appInfo = runningApps.get(appId)!;
-      await stopAppByInfo(appId, appInfo);
-    } catch (error) {
-      logger.error(`Error stopping app ${appId} during reset:`, error);
-      // Continue with reset even if stopping fails
-    }
-  }
-  logger.log("all running apps stopped.");
-  logger.log("deleting database...");
-  // 1. Drop the database by deleting the SQLite file
-  const dbPath = getDatabasePath();
-  if (fs.existsSync(dbPath)) {
-    // Close database connections first
-    if (db.$client) {
-      db.$client.close();
-    }
-    await fsPromises.unlink(dbPath);
-    logger.log(`Database file deleted: ${dbPath}`);
-  }
-  logger.log("database deleted.");
-  logger.log("deleting settings...");
-  // 2. Remove settings
-  const userDataPath = getUserDataPath();
-  const settingsPath = path.join(userDataPath, "user-settings.json");
-
-  if (fs.existsSync(settingsPath)) {
-    await fsPromises.unlink(settingsPath);
-    logger.log(`Settings file deleted: ${settingsPath}`);
-  }
-  logger.log("settings deleted.");
-  // 3. Remove all app files recursively
-  // Doing this last because it's the most time-consuming and the least important
-  // in terms of resetting the app state.
-  logger.log("removing all app files...");
-  const dyadAppPath = getEeziAppPath(".");
-  if (fs.existsSync(dyadAppPath)) {
-    await fsPromises.rm(dyadAppPath, { recursive: true, force: true });
-    // Recreate the base directory
-    await fsPromises.mkdir(dyadAppPath, { recursive: true });
-  }
-  logger.log("all app files removed.");
-  logger.log("reset all complete.");
-});
-
-ipcMain.handle("get-app-version", async (): Promise<{ version: string }> => {
-  // Read version from package.json at project root
-  const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-  return { version: packageJson.version };
-});
-
-handle("rename-branch", async (_, params: RenameBranchParams) => {
-  const { appId, oldBranchName, newBranchName } = params;
-  const app = await db.query.apps.findFirst({
-    where: eq(apps.id, appId),
-  });
-
-  if (!app) {
-    throw new Error("App not found");
-  }
-
-  const appPath = getEeziAppPath(app.path);
-
-  return withLock(appId, async () => {
-    try {
-      // Check if the old branch exists
-      const branches = await git.listBranches({ fs, dir: appPath });
-      if (!branches.includes(oldBranchName)) {
-        throw new Error(`Branch '${oldBranchName}' not found.`);
+router.get("reset-all", async (req, res) => {
+  try {
+    logger.log("start: resetting all apps and settings.");
+    // Stop all running apps first
+    logger.log("stopping all running apps...");
+    const runningAppIds = Array.from(runningApps.keys());
+    for (const appId of runningAppIds) {
+      try {
+        const appInfo = runningApps.get(appId)!;
+        await stopAppByInfo(appId, appInfo);
+      } catch (error) {
+        ``;
+        logger.error(`Error stopping app ${appId} during reset:`, error);
+        // Continue with reset even if stopping fails
       }
-
-      // Check if the new branch name already exists
-      if (branches.includes(newBranchName)) {
-        // If newBranchName is 'main' and oldBranchName is 'master',
-        // and 'main' already exists, we might want to allow this if 'main' is the current branch
-        // and just switch to it, or delete 'master'.
-        // For now, let's keep it simple and throw an error.
-        throw new Error(`Branch '${newBranchName}' already exists. Cannot rename.`);
-      }
-
-      await git.renameBranch({
-        fs: fs,
-        dir: appPath,
-        oldref: oldBranchName,
-        ref: newBranchName,
-      });
-      logger.info(
-        `Branch renamed from '${oldBranchName}' to '${newBranchName}' for app ${appId}`
-      );
-    } catch (error: any) {
-      logger.error(`Failed to rename branch for app ${appId}: ${error.message}`);
-      throw new Error(
-        `Failed to rename branch '${oldBranchName}' to '${newBranchName}': ${error.message}`
-      );
     }
-  });
+    logger.log("all running apps stopped.");
+    logger.log("deleting database...");
+    // 1. Drop the database by deleting the SQLite file
+    const dbPath = getDatabasePath();
+    if (fs.existsSync(dbPath)) {
+      // Close database connections first
+      if (db.$client) {
+        db.$client.close();
+      }
+      await fsPromises.unlink(dbPath);
+      logger.log(`Database file deleted: ${dbPath}`);
+    }
+    logger.log("database deleted.");
+    logger.log("deleting settings...");
+    // 2. Remove settings
+    const userDataPath = getUserDataPath();
+    const settingsPath = path.join(userDataPath, "user-settings.json");
+
+    if (fs.existsSync(settingsPath)) {
+      await fsPromises.unlink(settingsPath);
+      logger.log(`Settings file deleted: ${settingsPath}`);
+    }
+    logger.log("settings deleted.");
+    // 3. Remove all app files recursively
+    // Doing this last because it's the most time-consuming and the least important
+    // in terms of resetting the app state.
+    logger.log("removing all app files...");
+    const dyadAppPath = getEeziAppPath(".");
+    if (fs.existsSync(dyadAppPath)) {
+      await fsPromises.rm(dyadAppPath, { recursive: true, force: true });
+      // Recreate the base directory
+      await fsPromises.mkdir(dyadAppPath, { recursive: true });
+    }
+    logger.log("all app files removed.");
+    logger.log("reset all complete.");
+    res.json({ success: true });
+  } catch (error: any) {
+    logger.error("Error resetting all apps and settings:", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-handle(
-  "respond-to-app-input",
-  async (_, { appId, response }: RespondToAppInputParams) => {
+router.get("/get-app-version", async (req, res) => {
+  try {
+    // Read version from package.json at project root
+    const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+    res.json({ version: packageJson.version });
+  } catch (error: any) {
+    logger.error("Error getting app version:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/respond-to-app-input", async (req, res) => {
+  try {
+    const { appId, response } = req.body;
     if (response !== "y" && response !== "n") {
       throw new Error(`Invalid response: ${response}`);
     }
@@ -923,84 +911,94 @@ handle(
       logger.error(`Error sending response to app ${appId}:`, error);
       throw new Error(`Failed to send response to app: ${error.message}`);
     }
+    res.json({ success: true });
+  } catch (error: any) {
+    logger.error("Error responding to app input:", error);
+    res.status(500).json({ error: error.message });
   }
-);
+});
 
-handle("search-app", async (_, searchQuery: string): Promise<AppSearchResult[]> => {
-  // Use parameterized query to prevent SQL injection
-  const pattern = `%${searchQuery.replace(/[%_]/g, "\\$&")}%`;
+router.post("/search-app", async (req, res) => {
+  try {
+    const { searchQuery } = req.body;
+    // Use parameterized query to prevent SQL injection
+    const pattern = `%${searchQuery.replace(/[%_]/g, "\\$&")}%`;
 
-  // 1) Apps whose name matches
-  const appNameMatches = await db
-    .select({
-      id: apps.id,
-      name: apps.name,
-      createdAt: apps.createdAt,
-    })
-    .from(apps)
-    .where(like(apps.name, pattern))
-    .orderBy(desc(apps.createdAt));
+    // 1) Apps whose name matches
+    const appNameMatches = await db
+      .select({
+        id: apps.id,
+        name: apps.name,
+        createdAt: apps.createdAt,
+      })
+      .from(apps)
+      .where(like(apps.name, pattern))
+      .orderBy(desc(apps.createdAt));
 
-  const appNameMatchesResult: AppSearchResult[] = appNameMatches.map((r) => ({
-    id: r.id,
-    name: r.name,
-    createdAt: r.createdAt,
-    matchedChatTitle: null,
-    matchedChatMessage: null,
-  }));
+    const appNameMatchesResult: AppSearchResult[] = appNameMatches.map((r) => ({
+      id: r.id,
+      name: r.name,
+      createdAt: r.createdAt,
+      matchedChatTitle: null,
+      matchedChatMessage: null,
+    }));
 
-  // 2) Apps whose chat title matches
-  const chatTitleMatches = await db
-    .select({
-      id: apps.id,
-      name: apps.name,
-      createdAt: apps.createdAt,
-      matchedChatTitle: chats.title,
-    })
-    .from(apps)
-    .innerJoin(chats, eq(apps.id, chats.appId))
-    .where(like(chats.title, pattern))
-    .orderBy(desc(apps.createdAt));
+    // 2) Apps whose chat title matches
+    const chatTitleMatches = await db
+      .select({
+        id: apps.id,
+        name: apps.name,
+        createdAt: apps.createdAt,
+        matchedChatTitle: chats.title,
+      })
+      .from(apps)
+      .innerJoin(chats, eq(apps.id, chats.appId))
+      .where(like(chats.title, pattern))
+      .orderBy(desc(apps.createdAt));
 
-  const chatTitleMatchesResult: AppSearchResult[] = chatTitleMatches.map((r) => ({
-    id: r.id,
-    name: r.name,
-    createdAt: r.createdAt,
-    matchedChatTitle: r.matchedChatTitle,
-    matchedChatMessage: null,
-  }));
+    const chatTitleMatchesResult: AppSearchResult[] = chatTitleMatches.map((r) => ({
+      id: r.id,
+      name: r.name,
+      createdAt: r.createdAt,
+      matchedChatTitle: r.matchedChatTitle,
+      matchedChatMessage: null,
+    }));
 
-  // 3) Apps whose chat message content matches
-  const chatMessageMatches = await db
-    .select({
-      id: apps.id,
-      name: apps.name,
-      createdAt: apps.createdAt,
-      matchedChatTitle: chats.title,
-      matchedChatMessage: messages.content,
-    })
-    .from(apps)
-    .innerJoin(chats, eq(apps.id, chats.appId))
-    .innerJoin(messages, eq(chats.id, messages.chatId))
-    .where(like(messages.content, pattern))
-    .orderBy(desc(apps.createdAt));
+    // 3) Apps whose chat message content matches
+    const chatMessageMatches = await db
+      .select({
+        id: apps.id,
+        name: apps.name,
+        createdAt: apps.createdAt,
+        matchedChatTitle: chats.title,
+        matchedChatMessage: messages.content,
+      })
+      .from(apps)
+      .innerJoin(chats, eq(apps.id, chats.appId))
+      .innerJoin(messages, eq(chats.id, messages.chatId))
+      .where(like(messages.content, pattern))
+      .orderBy(desc(apps.createdAt));
 
-  // Flatten and dedupe by app id
-  const allMatches: AppSearchResult[] = [
-    ...appNameMatchesResult,
-    ...chatTitleMatchesResult,
-    ...chatMessageMatches,
-  ];
-  const uniqueApps = Array.from(
-    new Map(allMatches.map((app) => [app.id, app])).values()
-  );
+    // Flatten and dedupe by app id
+    const allMatches: AppSearchResult[] = [
+      ...appNameMatchesResult,
+      ...chatTitleMatchesResult,
+      ...chatMessageMatches,
+    ];
+    const uniqueApps = Array.from(
+      new Map(allMatches.map((app) => [app.id, app])).values()
+    );
 
-  // Sort newest apps first
-  uniqueApps.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+    // Sort newest apps first
+    uniqueApps.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
 
-  return uniqueApps;
+    res.json(uniqueApps);
+  } catch (error: any) {
+    logger.error("Error searching apps:", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 router.get("/get-templates", async (req, res) => {
@@ -1343,6 +1341,125 @@ router.get("/check-problems", async (req, res) => {
   } catch (error) {
     logger.error("Error checking problems:", error);
     res.status(500).json({ error: "Failed to check problems" });
+  }
+});
+
+// --- Debug Routes ---
+router.get("/get-system-debug-info", async (req, res) => {
+  try {
+    logger.info("get-system-debug-info called");
+    const result = await getSystemDebugInfo({
+      linesOfLogs: 20,
+      level: "warn",
+    });
+    res.json(result);
+  } catch (error) {
+    logger.error("Error getting system debug info:", error);
+    res.status(500).json({ error: "Failed to get system debug info" });
+  }
+});
+
+router.get("/get-chat-logs/:chatId", async (req, res) => {
+  try {
+    const chatId = parseInt(req.params.chatId, 10);
+    // We can retrieve a lot more lines here because we're not limited by the
+    // GitHub issue URL length limit.
+    const debugInfo = await getSystemDebugInfo({
+      linesOfLogs: 1_000,
+      level: "info",
+    });
+
+    // Get chat data from database
+    const chatRecord = await db.query.chats.findFirst({
+      where: eq(chats.id, chatId),
+      with: {
+        messages: {
+          orderBy: (messages, { asc }) => [asc(messages.createdAt)],
+        },
+      },
+    });
+
+    if (!chatRecord) {
+      throw new Error(`Chat with ID ${chatId} not found`);
+    }
+
+    // Format the chat to match the Chat interface
+    const chat = {
+      id: chatRecord.id,
+      title: chatRecord.title || "Untitled Chat",
+      messages: chatRecord.messages.map((msg) => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        approvalState: msg.approvalState,
+      })),
+    };
+
+    // Get app data from database
+    const app = await db.query.apps.findFirst({
+      where: eq(apps.id, chatRecord.appId),
+    });
+
+    if (!app) {
+      throw new Error(`App with ID ${chatRecord.appId} not found`);
+    }
+
+    // Extract codebase
+    const appPath = getEeziAppPath(app.path);
+    const codebase = (
+      await extractCodebase({
+        appPath,
+        chatContext: validateChatContext(app.chatContext),
+      })
+    ).formattedOutput;
+
+    res.json({
+      debugInfo,
+      chat,
+      codebase,
+    });
+  } catch (error) {
+    console.error(`Failed to get chat logs:`, error);
+    res.status(500).json({ error: "Failed to get chat logs" });
+  }
+});
+// --- End Debug Routes ---
+
+router.post("/upload-to-signed-url", async (req, res) => {
+  try {
+    const { url, contentType, data } = req.body;
+    logger.debug("IPC: upload-to-signed-url called");
+
+    // Validate the signed URL
+    if (!url || typeof url !== "string" || !url.startsWith("https://")) {
+      throw new Error("Invalid signed URL provided");
+    }
+
+    // Validate content type
+    if (!contentType || typeof contentType !== "string") {
+      throw new Error("Invalid content type provided");
+    }
+
+    // Perform the upload to the signed URL
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": contentType,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Upload failed with status ${response.status}: ${response.statusText}`
+      );
+    }
+
+    logger.debug("Successfully uploaded data to signed URL");
+    res.json(await response.json());
+  } catch (error) {
+    logger.error("Error uploading to signed URL:", error);
+    res.status(500).json({ error: "Failed to upload to signed URL" });
   }
 });
 

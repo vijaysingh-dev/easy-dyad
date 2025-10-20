@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useStreamChat } from "@/hooks/useStreamChat";
 import { selectedComponentPreviewAtom } from "@/atoms/previewAtoms";
-import { ComponentSelection } from "@/ipc/ipc_types";
+import { ComponentSelection } from "@shared/eeziTypes";
 import {
   Tooltip,
   TooltipContent,
@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useRunApp } from "@/hooks/useRunApp";
 import { useShortcut } from "@/hooks/useShortcut";
-import { cn } from "@/lib/utils";
+import { cn } from "@shared/utils";
 
 interface ErrorBannerProps {
   error: { message: string; source: "preview-app" | "dyad-app" } | undefined;

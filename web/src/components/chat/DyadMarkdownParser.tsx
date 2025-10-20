@@ -23,7 +23,7 @@ import { DyadWebSearchResult } from "./DyadWebSearchResult";
 import { DyadWebSearch } from "./DyadWebSearch";
 import { DyadRead } from "./DyadRead";
 import { mapActionToButton } from "./ChatInput";
-import { SuggestedAction } from "@/lib/schemas";
+import { SuggestedAction } from "@shared/schemas";
 
 interface DyadMarkdownParserProps {
   content: string;

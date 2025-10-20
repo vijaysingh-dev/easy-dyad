@@ -10,13 +10,13 @@ import {
   RefreshCw,
   Check,
 } from "lucide-react";
-import { Problem, ProblemReport } from "@/ipc/ipc_types";
+import { Problem, ProblemReport } from "@shared/eeziTypes";
 import { Button } from "@/components/ui/button";
 
 import { useStreamChat } from "@/hooks/useStreamChat";
 import { useCheckProblems } from "@/hooks/useCheckProblems";
 import { createProblemFixPrompt } from "@/shared/problem_prompt";
-import { showError } from "@/lib/toast";
+import { showError } from "@/components/Toast";
 
 interface ProblemItemProps {
   problem: Problem;

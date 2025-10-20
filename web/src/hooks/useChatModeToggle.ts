@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useSettings } from "./useSettings";
 import { useShortcut } from "./useShortcut";
 import { usePostHog } from "posthog-js/react";
-import { ChatModeSchema } from "../../../server/src/lib/schemas";
+import { ChatModeSchema } from "@shared/schemas";
 
 export function useChatModeToggle() {
   const { settings, updateSettings } = useSettings();
@@ -17,7 +17,7 @@ export function useChatModeToggle() {
       ctrl: !isMac,
       meta: isMac,
     }),
-    [isMac],
+    [isMac]
   );
 
   // Function to toggle between ask and build chat modes
@@ -42,7 +42,7 @@ export function useChatModeToggle() {
     ".",
     modifiers,
     toggleChatMode,
-    true, // Always enabled since we're not dependent on component selector
+    true // Always enabled since we're not dependent on component selector
   );
 
   return { toggleChatMode, isMac };

@@ -19,7 +19,7 @@ import {
 import { useRouter } from "@tanstack/react-router";
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { useChats } from "@/hooks/useChats";
-import { showError, showSuccess } from "@/lib/toast";
+import { showError, showSuccess } from "@/components/Toast";
 import { useEffect } from "react";
 import { useStreamChat } from "@/hooks/useStreamChat";
 import { useCurrentBranch } from "@/hooks/useCurrentBranch";

@@ -4,7 +4,7 @@ import { IpcClient } from "@/ipc/ipc_client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Database, Loader2 } from "lucide-react";
-import { showSuccess, showError } from "@/lib/toast";
+import { showSuccess, showError } from "@/components/Toast";
 import { useVersions } from "@/hooks/useVersions";
 
 interface PortalMigrateProps {

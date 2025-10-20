@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { IpcClient } from "@/ipc/ipc_client";
-import { showError, showSuccess } from "@/lib/toast";
+import { showError, showSuccess } from "@/components/Toast";
 import { useAtom } from "jotai";
 import { appsListAtom } from "@/atoms/appAtoms";
 

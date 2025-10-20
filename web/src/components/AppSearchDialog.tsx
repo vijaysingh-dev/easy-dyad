@@ -8,7 +8,7 @@ import {
 } from "./ui/command";
 import { useState, useEffect } from "react";
 import { useSearchApps } from "@/hooks/useSearchApps";
-import type { AppSearchResult } from "@/lib/schemas";
+import type { AppSearchResult } from "@shared/schemas";
 
 type AppSearchDialogProps = {
   open: boolean;

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { IpcClient } from "@/ipc/ipc_client";
-import type { ProblemReport } from "@/ipc/ipc_types";
+import type { ProblemReport } from "@shared/eeziTypes";
 import { useSettings } from "./useSettings";
 
 export function useCheckProblems(appId: number | null) {

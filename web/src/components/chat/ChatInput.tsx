@@ -38,7 +38,7 @@ import {
   SuggestedAction,
   FileChange,
   SqlQuery,
-} from "@/lib/schemas";
+} from "@shared/schemas";
 
 import { isPreviewOpenAtom } from "@/atoms/viewAtoms";
 import { useRunApp } from "@/hooks/useRunApp";
@@ -58,7 +58,7 @@ import { useAttachments } from "@/hooks/useAttachments";
 import { AttachmentsList } from "./AttachmentsList";
 import { DragDropOverlay } from "./DragDropOverlay";
 import { FileAttachmentDropdown } from "./FileAttachmentDropdown";
-import { showError, showExtraFilesToast } from "@/lib/toast";
+import { showError, showExtraFilesToast } from "@/components/Toast";
 import { ChatInputControls } from "../ChatInputControls";
 import { ChatErrorBox } from "./ChatErrorBox";
 import { selectedComponentPreviewAtom } from "@/atoms/previewAtoms";

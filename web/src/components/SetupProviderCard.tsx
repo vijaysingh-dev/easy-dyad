@@ -1,5 +1,5 @@
 import { ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@shared/utils";
 import { ReactNode } from "react";
 
 type SetupProviderVariant = "google" | "openrouter" | "dyad";
@@ -28,7 +28,7 @@ export function SetupProviderCard({
       className={cn(
         "p-3 border rounded-lg cursor-pointer transition-colors",
         styles.container,
-        className,
+        className
       )}
       onClick={onClick}
       role="button"
@@ -40,15 +40,10 @@ export function SetupProviderCard({
             {leadingIcon}
           </div>
           <div>
-            <h4 className={cn("font-medium text-sm", styles.titleColor)}>
-              {title}
-            </h4>
+            <h4 className={cn("font-medium text-sm", styles.titleColor)}>{title}</h4>
             {subtitle ? (
               <div
-                className={cn(
-                  "text-xs flex items-center gap-1",
-                  styles.subtitleColor,
-                )}
+                className={cn("text-xs flex items-center gap-1", styles.subtitleColor)}
               >
                 {subtitle}
               </div>

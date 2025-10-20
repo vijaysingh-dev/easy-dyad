@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import { atom } from "jotai";
-import { IpcClient } from "@/ipc/ipc_client";
 import {
   appOutputAtom,
   appUrlAtom,
@@ -10,8 +9,10 @@ import {
   selectedAppIdAtom,
 } from "@/atoms/appAtoms";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { AppOutput } from "@/ipc/ipc_types";
-import { showInputRequest } from "@/lib/toast";
+import { showInputRequest } from "@/components/Toast";
+import { AppOutput } from "@shared/eeziTypes";
+import api from "@/api";
+import { a } from "vitest/dist/chunks/suite.d.FvehnV49.js";
 
 const useRunAppLoadingAtom = atom(false);
 
@@ -26,12 +27,12 @@ export function useRunApp() {
 
   const processProxyServerOutput = (output: AppOutput) => {
     const matchesProxyServerStart = output.message.includes(
-      "[dyad-proxy-server]started=[",
+      "[dyad-proxy-server]started=["
     );
     if (matchesProxyServerStart) {
       // Extract both proxy URL and original URL using regex
       const proxyUrlMatch = output.message.match(
-        /\[dyad-proxy-server\]started=\[(.*?)\]/,
+        /\[dyad-proxy-server\]started=\[(.*?)\]/
       );
       const originalUrlMatch = output.message.match(/original=\[(.*?)\]/);
 
@@ -53,8 +54,7 @@ export function useRunApp() {
       if (output.type === "input-requested") {
         showInputRequest(output.message, async (response) => {
           try {
-            const ipcClient = IpcClient.getInstance();
-            await ipcClient.respondToAppInput({
+            await api.app.respondToAppInput({
               appId: output.appId,
               response,
             });
@@ -71,13 +71,12 @@ export function useRunApp() {
       // Process proxy server output
       processProxyServerOutput(output);
     },
-    [setAppOutput],
+    [setAppOutput]
   );
   const runApp = useCallback(
     async (appId: number) => {
       setLoading(true);
       try {
-        const ipcClient = IpcClient.getInstance();
         console.debug("Running app", appId);
 
         // Clear the URL and add restart message
@@ -97,9 +96,9 @@ export function useRunApp() {
             timestamp: Date.now(),
           },
         ]);
-        const app = await ipcClient.getApp(appId);
+        const app = await api.app.getApp(appId);
         setApp(app);
-        await ipcClient.runApp(appId, processAppOutput);
+        await api.app.runApp(appId, processAppOutput);
         setPreviewErrorMessage(undefined);
       } catch (error) {
         console.error(`Error running app ${appId}:`, error);
@@ -109,13 +108,13 @@ export function useRunApp() {
             : {
                 message: error?.toString() || "Unknown error",
                 source: "dyad-app",
-              },
+              }
         );
       } finally {
         setLoading(false);
       }
     },
-    [processAppOutput],
+    [processAppOutput]
   );
 
   const stopApp = useCallback(async (appId: number) => {
@@ -125,8 +124,7 @@ export function useRunApp() {
 
     setLoading(true);
     try {
-      const ipcClient = IpcClient.getInstance();
-      await ipcClient.stopApp(appId);
+      await api.app.stopApp(appId);
 
       setPreviewErrorMessage(undefined);
     } catch (error) {
@@ -137,7 +135,7 @@ export function useRunApp() {
           : {
               message: error?.toString() || "Unknown error",
               source: "dyad-app",
-            },
+            }
       );
     } finally {
       setLoading(false);
@@ -149,19 +147,16 @@ export function useRunApp() {
   }, [setPreviewPanelKey]);
 
   const restartApp = useCallback(
-    async ({
-      removeNodeModules = false,
-    }: { removeNodeModules?: boolean } = {}) => {
+    async ({ removeNodeModules = false }: { removeNodeModules?: boolean } = {}) => {
       if (appId === null) {
         return;
       }
       setLoading(true);
       try {
-        const ipcClient = IpcClient.getInstance();
         console.debug(
           "Restarting app",
           appId,
-          removeNodeModules ? "with node_modules cleanup" : "",
+          removeNodeModules ? "with node_modules cleanup" : ""
         );
 
         // Clear the URL and add restart message
@@ -176,9 +171,9 @@ export function useRunApp() {
           },
         ]);
 
-        const app = await ipcClient.getApp(appId);
+        const app = await api.app.getApp(appId);
         setApp(app);
-        await ipcClient.restartApp(
+        await api.app.restartApp(
           appId,
           (output) => {
             // Handle HMR updates before processing
@@ -191,7 +186,7 @@ export function useRunApp() {
             // Process normally (including input requests)
             processAppOutput(output);
           },
-          removeNodeModules,
+          removeNodeModules
         );
       } catch (error) {
         console.error(`Error restarting app ${appId}:`, error);
@@ -201,7 +196,7 @@ export function useRunApp() {
             : {
                 message: error?.toString() || "Unknown error",
                 source: "dyad-app",
-              },
+              }
         );
       } finally {
         setPreviewPanelKey((prevKey) => prevKey + 1);
@@ -216,7 +211,7 @@ export function useRunApp() {
       setPreviewPanelKey,
       processAppOutput,
       onHotModuleReload,
-    ],
+    ]
   );
 
   const refreshAppIframe = useCallback(async () => {

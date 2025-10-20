@@ -41,6 +41,12 @@ class ChatApiService {
     }
   }
 
+  // Create a new chat for an app
+  public async createChat(appId: number) {
+    const { data } = await Api.post("/chat/create-chat", { appId });
+    return data;
+  }
+
   public async updateChat(params: UpdateChatParams) {
     const config: AxiosRequestConfig = { params };
     const { data } = await Api.patch("/chat/update-chat", { config });

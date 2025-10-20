@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { ProviderSettingsGrid } from "@/components/ProviderSettings";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
-import { IpcClient } from "@/ipc/ipc_client";
-import { showSuccess, showError } from "@/lib/toast";
+import { showSuccess, showError } from "@/components/Toast";
 import { AutoApproveSwitch } from "@/components/AutoApproveSwitch";
 import { TelemetrySwitch } from "@/components/TelemetrySwitch";
 import { MaxChatTurnsSelector } from "@/components/MaxChatTurnsSelector";
@@ -25,6 +24,7 @@ import { ReleaseChannelSelector } from "@/components/ReleaseChannelSelector";
 import { NeonIntegration } from "@/components/NeonIntegration";
 import { RuntimeModeSelector } from "@/components/RuntimeModeSelector";
 import { ToolsMcpSettings } from "@/components/settings/ToolsMcpSettings";
+import api from "@/api";
 
 export default function SettingsPage() {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
@@ -36,14 +36,11 @@ export default function SettingsPage() {
   const handleResetEverything = async () => {
     setIsResetting(true);
     try {
-      const ipcClient = IpcClient.getInstance();
-      await ipcClient.resetAll();
+      await api.app.resetAll();
       showSuccess("Successfully reset everything. Restart the application.");
     } catch (error) {
       console.error("Error resetting:", error);
-      showError(
-        error instanceof Error ? error.message : "An unknown error occurred",
-      );
+      showError(error instanceof Error ? error.message : "An unknown error occurred");
     } finally {
       setIsResetting(false);
       setIsResetDialogOpen(false);
@@ -63,9 +60,7 @@ export default function SettingsPage() {
           Go Back
         </Button>
         <div className="flex justify-between mb-4">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Settings
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
         </div>
 
         <div className="space-y-6">
@@ -157,9 +152,7 @@ export default function SettingsPage() {
                   Native Git offers faster performance but requires{" "}
                   <a
                     onClick={() => {
-                      IpcClient.getInstance().openExternalUrl(
-                        "https://git-scm.com/downloads",
-                      );
+                      api.app.openExternalUrl("https://git-scm.com/downloads");
                     }}
                     className="text-blue-600 hover:underline dark:text-blue-400"
                   >
@@ -187,8 +180,8 @@ export default function SettingsPage() {
                     Reset Everything
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    This will delete all your apps, chats, and settings. This
-                    action cannot be undone.
+                    This will delete all your apps, chats, and settings. This action
+                    cannot be undone.
                   </p>
                 </div>
                 <button
@@ -260,8 +253,7 @@ export function GeneralSettings({ appVersion }: { appVersion: string | null }) {
       <div className="space-y-1 mt-4">
         <AutoUpdateSwitch />
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          This will automatically update the app when new versions are
-          available.
+          This will automatically update the app when new versions are available.
         </div>
       </div>
 
@@ -311,10 +303,7 @@ export function WorkflowSettings() {
 }
 export function AISettings() {
   return (
-    <div
-      id="ai-settings"
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
-    >
+    <div id="ai-settings" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
       <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
         AI Settings
       </h2>

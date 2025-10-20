@@ -7,8 +7,7 @@ import { useAtom } from "jotai";
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
 import { dropdownOpenAtom } from "@/atoms/uiAtoms";
-import { IpcClient } from "@/ipc/ipc_client";
-import { showError, showSuccess } from "@/lib/toast";
+import { showError, showSuccess } from "@/components/Toast";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -29,6 +28,7 @@ import { DeleteChatDialog } from "@/components/chat/DeleteChatDialog";
 
 import { ChatSearchDialog } from "./ChatSearchDialog";
 import { useSelectChat } from "@/hooks/useSelectChat";
+import api from "@/api";
 
 export function ChatList({ show }: { show?: boolean }) {
   const navigate = useNavigate();
@@ -69,13 +69,7 @@ export function ChatList({ show }: { show?: boolean }) {
     return;
   }
 
-  const handleChatClick = ({
-    chatId,
-    appId,
-  }: {
-    chatId: number;
-    appId: number;
-  }) => {
+  const handleChatClick = ({ chatId, appId }: { chatId: number; appId: number }) => {
     selectChat({ chatId, appId });
     setIsSearchDialogOpen(false);
   };
@@ -85,7 +79,7 @@ export function ChatList({ show }: { show?: boolean }) {
     if (selectedAppId) {
       try {
         // Create a new chat with an empty title for now
-        const chatId = await IpcClient.getInstance().createChat(selectedAppId);
+        const chatId = await api.chat.createChat(selectedAppId);
 
         // Navigate to the new chat
         setSelectedChatId(chatId);
@@ -108,7 +102,7 @@ export function ChatList({ show }: { show?: boolean }) {
 
   const handleDeleteChat = async (chatId: number) => {
     try {
-      await IpcClient.getInstance().deleteChat(chatId);
+      await api.chat.deleteChat(chatId);
       showSuccess("Chat deleted successfully");
 
       // If the deleted chat was selected, navigate to home
@@ -181,13 +175,9 @@ export function ChatList({ show }: { show?: boolean }) {
             </Button>
 
             {loading ? (
-              <div className="py-3 px-4 text-sm text-gray-500">
-                Loading chats...
-              </div>
+              <div className="py-3 px-4 text-sm text-gray-500">Loading chats...</div>
             ) : chats.length === 0 ? (
-              <div className="py-3 px-4 text-sm text-gray-500">
-                No chats found
-              </div>
+              <div className="py-3 px-4 text-sm text-gray-500">No chats found</div>
             ) : (
               <SidebarMenu className="space-y-1">
                 {chats.map((chat) => (
@@ -208,9 +198,7 @@ export function ChatList({ show }: { show?: boolean }) {
                         }`}
                       >
                         <div className="flex flex-col w-full">
-                          <span className="truncate">
-                            {chat.title || "New Chat"}
-                          </span>
+                          <span className="truncate">{chat.title || "New Chat"}</span>
                           <span className="text-xs text-gray-500">
                             {formatDistanceToNow(new Date(chat.createdAt), {
                               addSuffix: true,
@@ -234,14 +222,9 @@ export function ChatList({ show }: { show?: boolean }) {
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="space-y-1 p-2"
-                          >
+                          <DropdownMenuContent align="end" className="space-y-1 p-2">
                             <DropdownMenuItem
-                              onClick={() =>
-                                handleRenameChat(chat.id, chat.title || "")
-                              }
+                              onClick={() => handleRenameChat(chat.id, chat.title || "")}
                               className="px-3 py-2"
                             >
                               <Edit3 className="mr-2 h-4 w-4" />
@@ -249,10 +232,7 @@ export function ChatList({ show }: { show?: boolean }) {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
-                                handleDeleteChatClick(
-                                  chat.id,
-                                  chat.title || "New Chat",
-                                )
+                                handleDeleteChatClick(chat.id, chat.title || "New Chat")
                               }
                               className="px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 focus:bg-red-50 dark:focus:bg-red-950/50"
                             >

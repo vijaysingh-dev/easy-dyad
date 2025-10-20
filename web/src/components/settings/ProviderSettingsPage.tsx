@@ -10,12 +10,12 @@ import {} from "@/components/ui/accordion";
 
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { showError } from "@/lib/toast";
+import { showError } from "@/components/Toast";
 import {
   UserSettings,
   AzureProviderSetting,
   VertexProviderSetting,
-} from "@/lib/schemas";
+} from "@shared/schemas";
 
 import { ProviderSettingsHeader } from "./ProviderSettingsHeader";
 import { ApiKeyConfiguration } from "./ApiKeyConfiguration";

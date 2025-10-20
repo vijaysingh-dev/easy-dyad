@@ -52,6 +52,7 @@ const createLogger = () => {
           winstonLogger.debug(message, { scope: scopeName }, ...args),
       };
     },
+    transports: winstonLogger.transports,
   };
 
   return logger;

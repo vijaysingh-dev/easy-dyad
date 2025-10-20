@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { atom, useAtom } from "jotai";
 import { IpcClient } from "@/ipc/ipc_client";
-import type { TokenCountResult } from "@/ipc/ipc_types";
+import type { TokenCountResult } from "@shared/eeziTypes";
 
 // Create atoms to store the token count state
 export const tokenCountResultAtom = atom<TokenCountResult | null>(null);

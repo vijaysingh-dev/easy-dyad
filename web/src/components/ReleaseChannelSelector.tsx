@@ -8,8 +8,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { IpcClient } from "@/ipc/ipc_client";
-import type { ReleaseChannel } from "@/lib/schemas";
+import type { ReleaseChannel } from "@shared/schemas";
+import api from "@/api";
 
 export function ReleaseChannelSelector() {
   const { settings, updateSettings } = useSettings();
@@ -27,7 +27,7 @@ export function ReleaseChannelSelector() {
         action: {
           label: "Download Stable",
           onClick: () => {
-            IpcClient.getInstance().openExternalUrl("https://dyad.sh/download");
+            api.app.openExternalUrl("https://dyad.sh/download");
           },
         },
       });
@@ -38,7 +38,7 @@ export function ReleaseChannelSelector() {
         action: {
           label: "Restart Dyad",
           onClick: () => {
-            IpcClient.getInstance().restartDyad();
+            api.app.restartDyad();
           },
         },
       });

@@ -3,7 +3,7 @@ import type {
   ComponentSelection,
   Message,
   FileAttachment,
-} from "@/ipc/ipc_types";
+} from "@shared/eeziTypes";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   chatErrorByIdAtom,
@@ -13,7 +13,7 @@ import {
   recentStreamChatIdsAtom,
 } from "@/atoms/chatAtoms";
 import { isPreviewOpenAtom } from "@/atoms/viewAtoms";
-import type { ChatResponseEnd } from "@/ipc/ipc_types";
+import type { ChatResponseEnd } from "@shared/eeziTypes";
 import { useChats } from "./useChats";
 import { useLoadApp } from "./useLoadApp";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";

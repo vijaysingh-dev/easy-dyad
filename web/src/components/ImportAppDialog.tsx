@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { IpcClient } from "@/ipc/ipc_client";
 import { useMutation } from "@tanstack/react-query";
-import { showError, showSuccess } from "@/lib/toast";
+import { showError, showSuccess } from "@/components/Toast";
 import { Folder, X, Loader2, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 

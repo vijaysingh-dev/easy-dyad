@@ -2,7 +2,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
-import { showInfo } from "@/lib/toast";
+import { showInfo } from "@/components/Toast";
 
 export function AutoFixProblemsSwitch({
   showToast = false,

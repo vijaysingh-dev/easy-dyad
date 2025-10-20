@@ -11,8 +11,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useSettings } from "@/hooks/useSettings";
-import type { ChatMode } from "@/lib/schemas";
-import { cn } from "@/lib/utils";
+import type { ChatMode } from "@shared/schemas";
+import { cn } from "@shared/utils";
 import { detectIsMac } from "@/hooks/useChatModeToggle";
 
 export function ChatModeSelector() {

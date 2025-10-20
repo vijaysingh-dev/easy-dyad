@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { IpcClient } from "@/ipc/ipc_client";
-import type { UserBudgetInfo } from "@/ipc/ipc_types";
+import type { UserBudgetInfo } from "@shared/eeziTypes";
+import api from "@/api";
 
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 
@@ -14,8 +14,7 @@ export function useUserBudgetInfo() {
   >({
     queryKey: queryKey,
     queryFn: async () => {
-      const ipcClient = IpcClient.getInstance();
-      return ipcClient.getUserBudget();
+      return api.settings.getUserBudget();
     },
     // This data is not critical and can be stale for a bit
     staleTime: FIVE_MINUTES_IN_MS,

@@ -16,7 +16,7 @@ import {
 } from "./ui/tooltip";
 import { useSettings } from "@/hooks/useSettings";
 import { useContextPaths } from "@/hooks/useContextPaths";
-import type { ContextPathResult } from "@/lib/schemas";
+import type { ContextPathResult } from "@shared/schemas";
 
 export function ContextFilesPicker() {
   const { settings } = useSettings();

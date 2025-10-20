@@ -117,7 +117,7 @@ export default function AppDetailsPage() {
       // Determine the new path based on user's choice
       const appPath = renameFolder ? newAppName : selectedApp.path;
 
-      await IpcClient.getInstance().renameApp({
+      await api.app.renameApp({
         appId,
         appName: newAppName,
         appPath,
@@ -144,7 +144,7 @@ export default function AppDetailsPage() {
     try {
       setIsRenamingFolder(true);
 
-      await IpcClient.getInstance().renameApp({
+      await api.app.renameApp({
         appId,
         appName: selectedApp.name, // Keep the app name the same
         appPath: newFolderName, // Change only the folder path
@@ -180,7 +180,7 @@ export default function AppDetailsPage() {
       if (!appId || !newCopyAppName.trim()) {
         throw new Error("Invalid app ID or name for copying.");
       }
-      return IpcClient.getInstance().copyApp({
+      return api.app.copyApp({
         appId,
         newAppName: newCopyAppName,
         withHistory,
@@ -191,7 +191,7 @@ export default function AppDetailsPage() {
       setSelectedAppId(appId);
       await invalidateAppQuery(queryClient, { appId });
       await refreshApps();
-      await IpcClient.getInstance().createChat(appId);
+      await api.chat.createChat(appId);
       setIsCopyDialogOpen(false);
       navigate({ to: "/app-details", search: { appId } });
     },
@@ -318,7 +318,7 @@ export default function AppDetailsPage() {
                 size="sm"
                 className="p-0.5 h-auto cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 onClick={() => {
-                  IpcClient.getInstance().showItemInFolder(fullAppPath);
+                  api.app.showItemInFolder(fullAppPath);
                 }}
                 title="Show in folder"
               >

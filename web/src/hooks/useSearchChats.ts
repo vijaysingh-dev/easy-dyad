@@ -1,5 +1,5 @@
 import { IpcClient } from "@/ipc/ipc_client";
-import type { ChatSearchResult } from "@/lib/schemas";
+import type { ChatSearchResult } from "@shared/schemas";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 export function useSearchChats(appId: number | null, query: string) {

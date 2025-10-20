@@ -1,4 +1,4 @@
-import { isDyadProEnabled, type LargeLanguageModel } from "@/lib/schemas";
+import { isDyadProEnabled, type LargeLanguageModel } from "@shared/schemas";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -21,12 +21,12 @@ import { useLocalModels } from "@/hooks/useLocalModels";
 import { useLocalLMSModels } from "@/hooks/useLMStudioModels";
 import { useLanguageModelsByProviders } from "@/hooks/useLanguageModelsByProviders";
 
-import { LocalModel } from "@/ipc/ipc_types";
+import { LocalModel } from "@shared/eeziTypes";
 import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";
 import { useSettings } from "@/hooks/useSettings";
 import { PriceBadge } from "@/components/PriceBadge";
 import { TURBO_MODELS } from "@/ipc/shared/language_model_constants";
-import { cn } from "@/lib/utils";
+import { cn } from "@shared/utils";
 
 export function ModelPicker() {
   const { settings, updateSettings } = useSettings();

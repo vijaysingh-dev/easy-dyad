@@ -1,5 +1,5 @@
 import { IpcClient } from "@/ipc/ipc_client";
-import { AppSearchResult } from "@/lib/schemas";
+import { AppSearchResult } from "@shared/schemas";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 export function useSearchApps(query: string) {

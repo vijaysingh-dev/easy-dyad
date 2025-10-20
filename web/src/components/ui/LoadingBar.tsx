@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@shared/utils";
 import React from "react";
 
 export const LoadingBar: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {

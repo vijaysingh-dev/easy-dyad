@@ -29,6 +29,7 @@ import {
 import { handleNeonOAuthReturn } from "@/services/neon_admin/neon_return_handler";
 import { handleSupabaseOAuthReturn } from "@/services/supabase/supabase_return_handler";
 import { updateAppGithubRepo } from "@/utils/integration_utils";
+import { withLock } from "@/utils/lock_utils";
 import { safeSend } from "@/utils/safe_sender";
 import { getEeziAppPath } from "@/services/paths";
 import { cli } from "winston/lib/winston/config";
@@ -387,6 +388,59 @@ router.get("/github/get-repo-branches/:owner/:repo", async (req, res) => {
   } catch (err: any) {
     logger.error("[GitHub Handler] Failed to get repo branches:", err);
     res.status(500).json({ error: err.message || "Failed to get repository branches." });
+  }
+});
+
+router.post("/github/rename-branch", async (req, res) => {
+  try {
+    const { appId, oldBranchName, newBranchName } = req.body;
+    const app = await db.query.apps.findFirst({
+      where: eq(apps.id, appId),
+    });
+
+    if (!app) {
+      throw new Error("App not found");
+    }
+
+    const appPath = getEeziAppPath(app.path);
+
+    const result = await withLock(appId, async () => {
+      try {
+        // Check if the old branch exists
+        const branches = await git.listBranches({ fs, dir: appPath });
+        if (!branches.includes(oldBranchName)) {
+          throw new Error(`Branch '${oldBranchName}' not found.`);
+        }
+
+        // Check if the new branch name already exists
+        if (branches.includes(newBranchName)) {
+          // If newBranchName is 'main' and oldBranchName is 'master',
+          // and 'main' already exists, we might want to allow this if 'main' is the current branch
+          // and just switch to it, or delete 'master'.
+          // For now, let's keep it simple and throw an error.
+          throw new Error(`Branch '${newBranchName}' already exists. Cannot rename.`);
+        }
+
+        await git.renameBranch({
+          fs: fs,
+          dir: appPath,
+          oldref: oldBranchName,
+          ref: newBranchName,
+        });
+        logger.info(
+          `Branch renamed from '${oldBranchName}' to '${newBranchName}' for app ${appId}`
+        );
+      } catch (error: any) {
+        logger.error(`Failed to rename branch for app ${appId}: ${error.message}`);
+        throw new Error(
+          `Failed to rename branch '${oldBranchName}' to '${newBranchName}': ${error.message}`
+        );
+      }
+    });
+    res.json({ success: true, result });
+  } catch (error: any) {
+    logger.error("Failed to rename branch:", error);
+    res.status(500).json({ error: error.message || "Failed to rename branch." });
   }
 });
 

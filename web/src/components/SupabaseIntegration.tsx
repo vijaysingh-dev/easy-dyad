@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 // import { Supabase } from "lucide-react"; // Placeholder
 import { DatabaseZap } from "lucide-react"; // Using DatabaseZap as a placeholder
 import { useSettings } from "@/hooks/useSettings";
-import { showSuccess, showError } from "@/lib/toast";
+import { showSuccess, showError } from "@/components/Toast";
 
 export function SupabaseIntegration() {
   const { settings, updateSettings } = useSettings();
@@ -27,9 +27,7 @@ export function SupabaseIntegration() {
         showError("Failed to disconnect from Supabase");
       }
     } catch (err: any) {
-      showError(
-        err.message || "An error occurred while disconnecting from Supabase",
-      );
+      showError(err.message || "An error occurred while disconnecting from Supabase");
     } finally {
       setIsDisconnecting(false);
     }
@@ -83,17 +81,13 @@ export function SupabaseIntegration() {
             onCheckedChange={handleMigrationSettingChange}
           />
           <div className="space-y-1">
-            <Label
-              htmlFor="supabase-migrations"
-              className="text-sm font-medium"
-            >
+            <Label htmlFor="supabase-migrations" className="text-sm font-medium">
               Write SQL migration files
             </Label>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Generate SQL migration files when modifying your Supabase schema.
-              This helps you track database changes in version control, though
-              these files aren't used for chat context, which uses the live
-              schema.
+              Generate SQL migration files when modifying your Supabase schema. This
+              helps you track database changes in version control, though these files
+              aren't used for chat context, which uses the live schema.
             </p>
           </div>
         </div>

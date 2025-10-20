@@ -17,14 +17,14 @@ import {
   FileIcon,
   SparklesIcon,
 } from "lucide-react";
-import { IpcClient } from "@/ipc/ipc_client";
 import { useState, useEffect } from "react";
 import { useAtomValue } from "jotai";
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
-import { ChatLogsData } from "@/ipc/ipc_types";
-import { showError } from "@/lib/toast";
+import { showError } from "@/components/Toast";
 import { HelpBotDialog } from "./HelpBotDialog";
 import { useSettings } from "@/hooks/useSettings";
+import { ChatLogsData } from "@shared/eeziTypes";
+import api from "@/api";
 
 interface HelpDialogProps {
   isOpen: boolean;
@@ -70,11 +70,11 @@ export function HelpDialog({ isOpen, onClose }: HelpDialogProps) {
     setIsLoading(true);
     try {
       // Get system debug info
-      const debugInfo = await IpcClient.getInstance().getSystemDebugInfo();
+      const debugInfo = await api.app.getSystemDebugInfo();
 
       // Create a formatted issue body with the debug info
       const issueBody = `
-<!-- 
+<!--
 ⚠️ IMPORTANT: All sections marked as required must be completed in English.
 Issues that do not meet these requirements will be closed and may need to be resubmitted.
 -->
@@ -117,13 +117,11 @@ ${debugInfo.logs.slice(-3_500) || "No logs available"}
       const githubIssueUrl = `https://github.com/dyad-sh/dyad/issues/new?title=${encodedTitle}&labels=${labels}&body=${encodedBody}`;
 
       // Open the pre-filled GitHub issue page
-      IpcClient.getInstance().openExternalUrl(githubIssueUrl);
+      api.app.openExternalUrl(githubIssueUrl);
     } catch (error) {
       console.error("Failed to prepare bug report:", error);
       // Fallback to opening the regular GitHub issue page
-      IpcClient.getInstance().openExternalUrl(
-        "https://github.com/dyad-sh/dyad/issues/new",
-      );
+      api.app.openExternalUrl("https://github.com/dyad-sh/dyad/issues/new");
     } finally {
       setIsLoading(false);
     }
@@ -138,17 +136,14 @@ ${debugInfo.logs.slice(-3_500) || "No logs available"}
     setIsUploading(true);
     try {
       // Get chat logs (includes debug info, chat data, and codebase)
-      const chatLogs =
-        await IpcClient.getInstance().getChatLogs(selectedChatId);
+      const chatLogs = await api.app.getChatLogs(selectedChatId);
 
       // Store data for review and switch to review mode
       setChatLogsData(chatLogs);
       setReviewMode(true);
     } catch (error) {
       console.error("Failed to upload chat session:", error);
-      alert(
-        "Failed to upload chat session. Please try again or report manually.",
-      );
+      alert("Failed to upload chat session. Please try again or report manually.");
     } finally {
       setIsUploading(false);
     }
@@ -167,19 +162,16 @@ ${debugInfo.logs.slice(-3_500) || "No logs available"}
       };
 
       // Get signed URL
-      const response = await fetch(
-        "https://upload-logs.dyad.sh/generate-upload-url",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            extension: "json",
-            contentType: "application/json",
-          }),
+      const response = await fetch("https://upload-logs.dyad.sh/generate-upload-url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          extension: "json",
+          contentType: "application/json",
+        }),
+      });
 
       if (!response.ok) {
         showError(`Failed to get upload URL: ${response.statusText}`);
@@ -188,11 +180,7 @@ ${debugInfo.logs.slice(-3_500) || "No logs available"}
 
       const { uploadUrl, filename } = await response.json();
 
-      await IpcClient.getInstance().uploadToSignedUrl(
-        uploadUrl,
-        "application/json",
-        chatLogsJson,
-      );
+      await api.app.uploadToSignedUrl(uploadUrl, "application/json", chatLogsJson);
 
       // Extract session ID (filename without extension)
       const sessionId = filename.replace(".json", "");
@@ -215,7 +203,7 @@ ${debugInfo.logs.slice(-3_500) || "No logs available"}
   const handleOpenGitHubIssue = () => {
     // Create a GitHub issue with the session ID
     const issueBody = `
-<!-- 
+<!--
 ⚠️ IMPORTANT: All sections marked as required must be completed in English.
 Issues that do not meet these requirements will be closed and may need to be resubmitted.
 -->
@@ -240,7 +228,7 @@ Session ID: ${sessionId}
     }
     const githubIssueUrl = `https://github.com/dyad-sh/dyad/issues/new?title=${encodedTitle}&labels=${labels}&body=${encodedBody}`;
 
-    IpcClient.getInstance().openExternalUrl(githubIssueUrl);
+    api.app.openExternalUrl(githubIssueUrl);
     handleClose();
   };
 
@@ -255,9 +243,7 @@ Session ID: ${sessionId}
             <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-full">
               <CheckIcon className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="text-lg font-medium">
-              Chat Logs Uploaded Successfully
-            </h3>
+            <h3 className="text-lg font-medium">Chat Logs Uploaded Successfully</h3>
             <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded flex items-center space-x-2 font-mono text-sm">
               <FileIcon
                 className="h-4 w-4 cursor-pointer"
@@ -272,8 +258,8 @@ Session ID: ${sessionId}
               <span>{sessionId}</span>
             </div>
             <p className="text-center text-sm">
-              You must open a GitHub issue for us to investigate. Without a
-              linked issue, your report will not be reviewed.
+              You must open a GitHub issue for us to investigate. Without a linked issue,
+              your report will not be reviewed.
             </p>
           </div>
           <DialogFooter>
@@ -303,9 +289,8 @@ Session ID: ${sessionId}
             </DialogTitle>
           </DialogHeader>
           <DialogDescription>
-            Please review the information that will be submitted. Your chat
-            messages, system information, and a snapshot of your codebase will
-            be included.
+            Please review the information that will be submitted. Your chat messages,
+            system information, and a snapshot of your codebase will be included.
           </DialogDescription>
 
           <div className="space-y-4 overflow-y-auto flex-grow">
@@ -344,8 +329,7 @@ Session ID: ${sessionId}
                 <p>Platform: {chatLogsData.debugInfo.platform}</p>
                 <p>Architecture: {chatLogsData.debugInfo.architecture}</p>
                 <p>
-                  Node Version:{" "}
-                  {chatLogsData.debugInfo.nodeVersion || "Not available"}
+                  Node Version: {chatLogsData.debugInfo.nodeVersion || "Not available"}
                 </p>
               </div>
             </div>
@@ -397,12 +381,10 @@ Session ID: ${sessionId}
                 }}
                 className="w-full py-6 border-primary/50 shadow-sm shadow-primary/10 transition-all hover:shadow-md hover:shadow-primary/15"
               >
-                <SparklesIcon className="mr-2 h-5 w-5" /> Chat with Dyad help
-                bot (Pro)
+                <SparklesIcon className="mr-2 h-5 w-5" /> Chat with Dyad help bot (Pro)
               </Button>
               <p className="text-sm text-muted-foreground px-2">
-                Opens an in-app help chat assistant that searches through Dyad's
-                docs.
+                Opens an in-app help chat assistant that searches through Dyad's docs.
               </p>
             </div>
           ) : (
@@ -410,9 +392,7 @@ Session ID: ${sessionId}
               <Button
                 variant="outline"
                 onClick={() => {
-                  IpcClient.getInstance().openExternalUrl(
-                    "https://www.dyad.sh/docs",
-                  );
+                  api.app.openExternalUrl("https://www.dyad.sh/docs");
                 }}
                 className="w-full py-6 bg-(--background-lightest)"
               >
@@ -435,8 +415,8 @@ Session ID: ${sessionId}
               {isLoading ? "Preparing Report..." : "Report a Bug"}
             </Button>
             <p className="text-sm text-muted-foreground px-2">
-              We'll auto-fill your report with system info and logs. You can
-              review it for any sensitive info before submitting.
+              We'll auto-fill your report with system info and logs. You can review it
+              for any sensitive info before submitting.
             </p>
           </div>
           <div className="flex flex-col space-y-2">
@@ -450,16 +430,13 @@ Session ID: ${sessionId}
               {isUploading ? "Preparing Upload..." : "Upload Chat Session"}
             </Button>
             <p className="text-sm text-muted-foreground px-2">
-              Share chat logs and code for troubleshooting. Data is used only to
-              resolve your issue and auto-deleted after a limited time.
+              Share chat logs and code for troubleshooting. Data is used only to resolve
+              your issue and auto-deleted after a limited time.
             </p>
           </div>
         </div>
       </DialogContent>
-      <HelpBotDialog
-        isOpen={isHelpBotOpen}
-        onClose={() => setIsHelpBotOpen(false)}
-      />
+      <HelpBotDialog isOpen={isHelpBotOpen} onClose={() => setIsHelpBotOpen(false)} />
     </Dialog>
   );
 }

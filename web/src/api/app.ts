@@ -1,5 +1,6 @@
 import Api from "./api";
 import { AxiosRequestConfig } from "axios";
+import { AppSearchResult, AppSearchResultsSchema } from "@shared/schemas";
 import {
   CreateAppParams,
   CreateAppResult,
@@ -7,9 +8,12 @@ import {
   CreatePromptParamsDto,
   UpdatePromptParamsDto,
   CopyAppParams,
-  App,
+  RespondToAppInputParams,
+  AppOutput,
 } from "@shared/eeziTypes";
 import { showError } from "@/components/Toast";
+import eeziClient from "./client";
+import { app } from "electron";
 
 class AppApiService {
   // Open an external URL using the default browser
@@ -17,15 +21,45 @@ class AppApiService {
     const newTab = window.open(url, "_blank");
     newTab?.focus();
   }
-  async reloadEnvPath() {
+
+  public async restartDyad(): Promise<void> {
+    window.location.reload();
+  }
+
+  public async reloadEnvPath() {
     return Promise.resolve(() =>
       setTimeout(() => {
         window.location.reload();
       }, 1000)
     );
   }
+
+  public async showItemInFolder(fullPath: string): Promise<void> {
+    const { data } = await Api.post("/app/show-item-in-folder", { fullPath });
+    return data;
+  }
+
+  public async getSystemDebugInfo() {
+    const { data } = await Api.get("/app/get-system-debug-info");
+    return data;
+  }
+
+  public async getChatLogs(chatId: number) {
+    const { data } = await Api.get(`/app/get-chat-logs/${chatId}`);
+    return data;
+  }
+
+  public async uploadToSignedUrl(url: string, contentType: string, data: any) {
+    const res = await Api.post("/app/upload-to-signed-url", {
+      url,
+      contentType,
+      data,
+    });
+    return res.data;
+  }
+
   // Create a new app with an initial chat
-  async createApp(params: CreateAppParams) {
+  public async createApp(params: CreateAppParams) {
     const { data } = await Api.post(`/app/create-app`, params);
     return data as CreateAppResult;
   }
@@ -38,7 +72,7 @@ class AppApiService {
     return data;
   }
 
-  async listApps() {
+  public async listApps() {
     const { data } = await Api.get(`/app/list-apps`);
     return data as ListAppsResponse;
   }
@@ -50,14 +84,12 @@ class AppApiService {
     return data;
   }
 
-  // // Run an app
-  // public async runApp(
-  //   appId: number,
-  //   onOutput: (output: AppOutput) => void,
-  // ): Promise<void> {
-  //   await this.ipcRenderer.invoke("run-app", { appId });
-  //   this.appStreams.set(appId, { onOutput });
-  // }
+  // Run an app
+  public async runApp(appId: number, onOutput: (output: AppOutput) => void) {
+    eeziClient.appStreams.set(appId, { onOutput });
+    const url = eeziClient.baseURL + `/app/run-app/${appId}`;
+    eeziClient.initAppStreamSSE(url);
+  }
 
   // Stop a running app
   public async stopApp(appId: number) {
@@ -65,24 +97,18 @@ class AppApiService {
     return data;
   }
 
-  // // Restart a running app
-  // public async restartApp(
-  //   appId: number,
-  //   onOutput: (output: AppOutput) => void,
-  //   removeNodeModules?: boolean,
-  // ): Promise<{ success: boolean }> {
-  //   try {
-  //     const result = await this.ipcRenderer.invoke("restart-app", {
-  //       appId,
-  //       removeNodeModules,
-  //     });
-  //     this.appStreams.set(appId, { onOutput });
-  //     return result;
-  //   } catch (error) {
-  //     showError(error);
-  //     throw error;
-  //   }
-  // }
+  // Restart a running app
+  public async restartApp(
+    appId: number,
+    onOutput: (output: AppOutput) => void,
+    removeNodeModules?: boolean
+  ) {
+    eeziClient.appStreams.set(appId, { onOutput });
+    const url =
+      eeziClient.baseURL +
+      `/app/restart-app/${appId}/?removeNodeModules=${!!removeNodeModules}`;
+    eeziClient.initAppStreamSSE(url);
+  }
 
   // Edit a file in an app directory
   public async editAppFile(appId: number, filePath: string, content: string) {
@@ -119,20 +145,49 @@ class AppApiService {
     appId: number;
     appName: string;
     appPath: string;
-  }): Promise<void> {
-    await this.ipcRenderer.invoke("rename-app", {
+  }) {
+    const { data } = await Api.post("/app/rename-app", {
       appId,
       appName,
       appPath,
     });
+    return data;
   }
 
   // Reset all - removes all app files, settings, and drops the database
-  public async resetAll(): Promise<void> {
-    await this.ipcRenderer.invoke("reset-all");
+  public async resetAll() {
+    const { data } = await Api.get("/app/reset-all");
+    return data;
   }
 
-  async checkAppName(params: { appName: string }) {
+  // Respond to an app input request (y/n prompts)
+  public async respondToAppInput(params: RespondToAppInputParams) {
+    try {
+      const { data } = await Api.post("/app/respond-to-app-input", params);
+      return data;
+    } catch (error) {
+      showError(error);
+    }
+  }
+
+  // Search apps by name
+  public async searchApps(searchQuery: string) {
+    try {
+      const { data } = await Api.post("/app/search-app", { searchQuery });
+      return AppSearchResultsSchema.parse(data);
+    } catch (error) {
+      showError(error);
+      throw error;
+    }
+  }
+
+  // Get the main app version
+  public async getAppVersion() {
+    const { data } = await Api.get("/app/get-app-version");
+    return data.version as string;
+  }
+
+  public async checkAppName(params: { appName: string }) {
     const config: AxiosRequestConfig = { params };
     const { data } = await Api.get("/app/check-app-name", { config });
     return data;

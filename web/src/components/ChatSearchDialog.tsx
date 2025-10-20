@@ -8,7 +8,7 @@ import {
 } from "./ui/command";
 import { useState, useEffect } from "react";
 import { useSearchChats } from "@/hooks/useSearchChats";
-import type { ChatSummary, ChatSearchResult } from "@/lib/schemas";
+import type { ChatSummary, ChatSearchResult } from "@shared/schemas";
 
 type ChatSearchDialogProps = {
   open: boolean;

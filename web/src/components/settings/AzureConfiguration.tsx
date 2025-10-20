@@ -9,7 +9,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { CheckCircle2, Info, KeyRound } from "lucide-react";
-import type { AzureProviderSetting, UserSettings } from "@/lib/schemas";
+import type { AzureProviderSetting, UserSettings } from "@shared/schemas";
 
 interface AzureConfigurationProps {
   settings: UserSettings | null | undefined;

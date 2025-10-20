@@ -279,7 +279,7 @@ import React from "react";
 import { Trash2, Check, X } from "lucide-react";
 import { Todo } from "../types/todo";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "@shared/utils";
 
 interface TodoItemProps {
   todo: Todo;

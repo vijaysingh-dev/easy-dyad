@@ -1,6 +1,6 @@
 import { IpcClient } from "@/ipc/ipc_client";
 import { useQuery } from "@tanstack/react-query";
-import type { BranchResult } from "@/ipc/ipc_types";
+import type { BranchResult } from "@shared/eeziTypes";
 
 export function useCurrentBranch(appId: number | null) {
   const {

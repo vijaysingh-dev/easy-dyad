@@ -3,10 +3,12 @@ import db from "@/db";
 import { apps } from "@/db/schema";
 import { Response } from "express";
 import { eq } from "drizzle-orm";
-import fs, { promises as fsPromises } from "node:fs";
-import path from "node:path";
+import winston from "winston";
+import { platform, arch } from "os";
 import util from "util";
 import killPort from "kill-port";
+import path from "node:path";
+import fs, { promises as fsPromises } from "node:fs";
 import { ChildProcess, spawn } from "node:child_process";
 import { readSettings } from "@/services/settings";
 import {
@@ -17,8 +19,10 @@ import {
 import { startProxy } from "@/utils/start_proxy_server";
 import { gitAddAll, gitCommit } from "@/utils/git_utils";
 import { simpleSpawn } from "@/utils/simpleSpawn";
+import { runShellCommand } from "@/utils/runShellCommand";
 import { safeSend } from "@/utils/safe_sender";
 import { Worker } from "worker_threads";
+import { LargeLanguageModel } from "@shared/schemas";
 
 const logger = log.scope("app_utils");
 
@@ -55,15 +59,6 @@ function getCommand({
     : DEFAULT_COMMAND;
 }
 
-export async function cleanUpPort(port: number) {
-  const settings = readSettings();
-  if (settings.runtimeMode2 === "docker") {
-    await stopDockerContainersOnPort(port);
-  } else {
-    await killProcessOnPort(port);
-  }
-}
-
 export async function getApp(appId: number) {
   const app = await db.query.apps.findFirst({
     where: eq(apps.id, appId),
@@ -72,6 +67,121 @@ export async function getApp(appId: number) {
     throw new Error(`App with id ${appId} not found`);
   }
   return app;
+}
+
+function serializeModelForDebug(model: LargeLanguageModel): string {
+  return `${model.provider}:${model.name} | customId: ${model.customModelId}`;
+}
+
+// Shared function to get system debug info
+export async function getSystemDebugInfo({
+  linesOfLogs,
+  level,
+}: {
+  linesOfLogs: number;
+  level: "warn" | "info";
+}) {
+  console.log("Getting system debug info");
+
+  // Get Node.js and pnpm versions
+  let nodeVersion: string | null = null;
+  let pnpmVersion: string | null = null;
+  let nodePath: string | null = null;
+  try {
+    nodeVersion = await runShellCommand("node --version");
+  } catch (err) {
+    console.error("Failed to get Node.js version:", err);
+  }
+
+  try {
+    pnpmVersion = await runShellCommand("pnpm --version");
+  } catch (err) {
+    console.error("Failed to get pnpm version:", err);
+  }
+
+  try {
+    if (platform() === "win32") {
+      nodePath = await runShellCommand("where.exe node");
+    } else {
+      nodePath = await runShellCommand("which node");
+    }
+  } catch (err) {
+    console.error("Failed to get node path:", err);
+  }
+
+  // Get Dyad version from package.json
+  const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
+  let dyadVersion = "unknown";
+  try {
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+    dyadVersion = packageJson.version;
+  } catch (err) {
+    console.error("Failed to read package.json:", err);
+  }
+
+  // Get telemetry info from settings
+  const settings = readSettings();
+  const telemetryId = settings.telemetryUserId || "unknown";
+
+  // Get logs from electron-log
+  let logs = "";
+  try {
+    const fileTransport = log.transports.find(
+      (t) => t instanceof winston.transports.File
+    ) as winston.transports.FileTransportInstance;
+
+    const logPath = fileTransport.filename;
+    if (fs.existsSync(logPath)) {
+      const logContent = fs.readFileSync(logPath, "utf8");
+
+      const logLines = logContent.split("\n").filter((line) => {
+        if (level === "info") {
+          return true;
+        }
+        // Example line:
+        // [2025-06-09 13:55:05.209] [debug] (runShellCommand) Command "which node" succeeded with code 0: /usr/local/bin/node
+        const logLevelRegex = /\[.*?\] \[(\w+)\]/;
+        const match = line.match(logLevelRegex);
+        if (!match) {
+          // Include non-matching lines (like stack traces) when filtering for warnings
+          return true;
+        }
+        const logLevel = match[1];
+        if (level === "warn") {
+          return logLevel === "warn" || logLevel === "error";
+        }
+        return true;
+      });
+
+      logs = logLines.slice(-linesOfLogs).join("\n");
+    }
+  } catch (err) {
+    console.error("Failed to read log file:", err);
+    logs = `Error reading logs: ${err}`;
+  }
+
+  return {
+    nodeVersion,
+    pnpmVersion,
+    nodePath,
+    telemetryId,
+    selectedLanguageModel: serializeModelForDebug(settings.selectedModel) || "unknown",
+    telemetryConsent: settings.telemetryConsent || "unknown",
+    telemetryUrl: "https://us.i.posthog.com", // Hardcoded from renderer.tsx
+    dyadVersion,
+    platform: process.platform,
+    architecture: arch(),
+    logs,
+  };
+}
+
+export async function cleanUpPort(port: number) {
+  const settings = readSettings();
+  if (settings.runtimeMode2 === "docker") {
+    await stopDockerContainersOnPort(port);
+  } else {
+    await killProcessOnPort(port);
+  }
 }
 
 let proxyWorker: Worker | null = null;

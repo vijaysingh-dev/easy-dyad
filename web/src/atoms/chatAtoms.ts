@@ -1,6 +1,6 @@
-import type { Message } from "@/ipc/ipc_types";
+import type { Message } from "@shared/eeziTypes";
 import { atom } from "jotai";
-import type { ChatSummary } from "@/lib/schemas";
+import type { ChatSummary } from "@shared/schemas";
 
 // Per-chat atoms implemented with maps keyed by chatId
 export const chatMessagesByIdAtom = atom<Map<number, Message[]>>(new Map());
