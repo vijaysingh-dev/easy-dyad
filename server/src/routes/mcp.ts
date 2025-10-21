@@ -1,365 +1,172 @@
 import log from "@/logger";
 import db from "@/db";
+import { mcpServers, mcpToolConsents } from "@/db/schema";
 import { Router } from "express";
 import { and, eq } from "drizzle-orm";
-import {
-  CUSTOM_PROVIDER_PREFIX,
-  getLanguageModelProviders,
-  getLanguageModels,
-  getLanguageModelsByProviders,
-} from "@/services/llm/language_model_helpers";
-import {
-  language_models,
-  language_model_providers as languageModelProvidersSchema,
-  language_models as languageModelsSchema,
-} from "@/db/schema";
+import { getStoredConsent, resolveConsent } from "@/utils/mcp_consent";
+import { mcpManager } from "@/utils/mcp_manager";
 
 const logger = log.scope("mcp-route");
 const router = Router();
 
-// --- Language Model Provider Routes ---
-router.get("/get-language-model-providers", async (req, res) => {
+type ConsentDecision = "accept-once" | "accept-always" | "decline";
+
+// CRUD for MCP servers
+router.get("/list-servers", async (req, res) => {
   try {
-    const providers = await getLanguageModelProviders();
-    res.json(providers);
-  } catch (error) {
-    logger.error("Error fetching language model providers:", error);
-    res.status(500).json({ error: "Failed to fetch language model providers" });
-  }
-});
-
-router.post("/create-custom-language-model-provider", async (req, res) => {
-  try {
-    const { id, name, apiBaseUrl, envVarName } = req.body;
-
-    // Validation
-    if (!id) {
-      throw new Error("Provider ID is required");
-    }
-
-    if (!name) {
-      throw new Error("Provider name is required");
-    }
-
-    if (!apiBaseUrl) {
-      throw new Error("API base URL is required");
-    }
-
-    // Check if a provider with this ID already exists
-    const existingProvider = db
-      .select()
-      .from(languageModelProvidersSchema)
-      .where(eq(languageModelProvidersSchema.id, id))
-      .get();
-
-    if (existingProvider) {
-      throw new Error(`A provider with ID "${id}" already exists`);
-    }
-
-    // Insert the new provider
-    await db.insert(languageModelProvidersSchema).values({
-      // Make sure we will never have accidental collisions with builtin providers
-      id: CUSTOM_PROVIDER_PREFIX + id,
-      name,
-      api_base_url: apiBaseUrl,
-      env_var_name: envVarName || null,
-    });
-
-    // Return the newly created provider
-    res.json({
-      id,
-      name,
-      apiBaseUrl,
-      envVarName,
-      type: "custom",
-    });
-  } catch (error) {
-    logger.error("Error creating custom language model provider:", error);
-    res.status(500).json({ error: "Failed to create custom language model provider" });
-  }
-});
-
-router.post("/create-custom-language-model", async (req, res) => {
-  try {
-    const {
-      apiName,
-      displayName,
-      providerId,
-      description,
-      maxOutputTokens,
-      contextWindow,
-    } = req.body;
-
-    // Validation
-    if (!apiName) {
-      throw new Error("Model API name is required");
-    }
-    if (!displayName) {
-      throw new Error("Model display name is required");
-    }
-    if (!providerId) {
-      throw new Error("Provider ID is required");
-    }
-
-    // Check if provider exists
-    const providers = await getLanguageModelProviders();
-    const provider = providers.find((p) => p.id === providerId);
-    if (!provider) {
-      throw new Error(`Provider with ID "${providerId}" not found`);
-    }
-
-    // Insert the new model
-    await db.insert(languageModelsSchema).values({
-      displayName,
-      apiName,
-      builtinProviderId: provider.type === "cloud" ? providerId : undefined,
-      customProviderId: provider.type === "custom" ? providerId : undefined,
-      description: description || null,
-      max_output_tokens: maxOutputTokens || null,
-      context_window: contextWindow || null,
-    });
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error creating custom language model:", error);
-    res.status(500).json({ error: "Failed to create custom language model" });
-  }
-});
-
-router.patch("/edit-custom-language-model-provider", async (req, res) => {
-  try {
-    const { id, name, apiBaseUrl, envVarName } = req.body;
-
-    if (!id) {
-      throw new Error("Provider ID is required");
-    }
-    if (!name) {
-      throw new Error("Provider name is required");
-    }
-    if (!apiBaseUrl) {
-      throw new Error("API base URL is required");
-    }
-
-    // Check if the provider being edited exists
-    const existingProvider = db
-      .select()
-      .from(languageModelProvidersSchema)
-      .where(eq(languageModelProvidersSchema.id, CUSTOM_PROVIDER_PREFIX + id))
-      .get();
-
-    if (!existingProvider) {
-      throw new Error(`Provider with ID "${id}" not found`);
-    }
-
-    // Use transaction to ensure atomicity when updating provider and potentially its models
-    const result = db.transaction((tx) => {
-      // Update the provider
-      const updateResult = tx
-        .update(languageModelProvidersSchema)
-        .set({
-          id: CUSTOM_PROVIDER_PREFIX + id,
-          name,
-          api_base_url: apiBaseUrl,
-          env_var_name: envVarName || null,
-        })
-        .where(eq(languageModelProvidersSchema.id, CUSTOM_PROVIDER_PREFIX + id))
-        .run();
-
-      if (updateResult.changes === 0) {
-        throw new Error(`Failed to update provider with ID "${id}"`);
-      }
-
-      return {
-        id,
-        name,
-        apiBaseUrl,
-        envVarName,
-        type: "custom" as const,
-      };
-    });
-    logger.info(`Successfully updated provider`);
+    const result = await db.select().from(mcpServers);
     res.json(result);
   } catch (error) {
-    logger.error("Error editing custom language model provider:", error);
-    res.status(500).json({ error: "Failed to edit custom language model provider" });
+    logger.error("Error listing mcp servers:", error);
+    res.status(500).json({ error: "Failed to list mcp servers" });
   }
 });
 
-router.delete("/delete-custom-language-model/:modelId", async (req, res) => {
+router.post("/create-server", async (req, res) => {
   try {
-    const { modelId: apiName } = req.params;
-    // Validation
-    if (!apiName) {
-      throw new Error("Model API name (modelId) is required");
+    const { name, transport, command, args, envJson, url, enabled } = req.body;
+    const result = await db
+      .insert(mcpServers)
+      .values({
+        name,
+        transport,
+        command: command || null,
+        args: args || null,
+        envJson: envJson || null,
+        url: url || null,
+        enabled: !!enabled,
+      })
+      .returning();
+    res.json(result[0]);
+  } catch (error) {
+    logger.error("Error creating mcp server:", error);
+    res.status(500).json({ error: "Failed to create mcp server" });
+  }
+});
+
+router.patch("/update-server", async (req, res) => {
+  try {
+    const { id, name, transport, command, args, cwd, envJson, url, enabled } = req.body;
+    const update: any = {};
+    if (name !== undefined) update.name = name;
+    if (transport !== undefined) update.transport = transport;
+    if (command !== undefined) update.command = command;
+    if (args !== undefined) update.args = args || null;
+    if (cwd !== undefined) update.cwd = cwd;
+    if (envJson !== undefined) update.envJson = envJson || null;
+    if (url !== undefined) update.url = url;
+    if (enabled !== undefined) update.enabled = !!enabled;
+
+    const result = await db
+      .update(mcpServers)
+      .set(update)
+      .where(eq(mcpServers.id, id))
+      .returning();
+    // If server config changed, dispose cached client to be recreated on next use
+    try {
+      mcpManager.dispose(id);
+    } catch {
+      logger.warn(`No existing MCP client to dispose for server ID ${id}`);
     }
+    res.json(result[0]);
+  } catch (error) {
+    logger.error("Error updating mcp server:", error);
+    res.status(500).json({ error: "Failed to update mcp server" });
+  }
+});
 
-    logger.info(`Handling delete-custom-language-model for apiName: ${apiName}`);
-
-    const existingModel = await db
-      .select()
-      .from(languageModelsSchema)
-      .where(eq(languageModelsSchema.apiName, apiName))
-      .get();
-
-    if (!existingModel) {
-      throw new Error(`A model with API name (modelId) "${apiName}" was not found`);
+router.delete("/delete-server/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    try {
+      mcpManager.dispose(id);
+    } catch {
+      logger.warn(`No existing MCP client to dispose for server ID ${id}`);
     }
-
-    await db
-      .delete(languageModelsSchema)
-      .where(eq(languageModelsSchema.apiName, apiName));
+    await db.delete(mcpServers).where(eq(mcpServers.id, id));
     res.json({ success: true });
   } catch (error) {
-    logger.error("Error deleting custom language model:", error);
-    res.status(500).json({ error: "Failed to delete custom language model" });
+    logger.error("Error deleting mcp server:", error);
+    res.status(500).json({ error: "Failed to delete mcp server" });
   }
 });
 
-router.delete("/delete-custom-model", async (req, res) => {
+// Tools listing (dynamic)
+router.get("/list-tools/:serverId", async (req, res) => {
   try {
-    const { providerId, modelApiName } = req.query;
-
-    logger.info(`Handling delete-custom-model for ${providerId} / ${modelApiName}`);
-    if (!providerId || !modelApiName) {
-      throw new Error("Provider ID and Model API Name are required.");
-    }
-    logger.info(
-      `Attempting to delete custom model ${modelApiName} for provider ${providerId}`
+    const serverId = parseInt(req.params.serverId);
+    const client = await mcpManager.getClient(serverId);
+    const remoteTools = await client.tools();
+    const tools = await Promise.all(
+      Object.entries(remoteTools).map(async ([name, tool]) => ({
+        name,
+        description: tool.description ?? null,
+        consent: await getStoredConsent(serverId, name),
+      }))
     );
+    res.json(tools);
+  } catch (error) {
+    logger.error("Failed to list tools", error);
+    res.status(500).json({ error: "Failed to list tools" });
+  }
+});
+// Consents
+router.get("/get-tool-consents", async (req, res) => {
+  try {
+    const result = await db.select().from(mcpToolConsents);
+    res.json(result);
+  } catch (error) {
+    logger.error("Error fetching tool consents:", error);
+    res.status(500).json({ error: "Failed to fetch tool consents" });
+  }
+});
 
-    const providers = await getLanguageModelProviders();
-    const provider = providers.find((p) => p.id === providerId);
-    if (!provider) {
-      throw new Error(`Provider with ID "${providerId}" not found`);
-    }
-    if (provider.type === "local") {
-      throw new Error("Local models cannot be deleted");
-    }
-    const result = db
-      .delete(language_models)
+router.post("/set-tool-consent", async (req, res) => {
+  try {
+    const { serverId, toolName, consent } = req.body;
+    const existing = await db
+      .select()
+      .from(mcpToolConsents)
       .where(
         and(
-          provider.type === "cloud"
-            ? eq(language_models.builtinProviderId, providerId)
-            : eq(language_models.customProviderId, providerId),
-
-          eq(language_models.apiName, modelApiName)
+          eq(mcpToolConsents.serverId, serverId),
+          eq(mcpToolConsents.toolName, toolName)
         )
-      )
-      .run();
-
-    if (result.changes === 0) {
-      logger.warn(
-        `No custom model found matching providerId=${providerId} and apiName=${modelApiName} for deletion.`
       );
+    if (existing.length > 0) {
+      const result = await db
+        .update(mcpToolConsents)
+        .set({ consent: consent })
+        .where(
+          and(
+            eq(mcpToolConsents.serverId, serverId),
+            eq(mcpToolConsents.toolName, toolName)
+          )
+        )
+        .returning();
+      res.json(result[0]);
     } else {
-      logger.info(
-        `Successfully deleted ${result.changes} custom model(s) with apiName=${modelApiName} for provider=${providerId}`
-      );
+      const result = await db
+        .insert(mcpToolConsents)
+        .values({
+          serverId: serverId,
+          toolName: toolName,
+          consent: consent,
+        })
+        .returning();
+      res.json(result[0]);
     }
-    res.json(result);
   } catch (error) {
-    logger.error("Error deleting custom model:", error);
-    res.status(500).json({ error: "Failed to delete custom model" });
+    logger.info("Error setting tool consent:", error);
+    res.status(500).json({ error: "Failed to set tool consent" });
   }
 });
 
-router.delete("/delete-custom-language-model-provider/:providerId", async (req, res) => {
-  try {
-    const { providerId } = req.params;
-
-    // Validation
-    if (!providerId) {
-      throw new Error("Provider ID is required");
-    }
-
-    logger.info(
-      `Handling delete-custom-language-model-provider for providerId: ${providerId}`
-    );
-
-    // Check if the provider exists before attempting deletion
-    const existingProvider = await db
-      .select({ id: languageModelProvidersSchema.id })
-      .from(languageModelProvidersSchema)
-      .where(eq(languageModelProvidersSchema.id, providerId))
-      .get();
-
-    if (!existingProvider) {
-      // If the provider doesn't exist, maybe it was already deleted. Log and return.
-      logger.warn(
-        `Provider with ID "${providerId}" not found. It might have been deleted already.`
-      );
-      // Optionally, throw new Error(`Provider with ID "${providerId}" not found`);
-      // Deciding to return gracefully instead of throwing an error if not found.
-      return;
-    }
-
-    // Use a transaction to ensure atomicity
-    db.transaction((tx) => {
-      // 1. Delete associated models
-      const deleteModelsResult = tx
-        .delete(languageModelsSchema)
-        .where(eq(languageModelsSchema.customProviderId, providerId))
-        .run();
-      logger.info(
-        `Deleted ${deleteModelsResult.changes} model(s) associated with provider ${providerId}`
-      );
-
-      // 2. Delete the provider
-      const deleteProviderResult = tx
-        .delete(languageModelProvidersSchema)
-        .where(eq(languageModelProvidersSchema.id, providerId))
-        .run();
-
-      if (deleteProviderResult.changes === 0) {
-        // This case should ideally not happen if existingProvider check passed,
-        // but adding safety check within transaction.
-        logger.error(
-          `Failed to delete provider with ID "${providerId}" during transaction, although it was found initially. Rolling back.`
-        );
-        throw new Error(
-          `Failed to delete provider with ID "${providerId}" which should have existed.`
-        );
-      }
-      logger.info(`Successfully deleted provider with ID "${providerId}".`);
-      res.json(deleteProviderResult);
-    });
-  } catch (error) {
-    logger.error("Error deleting custom language model provider:", error);
-    res.status(500).json({ error: "Failed to delete custom language model provider" });
-  }
+// Tool consent request/response handshake
+// Receive consent response from renderer
+router.post("/tool-consent-response", async (req, res) => {
+  const { requestId, decision } = req.body;
+  resolveConsent(requestId, decision);
 });
-
-router.get("/get-language-models/", async (req, res) => {
-  try {
-    const { providerId } = req.query;
-    if (!providerId || typeof providerId !== "string") {
-      throw new Error("Invalid parameters: providerId (string) is required.");
-    }
-    const providers = await getLanguageModelProviders();
-    const provider = providers.find((p) => p.id === providerId);
-    if (!provider) {
-      throw new Error(`Provider with ID "${providerId}" not found`);
-    }
-    if (provider.type === "local") {
-      throw new Error("Local models cannot be fetched");
-    }
-    const result = getLanguageModels({ providerId });
-    res.json(result);
-  } catch (error) {
-    logger.error("Error fetching language models by provider:", error);
-    res.status(500).json({ error: "Failed to fetch language models by provider" });
-  }
-});
-
-router.get("/get-language-models-by-providers", async (req, res) => {
-  try {
-    const result = await getLanguageModelsByProviders();
-    res.json(result);
-  } catch (error) {
-    logger.error("Error fetching language models by providers:", error);
-    res.status(500).json({ error: "Failed to fetch language models by providers" });
-  }
-});
-// --- End Language Model Provider Routes ---
 
 export default router;

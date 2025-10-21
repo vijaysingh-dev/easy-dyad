@@ -1,6 +1,6 @@
 import Api from "./api";
 import { AxiosRequestConfig } from "axios";
-import { AppSearchResult, AppSearchResultsSchema } from "@shared/schemas";
+import { AppSearchResultsSchema } from "@shared/schemas";
 import {
   CreateAppParams,
   CreateAppResult,
@@ -10,10 +10,12 @@ import {
   CopyAppParams,
   RespondToAppInputParams,
   AppOutput,
+  GetAppEnvVarsParams,
+  SetAppEnvVarsParams,
+  ImportAppParams,
 } from "@shared/eeziTypes";
 import { showError } from "@/components/Toast";
 import eeziClient from "./client";
-import { app } from "electron";
 
 class AppApiService {
   // Open an external URL using the default browser
@@ -22,8 +24,27 @@ class AppApiService {
     newTab?.focus();
   }
 
-  public async restartDyad(): Promise<void> {
+  public minimizeWindow() {}
+  public maximizeWindow() {}
+  public closeWindow() {}
+
+  public async selectAppFolder() {
+    return { app: null, name: null };
+  }
+
+  public async checkAiRules(params: { path: string }) {
+    const config: AxiosRequestConfig = { params };
+    const { data } = await Api.get("/app/check-ai-rules", { config });
+    return data;
+  }
+
+  public async restartEezi(): Promise<void> {
     window.location.reload();
+  }
+
+  async clearSessionData(): Promise<void> {
+    localStorage.clear();
+    sessionStorage.clear();
   }
 
   public async reloadEnvPath() {
@@ -36,6 +57,12 @@ class AppApiService {
 
   public async showItemInFolder(fullPath: string): Promise<void> {
     const { data } = await Api.post("/app/show-item-in-folder", { fullPath });
+    return data;
+  }
+
+  // Get system platform (win32, darwin, linux)
+  public async getSystemPlatform() {
+    const { data } = await Api.get("/app/get-system-platform");
     return data;
   }
 
@@ -57,6 +84,13 @@ class AppApiService {
     });
     return res.data;
   }
+
+  // --- Portal Management ---
+  public async portalMigrateCreate(params: { appId: number }) {
+    const { data } = await Api.post("/app/portal/migrate-create", params);
+    return data;
+  }
+  // --- End Portal Management ---
 
   // Create a new app with an initial chat
   public async createApp(params: CreateAppParams) {
@@ -126,6 +160,17 @@ class AppApiService {
     return data;
   }
 
+  public async getAppEnvVars(params: GetAppEnvVarsParams) {
+    const config: AxiosRequestConfig = { params };
+    const { data } = await Api.get("/app/get-app-env-vars", { config });
+    return data;
+  }
+
+  public async setAppEnvVars(params: SetAppEnvVarsParams) {
+    const { data } = await Api.post("/app/set-app-env-vars", params);
+    return data;
+  }
+
   public async addAppToFavorite(appId: number) {
     try {
       const { data } = await Api.post("/app/add-to-favorite", { appId });
@@ -134,6 +179,10 @@ class AppApiService {
       showError(error);
       throw error;
     }
+  }
+  public async importApp(params: ImportAppParams) {
+    const { data } = await Api.post("/app/import-app", params);
+    return data;
   }
 
   // Rename an app (update name and path)
@@ -191,19 +240,6 @@ class AppApiService {
     const config: AxiosRequestConfig = { params };
     const { data } = await Api.get("/app/check-app-name", { config });
     return data;
-  }
-
-  public async addDependency({
-    chatId,
-    packages,
-  }: {
-    chatId: number;
-    packages: string[];
-  }): Promise<void> {
-    await this.ipcRenderer.invoke("chat:add-dep", {
-      chatId,
-      packages,
-    });
   }
 
   public async getAppUpgrades(params: { appId: number }) {

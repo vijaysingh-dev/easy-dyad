@@ -12,7 +12,6 @@ import { useDeepLink } from "@/contexts/DeepLinkContext";
 import { useEffect, useState } from "react";
 import { DyadProSuccessDialog } from "@/components/DyadProSuccessDialog";
 import { useTheme } from "@/contexts/ThemeContext";
-import { IpcClient } from "@/ipc/ipc_client";
 import { useUserBudgetInfo } from "@/hooks/useUserBudgetInfo";
 import { UserBudgetInfo } from "@shared/eeziTypes";
 import {
@@ -21,6 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ActionHeader } from "@/components/preview_panel/ActionHeader";
+import api from "@/api";
 
 export const TitleBar = () => {
   const [selectedAppId] = useAtom(selectedAppIdAtom);
@@ -35,7 +35,7 @@ export const TitleBar = () => {
     // Check if we're running on Windows
     const checkPlatform = async () => {
       try {
-        const platform = await IpcClient.getInstance().getSystemPlatform();
+        const platform = await api.app.getSystemPlatform();
         setShowWindowControls(platform !== "darwin");
       } catch (error) {
         console.error("Failed to get platform info:", error);
@@ -114,18 +114,17 @@ export const TitleBar = () => {
 
 function WindowsControls() {
   const { isDarkMode } = useTheme();
-  const ipcClient = IpcClient.getInstance();
 
   const minimizeWindow = () => {
-    ipcClient.minimizeWindow();
+    api.app.minimizeWindow();
   };
 
   const maximizeWindow = () => {
-    ipcClient.maximizeWindow();
+    api.app.maximizeWindow();
   };
 
   const closeWindow = () => {
-    ipcClient.closeWindow();
+    api.app.closeWindow();
   };
 
   return (

@@ -5,14 +5,12 @@ import {
   localModelsLoadingAtom,
   localModelsErrorAtom,
 } from "@/atoms/localModelsAtoms";
-import { IpcClient } from "@/ipc/ipc_client";
+import api from "@/api";
 
 export function useLocalModels() {
   const [models, setModels] = useAtom(localModelsAtom);
   const [loading, setLoading] = useAtom(localModelsLoadingAtom);
   const [error, setError] = useAtom(localModelsErrorAtom);
-
-  const ipcClient = IpcClient.getInstance();
 
   /**
    * Load local models from Ollama
@@ -20,7 +18,7 @@ export function useLocalModels() {
   const loadModels = useCallback(async () => {
     setLoading(true);
     try {
-      const modelList = await ipcClient.listLocalOllamaModels();
+      const modelList = await api.mcp.listLocalOllamaModels();
       setModels(modelList);
       setError(null);
 
@@ -32,7 +30,7 @@ export function useLocalModels() {
     } finally {
       setLoading(false);
     }
-  }, [ipcClient, setModels, setError, setLoading]);
+  }, [setModels, setError, setLoading]);
 
   return {
     models,

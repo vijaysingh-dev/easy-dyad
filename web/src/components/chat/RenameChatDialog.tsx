@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { IpcClient } from "@/ipc/ipc_client";
 import { showError, showSuccess } from "@/components/Toast";
 import {
   Dialog,
@@ -12,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import api from "@/api";
 
 interface RenameChatDialogProps {
   chatId: number;
@@ -46,10 +46,7 @@ export function RenameChatDialog({
     }
 
     try {
-      await IpcClient.getInstance().updateChat({
-        chatId,
-        title: newTitle.trim(),
-      });
+      await api.chat.updateChat({ chatId, title: newTitle.trim() });
       showSuccess("Chat renamed successfully");
 
       // Call the parent's onRename callback to refresh the chat list

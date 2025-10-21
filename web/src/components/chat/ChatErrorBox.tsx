@@ -1,7 +1,7 @@
-import { IpcClient } from "@/ipc/ipc_client";
 import { X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import api from "@/api";
 
 export function ChatErrorBox({
   onDismiss,
@@ -17,9 +17,7 @@ export function ChatErrorBox({
       <ChatErrorContainer onDismiss={onDismiss}>
         {error}
         <span className="ml-1">
-          <ExternalLink href="https://dyad.sh/pro">
-            Access with Dyad Pro
-          </ExternalLink>
+          <ExternalLink href="https://dyad.sh/pro">Access with Dyad Pro</ExternalLink>
         </span>{" "}
         or switch to another model.
       </ChatErrorContainer>
@@ -36,9 +34,7 @@ export function ChatErrorBox({
       <ChatErrorContainer onDismiss={onDismiss}>
         {error}
         <span className="ml-1">
-          <ExternalLink href="https://dyad.sh/pro">
-            Upgrade to Dyad Pro
-          </ExternalLink>
+          <ExternalLink href="https://dyad.sh/pro">Upgrade to Dyad Pro</ExternalLink>
         </span>{" "}
         or read the
         <span className="ml-1">
@@ -55,9 +51,7 @@ export function ChatErrorBox({
       <ChatInfoContainer onDismiss={onDismiss}>
         <span>
           Looks like you don't have a valid Dyad Pro key.{" "}
-          <ExternalLink href="https://dyad.sh/pro">
-            Upgrade to Dyad Pro
-          </ExternalLink>{" "}
+          <ExternalLink href="https://dyad.sh/pro">Upgrade to Dyad Pro</ExternalLink>{" "}
           today.
         </span>
       </ChatInfoContainer>
@@ -83,17 +77,11 @@ export function ChatErrorBox({
   return <ChatErrorContainer onDismiss={onDismiss}>{error}</ChatErrorContainer>;
 }
 
-function ExternalLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
+function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <a
       className="underline cursor-pointer text-blue-500 hover:text-blue-700"
-      onClick={() => IpcClient.getInstance().openExternalUrl(href)}
+      onClick={() => api.app.openExternalUrl(href)}
     >
       {children}
     </a>
@@ -127,7 +115,7 @@ function ChatErrorContainer({
                     onClick={(e) => {
                       e.preventDefault();
                       if (props.href) {
-                        IpcClient.getInstance().openExternalUrl(props.href);
+                        api.app.openExternalUrl(props.href);
                       }
                     }}
                     className="text-blue-500 hover:text-blue-700"

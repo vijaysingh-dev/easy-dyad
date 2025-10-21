@@ -12,12 +12,12 @@ import { Button } from "@/components/ui/button";
 import { useVersions } from "@/hooks/useVersions";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
 import { showError, showWarning } from "@/components/Toast";
-import { IpcClient } from "@/ipc/ipc_client";
 import { chatMessagesByIdAtom } from "@/atoms/chatAtoms";
 import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";
 import { useSettings } from "@/hooks/useSettings";
 import { useUserBudgetInfo } from "@/hooks/useUserBudgetInfo";
 import { PromoMessage } from "./PromoMessage";
+import api from "@/api";
 
 interface MessagesListProps {
   messages: Message[];
@@ -91,22 +91,16 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
                     setIsUndoLoading(true);
                     try {
                       if (messages.length >= 3) {
-                        const previousAssistantMessage =
-                          messages[messages.length - 3];
+                        const previousAssistantMessage = messages[messages.length - 3];
                         if (
                           previousAssistantMessage?.role === "assistant" &&
                           previousAssistantMessage?.commitHash
                         ) {
-                          console.debug(
-                            "Reverting to previous assistant version",
-                          );
+                          console.debug("Reverting to previous assistant version");
                           await revertVersion({
                             versionId: previousAssistantMessage.commitHash,
                           });
-                          const chat =
-                            await IpcClient.getInstance().getChat(
-                              selectedChatId,
-                            );
+                          const chat = await api.chat.getChat(selectedChatId);
                           setMessagesById((prev) => {
                             const next = new Map(prev);
                             next.set(selectedChatId, chat.messages);
@@ -114,16 +108,13 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
                           });
                         }
                       } else {
-                        const chat =
-                          await IpcClient.getInstance().getChat(selectedChatId);
+                        const chat = await api.chat.getChat(selectedChatId);
                         if (chat.initialCommitHash) {
                           await revertVersion({
                             versionId: chat.initialCommitHash,
                           });
                           try {
-                            await IpcClient.getInstance().deleteMessages(
-                              selectedChatId,
-                            );
+                            await api.chat.deleteMessages(selectedChatId);
                             setMessagesById((prev) => {
                               const next = new Map(prev);
                               next.set(selectedChatId, []);
@@ -134,7 +125,7 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
                           }
                         } else {
                           showWarning(
-                            "No initial commit hash found for chat. Need to manually undo code changes",
+                            "No initial commit hash found for chat. Need to manually undo code changes"
                           );
                         }
                       }
@@ -175,33 +166,29 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
                       lastVersion.oid === lastMessage.commitHash &&
                       lastMessage.role === "assistant"
                     ) {
-                      const previousAssistantMessage =
-                        messages[messages.length - 3];
+                      const previousAssistantMessage = messages[messages.length - 3];
                       if (
                         previousAssistantMessage?.role === "assistant" &&
                         previousAssistantMessage?.commitHash
                       ) {
-                        console.debug(
-                          "Reverting to previous assistant version",
-                        );
+                        console.debug("Reverting to previous assistant version");
                         await revertVersion({
                           versionId: previousAssistantMessage.commitHash,
                         });
                         shouldRedo = false;
                       } else {
-                        const chat =
-                          await IpcClient.getInstance().getChat(selectedChatId);
+                        const chat = await api.chat.getChat(selectedChatId);
                         if (chat.initialCommitHash) {
                           console.debug(
                             "Reverting to initial commit hash",
-                            chat.initialCommitHash,
+                            chat.initialCommitHash
                           );
                           await revertVersion({
                             versionId: chat.initialCommitHash,
                           });
                         } else {
                           showWarning(
-                            "No initial commit hash found for chat. Need to manually undo code changes",
+                            "No initial commit hash found for chat. Need to manually undo code changes"
                           );
                         }
                       }
@@ -255,5 +242,5 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
         {renderSetupBanner()}
       </div>
     );
-  },
+  }
 );

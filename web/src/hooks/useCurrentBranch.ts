@@ -1,6 +1,6 @@
-import { IpcClient } from "@/ipc/ipc_client";
 import { useQuery } from "@tanstack/react-query";
 import type { BranchResult } from "@shared/eeziTypes";
+import api from "@/api";
 
 export function useCurrentBranch(appId: number | null) {
   const {
@@ -15,8 +15,7 @@ export function useCurrentBranch(appId: number | null) {
         // but as a safeguard, and to ensure queryFn always has a valid appId if called.
         throw new Error("appId is null, cannot fetch current branch.");
       }
-      const ipcClient = IpcClient.getInstance();
-      return ipcClient.getCurrentBranch(appId);
+      return await api.version.getCurrentBranch(appId);
     },
     enabled: appId !== null,
     meta: { showErrorToast: true },

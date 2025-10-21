@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
-import { IpcClient } from "@/ipc/ipc_client";
 import { useSettings } from "@/hooks/useSettings";
 import { useLoadApp } from "@/hooks/useLoadApp";
 import { useVercelDeployments } from "@/hooks/useVercelDeployments";
@@ -16,6 +15,7 @@ import {} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { App } from "@shared/eeziTypes";
+import api from "@/api";
 
 interface VercelConnectorProps {
   appId: number | null;
@@ -63,18 +63,15 @@ function ConnectedVercelConnector({
   };
 
   return (
-    <div
-      className="mt-4 w-full rounded-md"
-      data-testid="vercel-connected-project"
-    >
+    <div className="mt-4 w-full rounded-md" data-testid="vercel-connected-project">
       <p className="text-sm text-gray-600 dark:text-gray-300">
         Connected to Vercel Project:
       </p>
       <a
         onClick={(e) => {
           e.preventDefault();
-          IpcClient.getInstance().openExternalUrl(
-            `https://vercel.com/${app.vercelTeamSlug}/${app.vercelProjectName}`,
+          api.app.openExternalUrl(
+            `https://vercel.com/${app.vercelTeamSlug}/${app.vercelProjectName}`
           );
         }}
         className="cursor-pointer text-blue-600 hover:underline dark:text-blue-400"
@@ -91,9 +88,7 @@ function ConnectedVercelConnector({
               onClick={(e) => {
                 e.preventDefault();
                 if (app.vercelDeploymentUrl) {
-                  IpcClient.getInstance().openExternalUrl(
-                    app.vercelDeploymentUrl,
-                  );
+                  api.app.openExternalUrl(app.vercelDeploymentUrl);
                 }
               }}
               className="cursor-pointer text-blue-600 hover:underline dark:text-blue-400 font-mono"
@@ -178,9 +173,7 @@ function ConnectedVercelConnector({
                   <a
                     onClick={(e) => {
                       e.preventDefault();
-                      IpcClient.getInstance().openExternalUrl(
-                        `https://${deployment.url}`,
-                      );
+                      api.app.openExternalUrl(`https://${deployment.url}`);
                     }}
                     className="cursor-pointer text-blue-600 hover:underline dark:text-blue-400 text-sm"
                     target="_blank"
@@ -195,9 +188,7 @@ function ConnectedVercelConnector({
           </div>
         </div>
       )}
-      {disconnectError && (
-        <p className="text-red-600 mt-2">{disconnectError}</p>
-      )}
+      {disconnectError && <p className="text-red-600 mt-2">{disconnectError}</p>}
     </div>
   );
 }
@@ -216,30 +207,21 @@ function UnconnectedVercelConnector({
   const [tokenSuccess, setTokenSuccess] = useState(false);
 
   // --- Project Setup State ---
-  const [projectSetupMode, setProjectSetupMode] = useState<
-    "create" | "existing"
-  >("create");
-  const [availableProjects, setAvailableProjects] = useState<VercelProject[]>(
-    [],
+  const [projectSetupMode, setProjectSetupMode] = useState<"create" | "existing">(
+    "create"
   );
+  const [availableProjects, setAvailableProjects] = useState<VercelProject[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(false);
   const [selectedProject, setSelectedProject] = useState<string>("");
 
   // Create new project state
   const [projectName, setProjectName] = useState(folderName);
-  const [projectAvailable, setProjectAvailable] = useState<boolean | null>(
-    null,
-  );
-  const [projectCheckError, setProjectCheckError] = useState<string | null>(
-    null,
-  );
+  const [projectAvailable, setProjectAvailable] = useState<boolean | null>(null);
+  const [projectCheckError, setProjectCheckError] = useState<string | null>(null);
   const [isCheckingProject, setIsCheckingProject] = useState(false);
   const [isCreatingProject, setIsCreatingProject] = useState(false);
-  const [createProjectError, setCreateProjectError] = useState<string | null>(
-    null,
-  );
-  const [createProjectSuccess, setCreateProjectSuccess] =
-    useState<boolean>(false);
+  const [createProjectError, setCreateProjectError] = useState<string | null>(null);
+  const [createProjectSuccess, setCreateProjectSuccess] = useState<boolean>(false);
 
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -262,7 +244,7 @@ function UnconnectedVercelConnector({
   const loadAvailableProjects = async () => {
     setIsLoadingProjects(true);
     try {
-      const projects = await IpcClient.getInstance().listVercelProjects();
+      const projects = await api.integration.listVercelProjects();
       setAvailableProjects(projects);
     } catch (error) {
       console.error("Failed to load Vercel projects:", error);
@@ -280,7 +262,7 @@ function UnconnectedVercelConnector({
     setTokenSuccess(false);
 
     try {
-      await IpcClient.getInstance().saveVercelAccessToken({
+      await api.integration.saveVercelAccessToken({
         token: accessToken.trim(),
       });
       setTokenSuccess(true);
@@ -299,7 +281,7 @@ function UnconnectedVercelConnector({
     if (!name) return;
     setIsCheckingProject(true);
     try {
-      const result = await IpcClient.getInstance().isVercelProjectAvailable({
+      const result = await api.integration.isVercelProjectAvailable({
         name,
       });
       setProjectAvailable(result.available);
@@ -307,9 +289,7 @@ function UnconnectedVercelConnector({
         setProjectCheckError(result.error || "Project name is not available.");
       }
     } catch (err: any) {
-      setProjectCheckError(
-        err.message || "Failed to check project availability.",
-      );
+      setProjectCheckError(err.message || "Failed to check project availability.");
     } finally {
       setIsCheckingProject(false);
     }
@@ -324,7 +304,7 @@ function UnconnectedVercelConnector({
         checkProjectAvailability(name);
       }, 500);
     },
-    [checkProjectAvailability],
+    [checkProjectAvailability]
   );
 
   const handleSetupProject = async (e: React.FormEvent) => {
@@ -337,12 +317,12 @@ function UnconnectedVercelConnector({
 
     try {
       if (projectSetupMode === "create") {
-        await IpcClient.getInstance().createVercelProject({
+        await api.integration.createVercelProject({
           name: projectName,
           appId,
         });
       } else {
-        await IpcClient.getInstance().connectToExistingVercelProject({
+        await api.integration.connectToExistingVercelProject({
           projectId: selectedProject,
           appId,
         });
@@ -353,7 +333,7 @@ function UnconnectedVercelConnector({
     } catch (err: any) {
       setCreateProjectError(
         err.message ||
-          `Failed to ${projectSetupMode === "create" ? "create" : "connect to"} project.`,
+          `Failed to ${projectSetupMode === "create" ? "create" : "connect to"} project.`
       );
     } finally {
       setIsCreatingProject(false);
@@ -371,8 +351,7 @@ function UnconnectedVercelConnector({
           <div className="space-y-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
               <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
-                To connect your app to Vercel, you'll need to create an access
-                token:
+                To connect your app to Vercel, you'll need to create an access token:
               </p>
               <ol className="list-decimal list-inside text-sm text-blue-700 dark:text-blue-300 space-y-1">
                 <li>If you don't have a Vercel account, sign up first</li>
@@ -383,9 +362,7 @@ function UnconnectedVercelConnector({
               <div className="flex gap-2 mt-3">
                 <Button
                   onClick={() => {
-                    IpcClient.getInstance().openExternalUrl(
-                      "https://vercel.com/signup",
-                    );
+                    api.app.openExternalUrl("https://vercel.com/signup");
                   }}
                   variant="outline"
                   className="flex-1"
@@ -394,8 +371,8 @@ function UnconnectedVercelConnector({
                 </Button>
                 <Button
                   onClick={() => {
-                    IpcClient.getInstance().openExternalUrl(
-                      "https://vercel.com/account/settings/tokens",
+                    api.app.openExternalUrl(
+                      "https://vercel.com/account/settings/tokens"
                     );
                   }}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
@@ -457,17 +434,15 @@ function UnconnectedVercelConnector({
 
             {tokenError && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
-                <p className="text-sm text-red-800 dark:text-red-200">
-                  {tokenError}
-                </p>
+                <p className="text-sm text-red-800 dark:text-red-200">{tokenError}</p>
               </div>
             )}
 
             {tokenSuccess && (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-3">
                 <p className="text-sm text-green-800 dark:text-green-200">
-                  Successfully connected to Vercel! You can now set up your
-                  project below.
+                  Successfully connected to Vercel! You can now set up your project
+                  below.
                 </p>
               </div>
             )}
@@ -483,9 +458,7 @@ function UnconnectedVercelConnector({
       <div className="font-medium mb-2">Set up your Vercel project</div>
 
       {/* Collapsible Content */}
-      <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out`}
-      >
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out`}>
         <div className="pt-0 space-y-4">
           {/* Mode Selection */}
           <div>
@@ -529,9 +502,7 @@ function UnconnectedVercelConnector({
             {projectSetupMode === "create" ? (
               <>
                 <div>
-                  <Label className="block text-sm font-medium">
-                    Project Name
-                  </Label>
+                  <Label className="block text-sm font-medium">Project Name</Label>
                   <Input
                     data-testid="vercel-create-project-name-input"
                     className="w-full mt-1"
@@ -556,18 +527,14 @@ function UnconnectedVercelConnector({
                     </p>
                   )}
                   {projectAvailable === false && (
-                    <p className="text-xs text-red-600 mt-1">
-                      {projectCheckError}
-                    </p>
+                    <p className="text-xs text-red-600 mt-1">{projectCheckError}</p>
                   )}
                 </div>
               </>
             ) : (
               <>
                 <div>
-                  <Label className="block text-sm font-medium">
-                    Select Project
-                  </Label>
+                  <Label className="block text-sm font-medium">Select Project</Label>
                   <Select
                     value={selectedProject}
                     onValueChange={setSelectedProject}
@@ -579,17 +546,14 @@ function UnconnectedVercelConnector({
                     >
                       <SelectValue
                         placeholder={
-                          isLoadingProjects
-                            ? "Loading projects..."
-                            : "Select a project"
+                          isLoadingProjects ? "Loading projects..." : "Select a project"
                         }
                       />
                     </SelectTrigger>
                     <SelectContent>
                       {availableProjects.map((project) => (
                         <SelectItem key={project.id} value={project.id}>
-                          {project.name}{" "}
-                          {project.framework && `(${project.framework})`}
+                          {project.name} {project.framework && `(${project.framework})`}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -638,13 +602,7 @@ export function VercelConnector({ appId, folderName }: VercelConnectorProps) {
   const { settings, refreshSettings } = useSettings();
 
   if (app?.vercelProjectId && appId) {
-    return (
-      <ConnectedVercelConnector
-        appId={appId}
-        app={app}
-        refreshApp={refreshApp}
-      />
-    );
+    return <ConnectedVercelConnector appId={appId} app={app} refreshApp={refreshApp} />;
   } else {
     return (
       <UnconnectedVercelConnector

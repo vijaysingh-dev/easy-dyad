@@ -4,8 +4,8 @@ import { useLoadApp } from "@/hooks/useLoadApp";
 import { GitHubConnector } from "@/components/GitHubConnector";
 import { VercelConnector } from "@/components/VercelConnector";
 import { PortalMigrate } from "@/components/PortalMigrate";
-import { IpcClient } from "@/ipc/ipc_client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import api from "@/api";
 
 export const PublishPanel = () => {
   const selectedAppId = useAtomValue(selectedAppIdAtom);
@@ -114,16 +114,11 @@ export const PublishPanel = () => {
             <CardTitle className="flex items-center gap-2">
               <button
                 onClick={() => {
-                  const ipcClient = IpcClient.getInstance();
-                  ipcClient.openExternalUrl("https://vercel.com/dashboard");
+                  api.app.openExternalUrl("https://vercel.com/dashboard");
                 }}
                 className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer bg-transparent border-none p-0"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M24 22.525H0l12-21.05 12 21.05z" />
                 </svg>
                 Vercel
@@ -156,8 +151,8 @@ export const PublishPanel = () => {
                       GitHub Required for Vercel Deployment
                     </h3>
                     <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                      Deploying to Vercel requires connecting to GitHub first.
-                      Please set up your GitHub repository above.
+                      Deploying to Vercel requires connecting to GitHub first. Please set
+                      up your GitHub repository above.
                     </p>
                   </div>
                 </div>

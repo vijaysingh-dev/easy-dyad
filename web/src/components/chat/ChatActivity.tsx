@@ -1,25 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Bell, Loader2, CheckCircle2 } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { getAllChats } from "@/lib/chat";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { ChatSummary } from "@shared/schemas";
 import { useAtomValue } from "jotai";
-import {
-  isStreamingByIdAtom,
-  recentStreamChatIdsAtom,
-} from "@/atoms/chatAtoms";
+import { isStreamingByIdAtom, recentStreamChatIdsAtom } from "@/atoms/chatAtoms";
 import { useLoadApps } from "@/hooks/useLoadApps";
 import { useSelectChat } from "@/hooks/useSelectChat";
+import api from "@/api";
 
 export function ChatActivityButton() {
   const [open, setOpen] = useState(false);
@@ -50,10 +39,7 @@ export function ChatActivityButton() {
         </TooltipTrigger>
         <TooltipContent>Recent chat activity</TooltipContent>
       </Tooltip>
-      <PopoverContent
-        align="end"
-        className="w-80 p-0 max-h-[50vh] overflow-y-auto"
-      >
+      <PopoverContent align="end" className="w-80 p-0 max-h-[50vh] overflow-y-auto">
         <ChatActivityList onSelect={() => setOpen(false)} />
       </PopoverContent>
     </Popover>
@@ -71,7 +57,7 @@ function ChatActivityList({ onSelect }: { onSelect?: () => void }) {
     let mounted = true;
     (async () => {
       try {
-        const all = await getAllChats();
+        const all = await api.chat.getAllChats();
         if (!mounted) return;
         const recent = Array.from(recentStreamChatIds)
           .map((id) => all.find((c) => c.id === id))
@@ -99,9 +85,7 @@ function ChatActivityList({ onSelect }: { onSelect?: () => void }) {
   }
 
   if (rows.length === 0) {
-    return (
-      <div className="p-4 text-sm text-muted-foreground">No recent chats</div>
-    );
+    return <div className="p-4 text-sm text-muted-foreground">No recent chats</div>;
   }
 
   return (

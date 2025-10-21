@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { atom, useAtom } from "jotai";
-import { IpcClient } from "@/ipc/ipc_client";
 import type { TokenCountResult } from "@shared/eeziTypes";
+import api from "@/api";
 
 // Create atoms to store the token count state
 export const tokenCountResultAtom = atom<TokenCountResult | null>(null);
@@ -19,8 +19,7 @@ export function useCountTokens() {
       setError(null);
 
       try {
-        const ipcClient = IpcClient.getInstance();
-        const tokenResult = await ipcClient.countTokens({ chatId, input });
+        const tokenResult = await api.chat.countTokens({ chatId, input });
         setResult(tokenResult);
         return tokenResult;
       } catch (error) {

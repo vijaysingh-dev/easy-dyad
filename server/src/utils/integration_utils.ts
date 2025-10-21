@@ -2,6 +2,10 @@ import log from "@/logger";
 import db from "@/db";
 import { apps } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import * as fs from "fs";
+import * as path from "path";
+import { Vercel } from "@vercel/sdk";
+import { CreateProjectFramework } from "@vercel/sdk/models/createprojectop.js";
 import { readSettings, writeSettings } from "@/services/settings";
 import { IS_TEST_BUILD } from "./test_utils";
 import { GithubUser } from "@shared/schemas";
@@ -79,4 +83,134 @@ export async function getGithubUser(): Promise<GithubUser | null> {
   }
 }
 
-// --- GitHub Integration Helpers
+// --- Vercel Helper Functions ---
+
+export function createVercelClient(token: string): Vercel {
+  return new Vercel({
+    bearerToken: token,
+    ...(IS_TEST_BUILD && { serverURL: VERCEL_API_BASE }),
+  });
+}
+
+export async function validateVercelToken(token: string): Promise<boolean> {
+  try {
+    const vercel = createVercelClient(token);
+    await vercel.user.getAuthUser();
+    return true;
+  } catch (error) {
+    logger.error("Error validating Vercel token:", error);
+    return false;
+  }
+}
+
+export async function getDefaultTeamId(token: string): Promise<string> {
+  try {
+    const response = await fetch(`${VERCEL_API_BASE}/v2/teams?limit=1`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch teams: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+
+    // Use the first team (typically the personal account or default team)
+    if (data.teams && data.teams.length > 0) {
+      return data.teams[0].id;
+    }
+
+    throw new Error("No teams found for this user");
+  } catch (error) {
+    logger.error("Error getting default team ID:", error);
+    throw new Error("Failed to get team information");
+  }
+}
+
+export async function detectFramework(
+  appPath: string
+): Promise<CreateProjectFramework | undefined> {
+  try {
+    // Check for specific config files first
+    const configFiles: Array<{
+      file: string;
+      framework: CreateProjectFramework;
+    }> = [
+      { file: "next.config.js", framework: "nextjs" },
+      { file: "next.config.mjs", framework: "nextjs" },
+      { file: "next.config.ts", framework: "nextjs" },
+      { file: "vite.config.js", framework: "vite" },
+      { file: "vite.config.ts", framework: "vite" },
+      { file: "vite.config.mjs", framework: "vite" },
+      { file: "nuxt.config.js", framework: "nuxtjs" },
+      { file: "nuxt.config.ts", framework: "nuxtjs" },
+      { file: "astro.config.js", framework: "astro" },
+      { file: "astro.config.mjs", framework: "astro" },
+      { file: "astro.config.ts", framework: "astro" },
+      { file: "svelte.config.js", framework: "svelte" },
+    ];
+
+    for (const { file, framework } of configFiles) {
+      if (fs.existsSync(path.join(appPath, file))) {
+        return framework;
+      }
+    }
+
+    // Check package.json for dependencies
+    const packageJsonPath = path.join(appPath, "package.json");
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+      const dependencies = {
+        ...packageJson.dependencies,
+        ...packageJson.devDependencies,
+      };
+
+      // Check for framework dependencies in order of preference
+      if (dependencies.next) return "nextjs";
+      if (dependencies.vite) return "vite";
+      if (dependencies.nuxt) return "nuxtjs";
+      if (dependencies.astro) return "astro";
+      if (dependencies.svelte) return "svelte";
+      if (dependencies["@angular/core"]) return "angular";
+      if (dependencies.vue) return "vue";
+      if (dependencies["react-scripts"]) return "create-react-app";
+      if (dependencies.gatsby) return "gatsby";
+      if (dependencies.remix) return "remix";
+    }
+
+    // Default fallback
+    return undefined;
+  } catch (error) {
+    logger.error("Error detecting framework:", error);
+    return undefined;
+  }
+}
+
+export async function updateAppVercelProject({
+  appId,
+  projectId,
+  projectName,
+  teamId,
+  deploymentUrl,
+}: {
+  appId: number;
+  projectId: string;
+  projectName: string;
+  teamId: string;
+  deploymentUrl?: string | null;
+}): Promise<void> {
+  await db
+    .update(apps)
+    .set({
+      vercelProjectId: projectId,
+      vercelProjectName: projectName,
+      vercelTeamId: teamId,
+      vercelDeploymentUrl: deploymentUrl,
+    })
+    .where(eq(apps.id, appId));
+}

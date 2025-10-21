@@ -6,9 +6,16 @@ import {
   GitHubDeviceFlowSuccessData,
   GitHubDeviceFlowErrorData,
   RenameBranchParams,
+  GetNeonProjectParams,
+  CreateNeonProjectParams,
+  SaveVercelAccessTokenParams,
+  ConnectToExistingVercelProjectParams,
+  IsVercelProjectAvailableParams,
+  CreateVercelProjectParams,
+  GetVercelDeploymentsParams,
+  DisconnectVercelProjectParams,
 } from "@shared/eeziTypes";
 import eeziClient from "./client";
-import { r } from "happy-dom/lib/PropertySymbol.js";
 
 class IntegrationApiService {
   // Listen for deep link events
@@ -36,20 +43,17 @@ class IntegrationApiService {
   }
 
   // --- Neon Management ---
+  public async getNeonProject(params: GetNeonProjectParams) {
+    const config: AxiosRequestConfig = { params };
+    const { data } = await Api.get("/integration/neon/get-project", { config });
+    return data;
+  }
 
-  // public async createNeonProject(
-  //   params: CreateNeonProjectParams,
-  // ): Promise<NeonProject> {
-  //   return this.ipcRenderer.invoke("neon:create-project", params);
-  // }
-
-  // public async getNeonProject(
-  //   params: GetNeonProjectParams,
-  // ): Promise<GetNeonProjectResponse> {
-  //   return this.ipcRenderer.invoke("neon:get-project", params);
-  // }
-
-  // // --- End Neon Management ---
+  public async createNeonProject(params: CreateNeonProjectParams) {
+    const { data } = await Api.post("/integration/neon/create-project", params);
+    return data;
+  }
+  // --- End Neon Management ---
 
   // --- Supabase Management ---
   public async listSupabaseProjects() {
@@ -170,6 +174,55 @@ class IntegrationApiService {
     eeziClient.initGithubStreamSSE(url);
   }
   // --- End GitHub Repo Management ---
+
+  // --- Vercel Token Management ---
+  public async saveVercelAccessToken(params: SaveVercelAccessTokenParams) {
+    const { data } = await Api.post("/integration/vercel/save-token", params);
+    return data;
+  }
+  // --- End Vercel Token Management ---
+
+  // --- Vercel Project Management ---
+  public async listVercelProjects() {
+    const { data } = await Api.get("/integration/vercel/list-projects");
+    return data;
+  }
+
+  public async connectToExistingVercelProject(
+    params: ConnectToExistingVercelProjectParams
+  ) {
+    const { data } = await Api.post(
+      "/integration/vercel/connect-existing-project",
+      params
+    );
+    return data;
+  }
+
+  public async isVercelProjectAvailable(params: IsVercelProjectAvailableParams) {
+    const config: AxiosRequestConfig = { params };
+    const { data } = await Api.get("/integration/vercel/is-project-available", {
+      config,
+    });
+    return data;
+  }
+
+  public async createVercelProject(params: CreateVercelProjectParams) {
+    const { data } = await Api.post("/integration/vercel/create-project", params);
+    return data;
+  }
+
+  // Get Vercel Deployments
+  public async getVercelDeployments(params: GetVercelDeploymentsParams) {
+    const config: AxiosRequestConfig = { params };
+    const { data } = await Api.get("/integration/vercel/get-deployments", { config });
+    return data;
+  }
+
+  public async disconnectVercelProject(params: DisconnectVercelProjectParams) {
+    const { data } = await Api.post("/integration/vercel/disconnect", params);
+    return data;
+  }
+  // --- End Vercel Project Management ---
 }
 
 const integrationApi = new IntegrationApiService();

@@ -1,16 +1,12 @@
-import db from "@/db";
 import logger from "@/logger";
 import { Router } from "express";
-import { apps } from "@/db/schema";
-import { exec } from "node:child_process";
-import { promisify } from "node:util";
-import { getLanguageModelProviders } from "@/services/llm/language_model_helpers";
-import { getEnvVar } from "@/utils/read_env";
 import { execSync } from "child_process";
 import { platform, arch } from "os";
 import fixPath from "fix-path";
+import { getEnvVar } from "@/utils/read_env";
 import { IS_TEST_BUILD } from "@/utils/test_utils";
 import { runShellCommand } from "@/utils/runShellCommand";
+import { getLanguageModelProviders } from "@/services/llm/language_model_helpers";
 import { readSettings, writeSettings } from "@/services/settings";
 import { type UserSettings } from "@shared/schemas";
 import { UserBudgetInfoSchema } from "@shared/eeziTypes";

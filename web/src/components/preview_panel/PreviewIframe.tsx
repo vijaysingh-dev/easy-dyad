@@ -21,7 +21,6 @@ import {
   Power,
 } from "lucide-react";
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
-import { IpcClient } from "@/ipc/ipc_client";
 
 import { useParseRouter } from "@/hooks/useParseRouter";
 import {
@@ -42,6 +41,7 @@ import {
 import { useRunApp } from "@/hooks/useRunApp";
 import { useShortcut } from "@/hooks/useShortcut";
 import { cn } from "@shared/utils";
+import api from "@/api";
 
 interface ErrorBannerProps {
   error: { message: string; source: "preview-app" | "dyad-app" } | undefined;
@@ -85,12 +85,7 @@ const ErrorBanner = ({ error, onDismiss, onAIFix }: ErrorBannerProps) => {
       )}
 
       {/* Error message in the middle */}
-      <div
-        className={cn(
-          "px-6 py-1 text-sm",
-          error.source === "dyad-app" && "pt-6",
-        )}
-      >
+      <div className={cn("px-6 py-1 text-sm", error.source === "dyad-app" && "pt-6")}>
         <div
           className="text-red-700 dark:text-red-300 text-wrap font-mono whitespace-pre-wrap break-words text-xs cursor-pointer flex gap-1 items-start"
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -160,7 +155,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
   const [navigationHistory, setNavigationHistory] = useState<string[]>([]);
   const [currentHistoryPosition, setCurrentHistoryPosition] = useState(0);
   const [selectedComponentPreview, setSelectedComponentPreview] = useAtom(
-    selectedComponentPreviewAtom,
+    selectedComponentPreviewAtom
   );
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isPicking, setIsPicking] = useState(false);
@@ -174,7 +169,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
       if (iframeRef.current?.contentWindow) {
         iframeRef.current.contentWindow.postMessage(
           { type: "deactivate-dyad-component-selector" },
-          "*",
+          "*"
         );
       }
       setIsPicking(false);
@@ -315,7 +310,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
             ? "activate-dyad-component-selector"
             : "deactivate-dyad-component-selector",
         },
-        "*",
+        "*"
       );
     }
   };
@@ -326,7 +321,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
     { shift: true, ctrl: !isMac, meta: isMac },
     handleActivateComponentSelector,
     isComponentSelectorInitialized,
-    iframeRef,
+    iframeRef
   );
 
   // Function to navigate back
@@ -337,7 +332,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
           type: "navigate",
           payload: { direction: "backward" },
         },
-        "*",
+        "*"
       );
 
       // Update our local state
@@ -355,15 +350,13 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
           type: "navigate",
           payload: { direction: "forward" },
         },
-        "*",
+        "*"
       );
 
       // Update our local state
       setCurrentHistoryPosition((prev) => prev + 1);
       setCanGoBack(true);
-      setCanGoForward(
-        currentHistoryPosition + 1 < navigationHistory.length - 1,
-      );
+      setCanGoForward(currentHistoryPosition + 1 < navigationHistory.length - 1);
     }
   };
 
@@ -410,9 +403,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
             <div className="absolute bottom-0 left-0 w-2 h-2 bg-primary rounded-full opacity-80"></div>
             <div className="absolute bottom-0 right-0 w-2 h-2 bg-primary rounded-full opacity-60"></div>
           </div>
-          <p className="text-gray-600 dark:text-gray-300">
-            Preparing app preview...
-          </p>
+          <p className="text-gray-600 dark:text-gray-300">Preparing app preview...</p>
         </div>
       </div>
     );
@@ -447,20 +438,14 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
                       ? "bg-purple-500 text-white hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700"
                       : " text-purple-700 hover:bg-purple-200  dark:text-purple-300 dark:hover:bg-purple-900"
                   }`}
-                  disabled={
-                    loading || !selectedAppId || !isComponentSelectorInitialized
-                  }
+                  disabled={loading || !selectedAppId || !isComponentSelectorInitialized}
                   data-testid="preview-pick-element-button"
                 >
                   <MousePointerClick size={16} />
                 </button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>
-                  {isPicking
-                    ? "Deactivate component selector"
-                    : "Select component"}
-                </p>
+                <p>{isPicking ? "Deactivate component selector" : "Select component"}</p>
                 <p>{isMac ? "⌘ + ⇧ + C" : "Ctrl + ⇧ + C"}</p>
               </TooltipContent>
             </Tooltip>
@@ -498,8 +483,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
               <div className="flex items-center justify-between px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm text-gray-700 dark:text-gray-200 cursor-pointer w-full min-w-0">
                 <span className="truncate flex-1 mr-2 min-w-0">
                   {navigationHistory[currentHistoryPosition]
-                    ? new URL(navigationHistory[currentHistoryPosition])
-                        .pathname
+                    ? new URL(navigationHistory[currentHistoryPosition]).pathname
                     : "/"}
                 </span>
                 <ChevronDown size={14} className="flex-shrink-0" />
@@ -540,7 +524,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
             data-testid="preview-open-browser-button"
             onClick={() => {
               if (originalUrl) {
-                IpcClient.getInstance().openExternalUrl(originalUrl);
+                api.app.openExternalUrl(originalUrl);
               }
             }}
             className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:text-gray-300"

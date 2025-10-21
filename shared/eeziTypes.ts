@@ -520,3 +520,30 @@ export interface GitHubDeviceFlowErrorData {
 export interface DeepLinkData {
   type: string;
 }
+
+export interface OllamaModel {
+  name: string;
+  modified_at: string;
+  size: number;
+  digest: string;
+  details: {
+    format: string;
+    family: string;
+    families: string[];
+    parameter_size: string;
+    quantization_level: string;
+  };
+}
+
+export interface LMStudioModel {
+  type: "llm" | "embedding" | string;
+  id: string;
+  object: string;
+  publisher: string;
+  state: "loaded" | "not-loaded";
+  max_context_length: number;
+  quantization: string;
+  compatibility_type: string;
+  arch: string;
+  [key: string]: any;
+}

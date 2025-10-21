@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { IpcClient } from "@/ipc/ipc_client";
 import type { ProposalResult } from "@shared/schemas"; // Import Proposal type
 import { proposalResultAtom } from "@/atoms/proposalAtoms";
 import { useAtom } from "jotai";
+import api from "@/api";
+
 export function useProposal(chatId?: number | undefined) {
   const [proposalResult, setProposalResult] = useAtom(proposalResultAtom);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -20,9 +21,7 @@ export function useProposal(chatId?: number | undefined) {
       setError(null);
       try {
         // Type assertion might be needed depending on how IpcClient is typed
-        const result = (await IpcClient.getInstance().getProposal(
-          chatId,
-        )) as ProposalResult | null;
+        const result = (await api.chat.getProposal(chatId)) as ProposalResult | null;
 
         if (result) {
           setProposalResult(result);
@@ -37,7 +36,7 @@ export function useProposal(chatId?: number | undefined) {
         setIsLoading(false);
       }
     },
-    [chatId], // Only depend on chatId, setProposalResult is stable
+    [chatId] // Only depend on chatId, setProposalResult is stable
   ); // Depend on chatId
 
   useEffect(() => {

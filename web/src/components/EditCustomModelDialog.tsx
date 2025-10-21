@@ -10,9 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { IpcClient } from "@/ipc/ipc_client";
 import { useMutation } from "@tanstack/react-query";
 import { showError, showSuccess } from "@/components/Toast";
+import api from "@/api";
 
 interface Model {
   apiName: string;
@@ -45,8 +45,6 @@ export function EditCustomModelDialog({
   const [maxOutputTokens, setMaxOutputTokens] = useState<string>("");
   const [contextWindow, setContextWindow] = useState<string>("");
 
-  const ipcClient = IpcClient.getInstance();
-
   useEffect(() => {
     if (model) {
       setApiName(model.apiName);
@@ -66,28 +64,25 @@ export function EditCustomModelDialog({
         displayName,
         providerId,
         description: description || undefined,
-        maxOutputTokens: maxOutputTokens
-          ? parseInt(maxOutputTokens, 10)
-          : undefined,
+        maxOutputTokens: maxOutputTokens ? parseInt(maxOutputTokens, 10) : undefined,
         contextWindow: contextWindow ? parseInt(contextWindow, 10) : undefined,
       };
 
       if (!newParams.apiName) throw new Error("Model API name is required");
-      if (!newParams.displayName)
-        throw new Error("Model display name is required");
+      if (!newParams.displayName) throw new Error("Model display name is required");
       if (maxOutputTokens && isNaN(newParams.maxOutputTokens ?? NaN))
         throw new Error("Max Output Tokens must be a valid number");
       if (contextWindow && isNaN(newParams.contextWindow ?? NaN))
         throw new Error("Context Window must be a valid number");
 
       // First delete the old model
-      await ipcClient.deleteCustomModel({
+      await api.mcp.deleteCustomModel({
         providerId,
         modelApiName: model.apiName,
       });
 
       // Then create the new model
-      await ipcClient.createCustomLanguageModel(newParams);
+      await api.mcp.createCustomLanguageModel(newParams);
     },
     onSuccess: () => {
       showSuccess("Custom model updated successfully!");

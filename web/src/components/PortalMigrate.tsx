@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { IpcClient } from "@/ipc/ipc_client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Database, Loader2 } from "lucide-react";
 import { showSuccess, showError } from "@/components/Toast";
 import { useVersions } from "@/hooks/useVersions";
+import api from "@/api";
 
 interface PortalMigrateProps {
   appId: number;
@@ -17,19 +17,15 @@ export const PortalMigrate = ({ appId }: PortalMigrateProps) => {
 
   const migrateMutation = useMutation({
     mutationFn: async () => {
-      const ipcClient = IpcClient.getInstance();
-      return ipcClient.portalMigrateCreate({ appId });
+      return api.app.portalMigrateCreate({ appId });
     },
     onSuccess: (result) => {
       setOutput(result.output);
-      showSuccess(
-        "Database migration file generated and committed successfully!",
-      );
+      showSuccess("Database migration file generated and committed successfully!");
       refreshVersions();
     },
     onError: (error) => {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       setOutput(`Error: ${errorMessage}`);
       showError(errorMessage);
     },
@@ -41,9 +37,8 @@ export const PortalMigrate = ({ appId }: PortalMigrateProps) => {
   };
 
   const openDocs = () => {
-    const ipcClient = IpcClient.getInstance();
-    ipcClient.openExternalUrl(
-      "https://www.dyad.sh/docs/templates/portal#create-a-database-migration",
+    api.app.openExternalUrl(
+      "https://www.dyad.sh/docs/templates/portal#create-a-database-migration"
     );
   };
 
@@ -79,12 +74,7 @@ export const PortalMigrate = ({ appId }: PortalMigrateProps) => {
             )}
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={openDocs}
-            className="text-sm"
-          >
+          <Button variant="outline" size="sm" onClick={openDocs} className="text-sm">
             <ExternalLink className="w-3 h-3 mr-1" />
             Docs
           </Button>

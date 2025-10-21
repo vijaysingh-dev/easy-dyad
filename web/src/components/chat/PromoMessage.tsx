@@ -1,5 +1,5 @@
-import { IpcClient } from "@/ipc/ipc_client";
 import React from "react";
+import api from "@/api";
 
 // Types for the message system
 export interface TextSpan {
@@ -36,7 +36,7 @@ export function Message({ spans }: MessageConfig) {
                   if (span.action) {
                     span.action();
                   } else if (span.url) {
-                    IpcClient.getInstance().openExternalUrl(span.url);
+                    api.app.openExternalUrl(span.url);
                   }
                 }}
                 className="text-blue-600 hover:text-blue-800 underline cursor-pointer"
@@ -109,8 +109,7 @@ export const UPLOAD_CHAT_TIP: MessageConfig = {
   spans: [
     {
       type: "text",
-      content:
-        "Want to report a bad AI response? Upload the chat by clicking Help",
+      content: "Want to report a bad AI response? Upload the chat by clicking Help",
     },
   ],
 };

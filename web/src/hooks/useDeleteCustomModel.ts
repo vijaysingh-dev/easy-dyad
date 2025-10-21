@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { IpcClient } from "@/ipc/ipc_client";
+import api from "@/api";
 
 interface DeleteCustomModelParams {
   providerId: string;
@@ -18,13 +18,10 @@ export function useDeleteCustomModel({
   const mutation = useMutation<void, Error, DeleteCustomModelParams>({
     mutationFn: async (params: DeleteCustomModelParams) => {
       if (!params.providerId || !params.modelApiName) {
-        throw new Error(
-          "Provider ID and Model API Name are required for deletion.",
-        );
+        throw new Error("Provider ID and Model API Name are required for deletion.");
       }
-      const ipcClient = IpcClient.getInstance();
       // This method will be added to IpcClient next
-      await ipcClient.deleteCustomModel(params);
+      await api.mcp.deleteCustomModel(params);
     },
     onSuccess: (data, params: DeleteCustomModelParams) => {
       // Invalidate queries related to language models for the specific provider

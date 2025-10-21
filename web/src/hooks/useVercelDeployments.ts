@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { IpcClient } from "@/ipc/ipc_client";
 import { VercelDeployment } from "@shared/eeziTypes";
+import api from "@/api";
 
 export function useVercelDeployments(appId: number) {
   const queryClient = useQueryClient();
@@ -13,16 +13,14 @@ export function useVercelDeployments(appId: number) {
   } = useQuery<VercelDeployment[], Error>({
     queryKey: ["vercel-deployments", appId],
     queryFn: async () => {
-      const ipcClient = IpcClient.getInstance();
-      return ipcClient.getVercelDeployments({ appId });
+      return api.integration.getVercelDeployments({ appId });
     },
     // enabled: false, // Don't auto-fetch, only fetch when explicitly requested
   });
 
   const disconnectProjectMutation = useMutation<void, Error, void>({
     mutationFn: async () => {
-      const ipcClient = IpcClient.getInstance();
-      return ipcClient.disconnectVercelProject({ appId });
+      return api.integration.disconnectVercelProject({ appId });
     },
     onSuccess: () => {
       // Clear deployments cache when project is disconnected

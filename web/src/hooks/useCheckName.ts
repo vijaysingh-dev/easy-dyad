@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import api
- from "@/api";
+import api from "@/api";
 export const useCheckName = (appName: string) => {
   return useQuery({
     queryKey: ["checkAppName", appName],

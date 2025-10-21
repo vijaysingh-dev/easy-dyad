@@ -21,7 +21,6 @@ import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 
 import { useSettings } from "@/hooks/useSettings";
-import { IpcClient } from "@/ipc/ipc_client";
 import {
   chatInputValueAtom,
   chatMessagesByIdAtom,
@@ -46,12 +45,7 @@ import { AutoApproveSwitch } from "../AutoApproveSwitch";
 import { usePostHog } from "posthog-js/react";
 import { CodeHighlight } from "./CodeHighlight";
 import { TokenBar } from "./TokenBar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import { useNavigate } from "@tanstack/react-router";
 import { useVersions } from "@/hooks/useVersions";
 import { useAttachments } from "@/hooks/useAttachments";
@@ -66,6 +60,7 @@ import { SelectedComponentDisplay } from "./SelectedComponentDisplay";
 import { useCheckProblems } from "@/hooks/useCheckProblems";
 import { LexicalChatInput } from "./LexicalChatInput";
 import { useChatModeToggle } from "@/hooks/useChatModeToggle";
+import api from "@/api";
 
 const showTokenBarAtom = atom(false);
 
@@ -85,7 +80,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
   const setIsPreviewOpen = useSetAtom(isPreviewOpenAtom);
   const [showTokenBar, setShowTokenBar] = useAtom(showTokenBarAtom);
   const [selectedComponent, setSelectedComponent] = useAtom(
-    selectedComponentPreviewAtom,
+    selectedComponentPreviewAtom
   );
   const { checkProblems } = useCheckProblems(appId);
   // Use the attachments hook
@@ -129,7 +124,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
     if (!chatId) {
       return;
     }
-    const chat = await IpcClient.getInstance().getChat(chatId);
+    const chat = await api.chat.getChat(chatId);
     setMessagesById((prev) => {
       const next = new Map(prev);
       next.set(chatId, chat.messages);
@@ -138,11 +133,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
   }, [chatId, setMessagesById]);
 
   const handleSubmit = async () => {
-    if (
-      (!inputValue.trim() && attachments.length === 0) ||
-      isStreaming ||
-      !chatId
-    ) {
+    if ((!inputValue.trim() && attachments.length === 0) || isStreaming || !chatId) {
       return;
     }
 
@@ -164,7 +155,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
 
   const handleCancel = () => {
     if (chatId) {
-      IpcClient.getInstance().cancelChatStream(chatId);
+      api.chat.cancelChatStream(chatId);
     }
     setIsStreaming(false);
   };
@@ -174,15 +165,12 @@ export function ChatInput({ chatId }: { chatId?: number }) {
   };
 
   const handleApprove = async () => {
-    if (!chatId || !messageId || isApproving || isRejecting || isStreaming)
-      return;
-    console.log(
-      `Approving proposal for chatId: ${chatId}, messageId: ${messageId}`,
-    );
+    if (!chatId || !messageId || isApproving || isRejecting || isStreaming) return;
+    console.log(`Approving proposal for chatId: ${chatId}, messageId: ${messageId}`);
     setIsApproving(true);
     posthog.capture("chat:approve");
     try {
-      const result = await IpcClient.getInstance().approveProposal({
+      const result = await api.chat.approveProposal({
         chatId,
         messageId,
       });
@@ -211,15 +199,12 @@ export function ChatInput({ chatId }: { chatId?: number }) {
   };
 
   const handleReject = async () => {
-    if (!chatId || !messageId || isApproving || isRejecting || isStreaming)
-      return;
-    console.log(
-      `Rejecting proposal for chatId: ${chatId}, messageId: ${messageId}`,
-    );
+    if (!chatId || !messageId || isApproving || isRejecting || isStreaming) return;
+    console.log(`Rejecting proposal for chatId: ${chatId}, messageId: ${messageId}`);
     setIsRejecting(true);
     posthog.capture("chat:reject");
     try {
-      await IpcClient.getInstance().rejectProposal({
+      await api.chat.rejectProposal({
         chatId,
         messageId,
       });
@@ -249,9 +234,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
       )}
       {/* Display loading or error state for proposal */}
       {isProposalLoading && (
-        <div className="p-4 text-sm text-muted-foreground">
-          Loading proposal...
-        </div>
+        <div className="p-4 text-sm text-muted-foreground">Loading proposal...</div>
       )}
       {proposalError && (
         <div className="p-4 text-sm text-red-600">
@@ -291,10 +274,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
           <SelectedComponentDisplay />
 
           {/* Use the AttachmentsList component */}
-          <AttachmentsList
-            attachments={attachments}
-            onRemove={removeAttachment}
-          />
+          <AttachmentsList attachments={attachments} onRemove={removeAttachment} />
 
           {/* Use the DragDropOverlay component */}
           <DragDropOverlay isDraggingOver={isDraggingOver} />
@@ -321,8 +301,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
               <button
                 onClick={handleSubmit}
                 disabled={
-                  (!inputValue.trim() && attachments.length === 0) ||
-                  disableSendButton
+                  (!inputValue.trim() && attachments.length === 0) || disableSendButton
                 }
                 className="px-2 py-2 mt-1 mr-1 hover:bg-(--background-darkest) text-(--sidebar-accent-fg) rounded-lg disabled:opacity-50"
                 title="Send message"
@@ -383,12 +362,7 @@ function SuggestionButton({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            disabled={isStreaming}
-            variant="outline"
-            size="sm"
-            onClick={onClick}
-          >
+          <Button disabled={isStreaming} variant="outline" size="sm" onClick={onClick}>
             {children}
           </Button>
         </TooltipTrigger>
@@ -409,7 +383,7 @@ function SummarizeInNewChatButton() {
       return;
     }
     try {
-      const newChatId = await IpcClient.getInstance().createChat(appId);
+      const newChatId = await api.chat.createChat(appId);
       // navigate to new chat
       await navigate({ to: "/chat", search: { id: newChatId } });
       await streamMessage({
@@ -512,10 +486,7 @@ function RestartButton() {
   }, [selectedAppId, posthog, restartApp]);
 
   return (
-    <SuggestionButton
-      onClick={onClick}
-      tooltipText="Restart the development server"
-    >
+    <SuggestionButton onClick={onClick} tooltipText="Restart the development server">
       Restart app
     </SuggestionButton>
   );
@@ -531,10 +502,7 @@ function RefreshButton() {
   }, [posthog, refreshAppIframe]);
 
   return (
-    <SuggestionButton
-      onClick={onClick}
-      tooltipText="Refresh the application preview"
-    >
+    <SuggestionButton onClick={onClick} tooltipText="Refresh the application preview">
       Refresh app
     </SuggestionButton>
   );
@@ -765,9 +733,7 @@ function ChatInputActions({
                       key={index}
                       className="flex items-center space-x-2"
                       onClick={() => {
-                        IpcClient.getInstance().openExternalUrl(
-                          `https://www.npmjs.com/package/${pkg}`,
-                        );
+                        api.app.openExternalUrl(`https://www.npmjs.com/package/${pkg}`);
                       }}
                     >
                       <Package
@@ -790,10 +756,7 @@ function ChatInputActions({
                   {serverFunctions.map((file: FileChange, index: number) => (
                     <li key={index} className="flex items-center space-x-2">
                       {getIconForFileChange(file)}
-                      <span
-                        title={file.path}
-                        className="truncate cursor-default"
-                      >
+                      <span title={file.path} className="truncate cursor-default">
                         {file.name}
                       </span>
                       <span className="text-muted-foreground text-xs truncate">
@@ -812,10 +775,7 @@ function ChatInputActions({
                   {otherFilesChanged.map((file: FileChange, index: number) => (
                     <li key={index} className="flex items-center space-x-2">
                       {getIconForFileChange(file)}
-                      <span
-                        title={file.path}
-                        className="truncate cursor-default"
-                      >
+                      <span title={file.path} className="truncate cursor-default">
                         {file.name}
                       </span>
                       <span className="text-muted-foreground text-xs truncate">
@@ -836,17 +796,11 @@ function ChatInputActions({
 function getIconForFileChange(file: FileChange) {
   switch (file.type) {
     case "write":
-      return (
-        <FileText size={16} className="text-muted-foreground flex-shrink-0" />
-      );
+      return <FileText size={16} className="text-muted-foreground flex-shrink-0" />;
     case "rename":
-      return (
-        <SendToBack size={16} className="text-muted-foreground flex-shrink-0" />
-      );
+      return <SendToBack size={16} className="text-muted-foreground flex-shrink-0" />;
     case "delete":
-      return (
-        <FileX size={16} className="text-muted-foreground flex-shrink-0" />
-      );
+      return <FileX size={16} className="text-muted-foreground flex-shrink-0" />;
   }
 }
 
@@ -877,9 +831,7 @@ function ProposalSummary({
 
   if (sqlQueries.length) {
     parts.push(
-      `${sqlQueries.length} SQL ${
-        sqlQueries.length === 1 ? "query" : "queries"
-      }`,
+      `${sqlQueries.length} SQL ${sqlQueries.length === 1 ? "query" : "queries"}`
     );
   }
 
@@ -887,22 +839,18 @@ function ProposalSummary({
     parts.push(
       `${serverFunctions.length} Server ${
         serverFunctions.length === 1 ? "Function" : "Functions"
-      }`,
+      }`
     );
   }
 
   if (packagesAdded.length) {
     parts.push(
-      `${packagesAdded.length} ${
-        packagesAdded.length === 1 ? "package" : "packages"
-      }`,
+      `${packagesAdded.length} ${packagesAdded.length === 1 ? "package" : "packages"}`
     );
   }
 
   if (filesChanged.length) {
-    parts.push(
-      `${filesChanged.length} ${filesChanged.length === 1 ? "file" : "files"}`,
-    );
+    parts.push(`${filesChanged.length} ${filesChanged.length === 1 ? "file" : "files"}`);
   }
 
   // Join all parts with separator
@@ -924,9 +872,7 @@ function SqlQueryItem({ query }: { query: SqlQuery }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Database size={16} className="text-muted-foreground flex-shrink-0" />
-          <span className="text-sm font-medium">
-            {queryDescription || "SQL Query"}
-          </span>
+          <span className="text-sm font-medium">{queryDescription || "SQL Query"}</span>
         </div>
         <div>
           {isExpanded ? (
@@ -938,9 +884,7 @@ function SqlQueryItem({ query }: { query: SqlQuery }) {
       </div>
       {isExpanded && (
         <div className="mt-2 text-xs max-h-[200px] overflow-auto">
-          <CodeHighlight className="language-sql ">
-            {queryContent}
-          </CodeHighlight>
+          <CodeHighlight className="language-sql ">{queryContent}</CodeHighlight>
         </div>
       )}
     </li>

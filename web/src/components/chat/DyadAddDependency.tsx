@@ -2,10 +2,9 @@ import type React from "react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
-import { IpcClient } from "../../../../server/src/ipc_client";
-
 import { Package, ChevronsUpDown, ChevronsDownUp } from "lucide-react";
 import { CodeHighlight } from "./CodeHighlight";
+import api from "@/api";
 
 interface DyadAddDependencyProps {
   children?: ReactNode;
@@ -27,27 +26,21 @@ export const DyadAddDependency: React.FC<DyadAddDependencyProps> = ({
       className={`bg-(--background-lightest) dark:bg-gray-900 hover:bg-(--background-lighter) rounded-lg px-4 py-3 border my-2 border-border ${
         hasChildren ? "cursor-pointer" : ""
       }`}
-      onClick={
-        hasChildren ? () => setIsContentVisible(!isContentVisible) : undefined
-      }
+      onClick={hasChildren ? () => setIsContentVisible(!isContentVisible) : undefined}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Package size={18} className="text-gray-600 dark:text-gray-400" />
           {packages.length > 0 && (
             <div className="text-gray-800 dark:text-gray-200 font-semibold text-base">
-              <div className="font-normal">
-                Do you want to install these packages?
-              </div>{" "}
+              <div className="font-normal">Do you want to install these packages?</div>{" "}
               <div className="flex flex-wrap gap-2 mt-2">
                 {packages.map((p: string) => (
                   <span
                     className="cursor-pointer text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                     key={p}
                     onClick={() => {
-                      IpcClient.getInstance().openExternalUrl(
-                        `https://www.npmjs.com/package/${p}`,
-                      );
+                      api.app.openExternalUrl(`https://www.npmjs.com/package/${p}`);
                     }}
                   >
                     {p}

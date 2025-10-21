@@ -4,18 +4,14 @@ import { useLoadAppFile } from "@/hooks/useLoadAppFile";
 import { useTheme } from "@/contexts/ThemeContext";
 import { ChevronRight, Circle, Save } from "lucide-react";
 import "@/components/chat/monaco";
-import { IpcClient } from "@/ipc/ipc_client";
 import { showError, showSuccess, showWarning } from "@/components/Toast";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSettings } from "@/hooks/useSettings";
 import { useCheckProblems } from "@/hooks/useCheckProblems";
 import { getLanguage } from "@/utils/get_language";
+import api from "@/api";
 
 interface FileEditorProps {
   appId: number | null;
@@ -44,10 +40,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
           {segments.map((segment, index) => (
             <React.Fragment key={index}>
               {index > 0 && (
-                <ChevronRight
-                  size={14}
-                  className="text-gray-400 flex-shrink-0"
-                />
+                <ChevronRight size={14} className="text-gray-400 flex-shrink-0" />
               )}
               <span className="hover:text-gray-900 dark:hover:text-gray-100 cursor-pointer truncate">
                 {segment}
@@ -123,8 +116,7 @@ export const FileEditor = ({ appId, filePath }: FileEditorProps) => {
   // Determine if dark mode based on theme
   const isDarkMode =
     theme === "dark" ||
-    (theme === "system" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches);
+    (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   const editorTheme = isDarkMode ? "dyad-dark" : "dyad-light";
 
   // Handle editor mount
@@ -164,11 +156,10 @@ export const FileEditor = ({ appId, filePath }: FileEditorProps) => {
       isSavingRef.current = true;
       setIsSaving(true);
 
-      const ipcClient = IpcClient.getInstance();
-      const { warning } = await ipcClient.editAppFile(
+      const { warning } = await api.app.editAppFile(
         appId,
         filePath,
-        currentValueRef.current,
+        currentValueRef.current
       );
       await queryClient.invalidateQueries({ queryKey: ["versions", appId] });
       if (settings?.enableAutoFixProblems) {

@@ -5,11 +5,14 @@ import {
   FileAttachment,
   Message,
   UpdateChatParams,
+  TokenCountParams,
+  TokenCountResult,
 } from "@shared/eeziTypes";
 import {
   ChatSummariesSchema,
   ChatSearchResult,
   ChatSearchResultsSchema,
+  ProposalResult,
 } from "@shared/schemas";
 import { AxiosRequestConfig } from "axios";
 import { showError } from "@/components/Toast";
@@ -76,6 +79,51 @@ class ChatApiService {
     }
   }
 
+  public async addDependency(params: { chatId: number; packages: string[] }) {
+    const { data } = await Api.post("/chat/add-dep", params);
+    return data;
+  }
+
+  // --- Proposal Management ---
+  // Get proposal details
+  public async getProposal(chatId: number) {
+    try {
+      const { data } = await Api.get(`get-proposal/${chatId}`);
+      // Assuming the main process returns data matching the ProposalResult interface
+      // Add a type check/guard if necessary for robustness
+      return data as ProposalResult | null;
+    } catch (error) {
+      showError(error);
+      throw error;
+    }
+  }
+
+  // Example methods for listening to events (if needed)
+  // public on(channel: string, func: (...args: any[]) => void): void {
+
+  // --- Proposal Management ---
+  public async approveProposal(params: { chatId: number; messageId: number }) {
+    const { data } = await Api.post("approve-proposal", params);
+    return data;
+  }
+
+  public async rejectProposal(params: { chatId: number; messageId: number }) {
+    const { data } = await Api.patch("reject-proposal", params);
+    return data;
+  }
+  // --- End Proposal Management ---
+
+  // Count tokens for a chat and input
+  public async countTokens(params: TokenCountParams) {
+    try {
+      const { data } = await Api.post("/chat/count-tokens", params);
+      return data as TokenCountResult;
+    } catch (error) {
+      showError(error);
+      throw error;
+    }
+  }
+
   public streamMessage(
     prompt: string,
     options: {
@@ -122,7 +170,7 @@ class ChatApiService {
 
     processAttachments
       .then((fileDataArray) =>
-        Api.post(`/${chatId}/stream`, {
+        Api.post(`/${chatId}/start`, {
           prompt,
           redo,
           selectedComponent,
@@ -130,7 +178,7 @@ class ChatApiService {
         })
           .then((res) => {
             if (!eeziClient.eventSources.chat) {
-              const url = eeziClient.baseURL + `/stream/${chatId}`;
+              const url = eeziClient.baseURL + `/${chatId}/stream`;
               eeziClient.initChatStreamSSE(url);
             }
           })
@@ -150,6 +198,33 @@ class ChatApiService {
   public cancelChatStream(chatId: number): void {
     Api.delete(`/${chatId}/cancel`);
     eeziClient.chatStreams.delete(chatId);
+  }
+
+  // --- Help bot ---
+  public startHelpChat(
+    sessionId: string,
+    message: string,
+    options: {
+      onChunk: (delta: string) => void;
+      onEnd: () => void;
+      onError: (error: string) => void;
+    }
+  ): void {
+    Api.post(`/chat/help/${sessionId}/start`, { message })
+      .then(() => {
+        eeziClient.helpStreams.set(sessionId, options);
+        const url = eeziClient.baseURL + `/chat/help/${sessionId}/stream`;
+        eeziClient.initHelpStreamSSE(url);
+      })
+      .catch((err) => {
+        showError(err);
+        options.onError(String(err));
+      });
+  }
+
+  public async cancelHelpChat(sessionId: string): Promise<void> {
+    const { data } = await Api.delete(`/chat/help/${sessionId}/cancel`);
+    return data;
   }
 }
 

@@ -6,17 +6,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCountTokens } from "@/hooks/useCountTokens";
-import {
-  MessageSquare,
-  Code,
-  Bot,
-  AlignLeft,
-  ExternalLink,
-} from "lucide-react";
+import { MessageSquare, Code, Bot, AlignLeft, ExternalLink } from "lucide-react";
 import { chatInputValueAtom } from "@/atoms/chatAtoms";
 import { useAtom } from "jotai";
 import { useSettings } from "@/hooks/useSettings";
-import { IpcClient } from "@/ipc/ipc_client";
+import api from "@/api";
 
 interface TokenBarProps {
   chatId?: number;
@@ -75,8 +69,7 @@ export function TokenBar({ chatId }: TokenBarProps) {
               <div className="flex justify-between mb-1 text-xs text-muted-foreground">
                 <span>Tokens: {totalTokens.toLocaleString()}</span>
                 <span>
-                  {Math.round(percentUsed)}% of{" "}
-                  {(contextWindow / 1000).toFixed(0)}K
+                  {Math.round(percentUsed)}% of {(contextWindow / 1000).toFixed(0)}K
                 </span>
               </div>
               <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden flex">
@@ -143,19 +136,16 @@ export function TokenBar({ chatId }: TokenBarProps) {
         </Tooltip>
       </TooltipProvider>
       {error && <div className="text-red-500 text-xs mt-1">{error}</div>}
-      {(!settings?.enableProSmartFilesContextMode ||
-        !settings?.enableDyadPro) && (
+      {(!settings?.enableProSmartFilesContextMode || !settings?.enableDyadPro) && (
         <div className="text-xs text-center text-muted-foreground mt-2">
           Optimize your tokens with{" "}
           <a
             onClick={() =>
               settings?.enableDyadPro
-                ? IpcClient.getInstance().openExternalUrl(
-                    "https://www.dyad.sh/docs/guides/ai-models/pro-modes#smart-context",
+                ? api.app.openExternalUrl(
+                    "https://www.dyad.sh/docs/guides/ai-models/pro-modes#smart-context"
                   )
-                : IpcClient.getInstance().openExternalUrl(
-                    "https://dyad.sh/pro#ai",
-                  )
+                : api.app.openExternalUrl("https://dyad.sh/pro#ai")
             }
             className="text-blue-500 dark:text-blue-400 cursor-pointer hover:underline"
           >

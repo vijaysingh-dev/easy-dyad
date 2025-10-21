@@ -1,3 +1,7 @@
+import log from "@/logger";
+import db from "@/db";
+import { apps, chats, messages, prompts } from "@/db/schema";
+import { eq, and, isNull, desc, like, inArray } from "drizzle-orm";
 import { Router } from "express";
 import * as os from "os";
 import fs from "node:fs";
@@ -5,18 +9,11 @@ import * as path from "path";
 import * as crypto from "crypto";
 import * as git from "isomorphic-git";
 import { v4 as uuidv4 } from "uuid";
-import { ModelMessage, streamText, ToolSet, stepCountIs, hasToolCall } from "ai";
+import { ModelMessage, streamText, Tool, ToolSet, stepCountIs, hasToolCall } from "ai";
 import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
-import { eq, and, isNull, desc, like } from "drizzle-orm";
 import { readFile, writeFile, unlink } from "fs/promises";
-import { OpenAIResponsesProviderOptions } from "@ai-sdk/openai";
-import { extractMentionedAppsCodebases } from "@/utils/mention_apps";
-import { inArray } from "drizzle-orm";
+import { openai, createOpenAI, OpenAIResponsesProviderOptions } from "@ai-sdk/openai";
 import z from "zod";
-
-import db from "@/db";
-import log from "@/logger";
-import { apps, chats, messages, prompts as promptsTable } from "@/db/schema";
 
 import {
   getSupabaseContext,
@@ -26,29 +23,38 @@ import {
   SUPABASE_AVAILABLE_SYSTEM_PROMPT,
   SUPABASE_NOT_AVAILABLE_SYSTEM_PROMPT,
 } from "@/services/prompts/supabase_prompt";
+import { isServerFunction } from "@/services/supabase/supabase_utils";
 import { constructSystemPrompt, readAiRules } from "@/services/prompts/system_prompt";
 import { SUMMARIZE_CHAT_SYSTEM_PROMPT } from "@/services/prompts/summarize_chat_system_prompt";
-
 import { createProblemFixPrompt } from "@/services/llm/problem_prompt";
 import { parseAppMentions } from "@/services/llm/parse_mention_apps";
+import { processFullResponseActions } from "@/services/processors/response_processor";
+import { executeAddDependency } from "@/services/processors/executeAddDependency";
+import { generateProblemReport } from "@/services/processors/tsc";
+import { getEeziAppPath } from "@/services/paths";
+import { AsyncVirtualFileSystem } from "@/services/VirtualFilesystem";
+import { readSettings } from "@/services/settings";
 
+import { withLock } from "@/utils/lock_utils";
+import { fileExists } from "@/utils/file_utils";
+import { safeSend } from "@/utils/safe_sender";
 import { FileUploadsState } from "@/utils/file_uploads_state";
 import { extractCodebase, readFileWithCache } from "@/utils/codebase";
-import { processFullResponseActions } from "@/services/processors/response_processor";
+import { extractMentionedAppsCodebases } from "@/utils/mention_apps";
 import { getModelClient, ModelClient } from "@/utils/get_model_client";
 import { getMaxTokens, getTemperature } from "@/utils/token_utils";
 import { validateChatContext } from "@/utils/context_paths_utils";
 import { getExtraProviderOptions } from "@/utils/thinking_utils";
-import { safeSend } from "@/utils/safe_sender";
 import { cleanFullResponse } from "@/utils/cleanFullResponse";
-import { generateProblemReport } from "@/services/processors/tsc";
-import { fileExists } from "@/utils/file_utils";
 import { replacePromptReference } from "@/utils/replacePromptReference";
 import {
-  getDyadAddDependencyTags,
   getDyadWriteTags,
-  getDyadDeleteTags,
   getDyadRenameTags,
+  getDyadDeleteTags,
+  getDyadExecuteSqlTags,
+  getDyadAddDependencyTags,
+  getDyadChatSummaryTag,
+  getDyadCommandTags,
 } from "@/utils/dyad_tag_parser";
 import {
   isTextFile,
@@ -64,12 +70,15 @@ import {
   getTestResponse,
   streamTestResponse,
 } from "@/utils/stream_utils";
-
-import { getEeziAppPath } from "@/services/paths";
-import { ChatStreamParams, ChatResponseEnd } from "@shared/eeziTypes";
-import { AsyncVirtualFileSystem } from "@/services/VirtualFilesystem";
+import { getCodebaseTokenCount } from "@/utils/chat_utils";
+import {
+  estimateTokens,
+  getContextWindow,
+  estimateMessagesTokens,
+} from "@/utils/token_utils";
+import type { CodeProposal, ActionProposal } from "@shared/schemas";
 import { MAX_CHAT_TURNS_IN_CONTEXT } from "@shared/constants";
-import { readSettings } from "@/services/settings";
+import { ChatStreamParams, ChatResponseEnd } from "@shared/eeziTypes";
 
 const logger = log.scope("chat-router");
 const router = Router();
@@ -272,11 +281,59 @@ router.post("/search-chats/:appId", async (req, res) => {
   }
 });
 
+router.post("/add-dep", async (req, res) => {
+  try {
+    const { chatId, packages } = req.body as { chatId: number; packages: string[] };
+    // Find the message from the database
+    const foundMessages = await db.query.messages.findMany({
+      where: eq(messages.chatId, chatId),
+    });
+
+    // Find the chat first
+    const chat = await db.query.chats.findFirst({
+      where: eq(chats.id, chatId),
+    });
+
+    if (!chat) {
+      throw new Error(`Chat ${chatId} not found`);
+    }
+
+    // Get the app using the appId from the chat
+    const app = await db.query.apps.findFirst({
+      where: eq(apps.id, chat.appId),
+    });
+
+    if (!app) {
+      throw new Error(`App for chat ${chatId} not found`);
+    }
+
+    const message = [...foundMessages]
+      .reverse()
+      .find((m) =>
+        m.content.includes(`<dyad-add-dependency packages="${packages.join(" ")}">`)
+      );
+
+    if (!message) {
+      throw new Error(`Message with packages ${packages.join(", ")} not found`);
+    }
+
+    executeAddDependency({
+      packages,
+      message,
+      appPath: getEeziAppPath(app.path),
+    });
+    res.json({ success: true });
+  } catch (error) {
+    logger.error("Error adding dependencies:", error);
+    res.status(500).json({ error: "Failed to add dependencies" });
+  }
+});
+
 // ----------------------------
 // Chat Stream
 // ----------------------------
 
-const activeStreams = new Map<
+const activeChatStreams = new Map<
   number,
   { controller: AbortController; data: ChatStreamParams }
 >();
@@ -294,10 +351,10 @@ function createCodebasePrompt(codebaseInfo: string): string {
   return `${CODEBASE_PROMPT_PREFIX} ${codebaseInfo}`;
 }
 
-router.post("/:chatId/stream", async (req, res) => {
+router.post("/:chatId/start", async (req, res) => {
   try {
     const chatId = parseInt(req.params.chatId);
-    activeStreams.set(chatId, {
+    activeChatStreams.set(chatId, {
       controller: new AbortController(),
       data: req.body as ChatStreamParams,
     });
@@ -308,7 +365,7 @@ router.post("/:chatId/stream", async (req, res) => {
   }
 });
 
-router.get("/stream/:chatId", async (req, res) => {
+router.get("/:chatId/stream", async (req, res) => {
   const logger = log.scope("chat-stream");
   const chatId = parseInt(req.params.chatId);
   try {
@@ -318,19 +375,19 @@ router.get("/stream/:chatId", async (req, res) => {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    if (!activeStreams.has(chatId) && !activeStreams.get(chatId)?.data) {
+    if (!activeChatStreams.has(chatId) && !activeChatStreams.get(chatId)?.data) {
       throw new Error(`Stream not initiated: ${chatId}`);
     }
 
-    const abortController = activeStreams.get(chatId).controller;
+    const abortController = activeChatStreams.get(chatId).controller;
     const { prompt, redo, attachments, selectedComponent } =
-      activeStreams.get(chatId).data;
+      activeChatStreams.get(chatId).data;
 
     const fileUploadsState = FileUploadsState.getInstance();
 
     req.on("close", () => {
       logger.info("Client disconnected");
-      activeStreams.delete(chatId);
+      activeChatStreams.delete(chatId);
       res.end();
     });
 
@@ -444,8 +501,8 @@ router.get("/stream/:chatId", async (req, res) => {
         const ids = Array.from(new Set(matches.map((m) => Number(m[1]))));
         const referenced = await db
           .select()
-          .from(promptsTable)
-          .where(inArray(promptsTable.id, ids));
+          .from(prompts)
+          .where(inArray(prompts.id, ids));
         if (referenced.length > 0) {
           const promptsMap: Record<number, string> = {};
           for (const p of referenced) {
@@ -901,7 +958,7 @@ This conversation includes one or more image attachments. When the user uploads 
               })}\n\n`
             );
             // Clean up the abort controller
-            activeStreams.delete(chatId);
+            activeChatStreams.delete(chatId);
           },
           abortSignal: abortController.signal,
         });
@@ -1301,7 +1358,7 @@ ${problemReport.problems
       error: `Sorry, there was an error processing your request: ${error}`,
     });
     // Clean up the abort controller
-    activeStreams.delete(chatId);
+    activeChatStreams.delete(chatId);
     // Clean up file uploads state on error
     FileUploadsState.getInstance().clear(chatId);
   } finally {
@@ -1313,9 +1370,11 @@ ${problemReport.problems
 router.delete("/:chatId/cancel", async (req, res) => {
   const chatId = parseInt(req.params.chatId);
   try {
-    const stream = activeStreams.get(chatId);
+    const stream = activeChatStreams.get(chatId);
     if (stream) {
       stream.controller.abort();
+      activeChatStreams.delete(chatId);
+      logger.log(`Canceled active stream for chat ${chatId}`);
       res.json({ success: true });
     } else {
       console.warn(`No active stream found for chat ${chatId}`);
@@ -1327,4 +1386,583 @@ router.delete("/:chatId/cancel", async (req, res) => {
   }
 });
 
+// --------------------------------
+// Help Stream
+// --------------------------------
+
+// In-memory session store for help bot conversations
+type HelpMessage = { role: "user" | "assistant"; content: string };
+const helpSessions = new Map<string, HelpMessage[]>();
+
+const activeHelpStreams = new Map<
+  string,
+  { controller: AbortController; message: string }
+>();
+
+router.post("/help/:sessionId/start", async (req, res) => {
+  try {
+    const sessionId = req.params.sessionId;
+    activeHelpStreams.set(sessionId, {
+      controller: new AbortController(),
+      message: req.body.message,
+    });
+    res.json({ success: true });
+  } catch (error) {
+    logger.error("Error starting help stream:", error);
+    res.status(500).json({ error: "Failed to start help stream" });
+  }
+});
+
+router.get("/help/:sessionId/stream", async (req, res) => {
+  const logger = log.scope("help-stream");
+  const sessionId = req.params.sessionId;
+  try {
+    // Set up SSE
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    if (
+      !activeHelpStreams.has(sessionId) &&
+      !activeHelpStreams.get(sessionId)?.message
+    ) {
+      throw new Error(`Stream not initiated: ${sessionId}`);
+    }
+
+    const abortController = activeHelpStreams.get(sessionId).controller;
+    const message = activeHelpStreams.get(sessionId).message;
+
+    // Append user message to session history
+    const history = helpSessions.get(sessionId) ?? [];
+    const updatedHistory: HelpMessage[] = [
+      ...history,
+      { role: "user", content: message },
+    ];
+
+    const settings = await readSettings();
+    const apiKey = settings.providerSettings?.["auto"]?.apiKey?.value;
+    const provider = createOpenAI({
+      baseURL: "https://helpchat.dyad.sh/v1",
+      apiKey,
+    });
+
+    let assistantContent = "";
+
+    const stream = streamText({
+      model: provider.responses("gpt-5-nano"),
+      providerOptions: {
+        openai: {
+          reasoningSummary: "auto",
+        } satisfies OpenAIResponsesProviderOptions,
+      },
+      tools: {
+        web_search_preview: openai.tools.webSearchPreview({
+          searchContextSize: "high",
+        }) as Tool,
+      },
+      messages: updatedHistory as any,
+      maxRetries: 1,
+      onError: (error) => {
+        let errorMessage = (error as any)?.error?.message;
+        logger.error("help bot stream error", errorMessage);
+        safeSend(res, "help:chat:response:error", {
+          sessionId,
+          error: String(errorMessage),
+        });
+      },
+    });
+
+    (async () => {
+      try {
+        for await (const part of stream.fullStream) {
+          if (abortController.signal.aborted) break;
+
+          if (part.type === "text-delta") {
+            assistantContent += part.text;
+            safeSend(res, "help:chat:response:chunk", {
+              sessionId,
+              delta: part.text,
+              type: "text",
+            });
+          }
+        }
+
+        // Finalize session history
+        const finalHistory: HelpMessage[] = [
+          ...updatedHistory,
+          { role: "assistant", content: assistantContent },
+        ];
+        helpSessions.set(sessionId, finalHistory);
+
+        safeSend(res, "help:chat:response:end", { sessionId });
+      } catch (err) {
+        if ((err as any)?.name === "AbortError") {
+          logger.log("help bot stream aborted", sessionId);
+          return;
+        }
+        logger.error("help bot stream loop error", err);
+        safeSend(res, "help:chat:response:error", {
+          sessionId,
+          error: String(err instanceof Error ? err.message : err),
+        });
+      } finally {
+        activeHelpStreams.delete(sessionId);
+      }
+    })();
+
+    return { ok: true } as const;
+  } catch (err) {
+    logger.error("help:chat:start error", err);
+    safeSend(res, "help:chat:start:error", {
+      sessionId,
+      error: String(err instanceof Error ? err.message : err),
+    });
+    // Clean up the abort controller
+    activeHelpStreams.delete(sessionId);
+  } finally {
+    res.end();
+  }
+});
+
+router.delete("/help/:sessionId/cancel", async (req, res) => {
+  try {
+    const sessionId = req.params.sessionId;
+    const stream = activeHelpStreams.get(sessionId);
+    if (stream) {
+      stream.controller.abort();
+      activeHelpStreams.delete(sessionId);
+      res.json({ success: true });
+    } else {
+      console.warn(`No active stream found for help ${sessionId}`);
+      res.status(404).json({ error: "No active stream found" });
+    }
+  } catch (error) {
+    logger.error("Error canceling help stream:", error);
+    res.status(500).json({ error: "Failed to cancel help stream" });
+  }
+});
+
+// --- Proposal Management  ---
+router.get("/get-proposal/:chatId", async (req, res) => {
+  try {
+    const chatId = parseInt(req.params.chatId);
+    const result = await withLock("get-proposal:" + chatId, async () => {
+      logger.log(`IPC: get-proposal called for chatId: ${chatId}`);
+
+      try {
+        // Find the latest ASSISTANT message for the chat
+        const latestAssistantMessage = await db.query.messages.findFirst({
+          where: and(eq(messages.chatId, chatId), eq(messages.role, "assistant")),
+          orderBy: [desc(messages.createdAt)],
+          columns: {
+            id: true, // Fetch the ID
+            content: true, // Fetch the content to parse
+            approvalState: true,
+          },
+        });
+
+        if (
+          latestAssistantMessage?.content &&
+          latestAssistantMessage.id &&
+          !latestAssistantMessage?.approvalState
+        ) {
+          const messageId = latestAssistantMessage.id; // Get the message ID
+          logger.log(
+            `Found latest assistant message (ID: ${messageId}), parsing content...`
+          );
+          const messageContent = latestAssistantMessage.content;
+
+          const proposalTitle = getDyadChatSummaryTag(messageContent);
+
+          const proposalWriteFiles = getDyadWriteTags(messageContent);
+          const proposalRenameFiles = getDyadRenameTags(messageContent);
+          const proposalDeleteFiles = getDyadDeleteTags(messageContent);
+          const proposalExecuteSqlQueries = getDyadExecuteSqlTags(messageContent);
+          const packagesAdded = getDyadAddDependencyTags(messageContent);
+
+          const filesChanged = [
+            ...proposalWriteFiles.map((tag) => ({
+              name: path.basename(tag.path),
+              path: tag.path,
+              summary: tag.description ?? "(no change summary found)", // Generic summary
+              type: "write" as const,
+              isServerFunction: isServerFunction(tag.path),
+            })),
+            ...proposalRenameFiles.map((tag) => ({
+              name: path.basename(tag.to),
+              path: tag.to,
+              summary: `Rename from ${tag.from} to ${tag.to}`,
+              type: "rename" as const,
+              isServerFunction: isServerFunction(tag.to),
+            })),
+            ...proposalDeleteFiles.map((tag) => ({
+              name: path.basename(tag),
+              path: tag,
+              summary: `Delete file`,
+              type: "delete" as const,
+              isServerFunction: isServerFunction(tag),
+            })),
+          ];
+          // Check if we have enough information to create a proposal
+          if (
+            filesChanged.length > 0 ||
+            packagesAdded.length > 0 ||
+            proposalExecuteSqlQueries.length > 0
+          ) {
+            const proposal: CodeProposal = {
+              type: "code-proposal",
+              // Use parsed title or a default title if summary tag is missing but write tags exist
+              title: proposalTitle ?? "Proposed File Changes",
+              securityRisks: [], // Keep empty
+              filesChanged,
+              packagesAdded,
+              sqlQueries: proposalExecuteSqlQueries.map((query) => ({
+                content: query.content,
+                description: query.description,
+              })),
+            };
+            logger.log(
+              "Generated code proposal. title=",
+              proposal.title,
+              "files=",
+              proposal.filesChanged.length,
+              "packages=",
+              proposal.packagesAdded.length
+            );
+
+            return {
+              proposal: proposal,
+              chatId,
+              messageId,
+            };
+          } else {
+            logger.log(
+              "No relevant tags found in the latest assistant message content."
+            );
+          }
+        }
+        const actions: ActionProposal["actions"] = [];
+        if (latestAssistantMessage?.content) {
+          const writeTags = getDyadWriteTags(latestAssistantMessage.content);
+          const refactorTarget = writeTags.reduce(
+            (largest, tag) => {
+              const lineCount = tag.content.split("\n").length;
+              return lineCount > 500 && (!largest || lineCount > largest.lineCount)
+                ? { path: tag.path, lineCount }
+                : largest;
+            },
+            null as { path: string; lineCount: number } | null
+          );
+          if (refactorTarget) {
+            actions.push({
+              id: "refactor-file",
+              path: refactorTarget.path,
+            });
+          }
+          if (writeTags.length === 0 && latestAssistantMessage.content.includes("```")) {
+            actions.push({
+              id: "write-code-properly",
+            });
+          }
+
+          // Check for command tags and add corresponding actions
+          const commandTags = getDyadCommandTags(latestAssistantMessage.content);
+          if (commandTags.includes("rebuild")) {
+            actions.push({
+              id: "rebuild",
+            });
+          }
+          if (commandTags.includes("restart")) {
+            actions.push({
+              id: "restart",
+            });
+          }
+          if (commandTags.includes("refresh")) {
+            actions.push({
+              id: "refresh",
+            });
+          }
+        }
+
+        // Get all chat messages to calculate token usage
+        const chat = await db.query.chats.findFirst({
+          where: eq(chats.id, chatId),
+          with: {
+            app: true,
+            messages: {
+              orderBy: (messages, { asc }) => [asc(messages.createdAt)],
+            },
+          },
+        });
+
+        if (latestAssistantMessage && chat) {
+          // Calculate total tokens from message history
+          const messagesTokenCount = estimateMessagesTokens(chat.messages);
+
+          // Use cached token count or calculate new one
+          const codebaseTokenCount = await getCodebaseTokenCount(
+            chatId,
+            latestAssistantMessage.id,
+            latestAssistantMessage.content || "",
+            chat.app.path,
+            chat.app.chatContext
+          );
+
+          const totalTokens = messagesTokenCount + codebaseTokenCount;
+          const contextWindow = Math.min(await getContextWindow(), 100_000);
+          logger.log(
+            `Token usage: ${totalTokens}/${contextWindow} (${
+              (totalTokens / contextWindow) * 100
+            }%)`
+          );
+
+          // If we're using more than 80% of the context window, suggest summarizing
+          if (totalTokens > contextWindow * 0.8 || chat.messages.length > 10) {
+            logger.log(
+              `Token usage is high (${totalTokens}/${contextWindow}) OR long chat history (${chat.messages.length} messages), suggesting summarize action`
+            );
+            actions.push({
+              id: "summarize-in-new-chat",
+            });
+          }
+        }
+        if (latestAssistantMessage) {
+          actions.push({
+            id: "keep-going",
+          });
+          return {
+            proposal: {
+              type: "action-proposal",
+              actions: actions,
+            },
+            chatId,
+            messageId: latestAssistantMessage.id,
+          };
+        }
+        return null;
+      } catch (error) {
+        logger.error(`Error processing proposal for chatId ${chatId}:`, error);
+        return null; // Indicate DB or processing error
+      }
+    });
+    res.json(result);
+  } catch (error) {
+    logger.error("Error in getting proposal:", error);
+    res.status(500).json({ error: "Failed to get proposal" });
+  }
+});
+
+// Handler to approve a proposal (process actions and update message)
+router.post("/approve-proposal", async (req, res) => {
+  try {
+    const { chatId, messageId } = req.body;
+    const settings = readSettings();
+    if (settings.selectedChatMode === "ask") {
+      throw new Error(
+        "Ask mode is not supported for proposal approval. Please switch to build mode."
+      );
+    }
+    // 1. Fetch the specific assistant message
+    const messageToApprove = await db.query.messages.findFirst({
+      where: and(
+        eq(messages.id, messageId),
+        eq(messages.chatId, chatId),
+        eq(messages.role, "assistant")
+      ),
+      columns: {
+        content: true,
+      },
+    });
+
+    if (!messageToApprove?.content) {
+      throw new Error(
+        `Assistant message not found for chatId: ${chatId}, messageId: ${messageId}`
+      );
+    }
+
+    // 2. Process the actions defined in the message content
+    const chatSummary = getDyadChatSummaryTag(messageToApprove.content);
+    const processResult = await processFullResponseActions(
+      messageToApprove.content,
+      chatId,
+      {
+        chatSummary: chatSummary ?? undefined,
+        messageId,
+      } // Pass summary if found
+    );
+
+    if (processResult.error) {
+      throw new Error(
+        `Error processing actions for message ${messageId}: ${processResult.error}`
+      );
+    }
+
+    res.json({
+      extraFiles: processResult.extraFiles,
+      extraFilesError: processResult.extraFilesError,
+    });
+  } catch (error) {
+    logger.error("Error approving proposal:", error);
+    res.status(500).json({ error: "Failed to approve proposal: " + error });
+  }
+});
+
+// Handler to reject a proposal (just update message state)
+router.patch("/reject-proposal", async (req, res) => {
+  try {
+    const { chatId, messageId } = req.body;
+    logger.log(`reject-proposal called for chatId: ${chatId}, messageId: ${messageId}`);
+
+    // 1. Verify the message exists and is an assistant message
+    const messageToReject = await db.query.messages.findFirst({
+      where: and(
+        eq(messages.id, messageId),
+        eq(messages.chatId, chatId),
+        eq(messages.role, "assistant")
+      ),
+      columns: { id: true },
+    });
+
+    if (!messageToReject) {
+      throw new Error(
+        `Assistant message not found for chatId: ${chatId}, messageId: ${messageId}`
+      );
+    }
+
+    // 2. Update the message's approval state to 'rejected'
+    await db
+      .update(messages)
+      .set({ approvalState: "rejected" })
+      .where(eq(messages.id, messageId));
+
+    logger.log(`Message ${messageId} marked as rejected.`);
+    res.json({ success: true });
+  } catch (error) {
+    logger.error("Error rejecting proposal:", error);
+    res.status(500).json({ error: "Failed to reject proposal: " + error });
+  }
+});
+
+router.post("/count-tokens", async (req, res) => {
+  try {
+    const { chatId, input } = req.body;
+    const chat = await db.query.chats.findFirst({
+      where: eq(chats.id, chatId),
+      with: {
+        messages: {
+          orderBy: (messages, { asc }) => [asc(messages.createdAt)],
+        },
+        app: true,
+      },
+    });
+
+    if (!chat) {
+      throw new Error(`Chat not found: ${chatId}`);
+    }
+
+    // Prepare message history for token counting
+    const messageHistory = chat.messages.map((message) => message.content).join("");
+    const messageHistoryTokens = estimateTokens(messageHistory);
+
+    // Count input tokens
+    const inputTokens = estimateTokens(input);
+
+    const settings = readSettings();
+
+    // Parse app mentions from the input
+    const mentionedAppNames = parseAppMentions(input);
+
+    // Count system prompt tokens
+    let systemPrompt = constructSystemPrompt({
+      aiRules: await readAiRules(getEeziAppPath(chat.app.path)),
+      chatMode: settings.selectedChatMode,
+    });
+    let supabaseContext = "";
+
+    if (chat.app?.supabaseProjectId) {
+      systemPrompt += "\n\n" + SUPABASE_AVAILABLE_SYSTEM_PROMPT;
+      supabaseContext = await getSupabaseContext({
+        supabaseProjectId: chat.app.supabaseProjectId,
+      });
+    } else if (
+      // Neon projects don't need Supabase.
+      !chat.app?.neonProjectId
+    ) {
+      systemPrompt += "\n\n" + SUPABASE_NOT_AVAILABLE_SYSTEM_PROMPT;
+    }
+
+    const systemPromptTokens = estimateTokens(systemPrompt + supabaseContext);
+
+    // Extract codebase information if app is associated with the chat
+    let codebaseInfo = "";
+    let codebaseTokens = 0;
+
+    if (chat.app) {
+      const appPath = getEeziAppPath(chat.app.path);
+      const { formattedOutput, files } = await extractCodebase({
+        appPath,
+        chatContext: validateChatContext(chat.app.chatContext),
+      });
+      codebaseInfo = formattedOutput;
+      if (settings.enableDyadPro && settings.enableProSmartFilesContextMode) {
+        codebaseTokens = estimateTokens(
+          files
+            // It doesn't need to be the exact format but it's just to get a token estimate
+            .map((file) => `<dyad-file=${file.path}>${file.content}</dyad-file>`)
+            .join("\n\n")
+        );
+      } else {
+        codebaseTokens = estimateTokens(codebaseInfo);
+      }
+      logger.log(
+        `Extracted codebase information from ${appPath}, tokens: ${codebaseTokens}`
+      );
+    }
+
+    // Extract codebases for mentioned apps
+    const mentionedAppsCodebases = await extractMentionedAppsCodebases(
+      mentionedAppNames,
+      chat.app?.id // Exclude current app
+    );
+
+    // Calculate tokens for mentioned apps
+    let mentionedAppsTokens = 0;
+    if (mentionedAppsCodebases.length > 0) {
+      const mentionedAppsContent = mentionedAppsCodebases
+        .map(
+          ({ appName, codebaseInfo }) =>
+            `\n\n=== Referenced App: ${appName} ===\n${codebaseInfo}`
+        )
+        .join("");
+
+      mentionedAppsTokens = estimateTokens(mentionedAppsContent);
+
+      logger.log(
+        `Extracted ${mentionedAppsCodebases.length} mentioned app codebases, tokens: ${mentionedAppsTokens}`
+      );
+    }
+
+    // Calculate total tokens
+    const totalTokens =
+      messageHistoryTokens +
+      inputTokens +
+      systemPromptTokens +
+      codebaseTokens +
+      mentionedAppsTokens;
+
+    res.json({
+      totalTokens,
+      messageHistoryTokens,
+      codebaseTokens,
+      mentionedAppsTokens,
+      inputTokens,
+      systemPromptTokens,
+      contextWindow: await getContextWindow(),
+    });
+  } catch (error) {
+    logger.error("Error counting tokens:", error);
+    res.status(500).json({ error: "Failed to count tokens: " + error });
+  }
+});
 export default router;

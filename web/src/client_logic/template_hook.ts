@@ -1,6 +1,5 @@
-import { IpcClient } from "@/ipc/ipc_client";
-
 import { v4 as uuidv4 } from "uuid";
+import api from "@/api";
 
 export async function neonTemplateHook({
   appId,
@@ -10,13 +9,13 @@ export async function neonTemplateHook({
   appName: string;
 }) {
   console.log("Creating Neon project");
-  const neonProject = await IpcClient.getInstance().createNeonProject({
+  const neonProject = await api.integration.createNeonProject({
     name: appName,
     appId: appId,
   });
 
   console.log("Neon project created", neonProject);
-  await IpcClient.getInstance().setAppEnvVars({
+  await api.settings.setAppEnvVars({
     appId: appId,
     envVars: [
       {

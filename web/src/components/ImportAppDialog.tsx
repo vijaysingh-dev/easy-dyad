@@ -8,7 +8,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { IpcClient } from "@/ipc/ipc_client";
 import { useMutation } from "@tanstack/react-query";
 import { showError, showSuccess } from "@/components/Toast";
 import { Folder, X, Loader2, Info } from "lucide-react";
@@ -33,6 +32,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "./ui/accordion";
+import api from "@/api";
 
 interface ImportAppDialogProps {
   isOpen: boolean;
@@ -55,7 +55,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
   const checkAppName = async (name: string): Promise<void> => {
     setIsCheckingName(true);
     try {
-      const result = await IpcClient.getInstance().checkAppName({
+      const result = await api.app.checkAppName({
         appName: name,
       });
       setNameExists(result.exists);
@@ -68,11 +68,11 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
 
   const selectFolderMutation = useMutation({
     mutationFn: async () => {
-      const result = await IpcClient.getInstance().selectAppFolder();
+      const result = await api.app.selectAppFolder();
       if (!result.path || !result.name) {
         throw new Error("No folder selected");
       }
-      const aiRulesCheck = await IpcClient.getInstance().checkAiRules({
+      const aiRulesCheck = await api.app.checkAiRules({
         path: result.path,
       });
       setHasAiRules(aiRulesCheck.exists);
@@ -94,7 +94,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
   const importAppMutation = useMutation({
     mutationFn: async () => {
       if (!selectedPath) throw new Error("No folder selected");
-      return IpcClient.getInstance().importApp({
+      return api.app.importApp({
         path: selectedPath,
         appName: customAppName,
         installCommand: installCommand || undefined,
@@ -105,7 +105,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
       showSuccess(
         !hasAiRules
           ? "App imported successfully. Dyad will automatically generate an AI_RULES.md now."
-          : "App imported successfully",
+          : "App imported successfully"
       );
       onClose();
 
@@ -142,9 +142,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
     setStartCommand("pnpm dev");
   };
 
-  const handleAppNameChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleAppNameChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     setCustomAppName(newName);
     if (newName.trim()) {
@@ -169,8 +167,8 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
         <Alert className="border-blue-500/20 text-blue-500">
           <Info className="h-4 w-4" />
           <AlertDescription>
-            App import is an experimental feature. If you encounter any issues,
-            please report them using the Help button.
+            App import is an experimental feature. If you encounter any issues, please
+            report them using the Help button.
           </AlertDescription>
         </Alert>
 
@@ -186,9 +184,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
               ) : (
                 <Folder className="mr-2 h-4 w-4" />
               )}
-              {selectFolderMutation.isPending
-                ? "Selecting folder..."
-                : "Select Folder"}
+              {selectFolderMutation.isPending ? "Selecting folder..." : "Select Folder"}
             </Button>
           ) : (
             <div className="space-y-4">
@@ -216,8 +212,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
               <div className="space-y-2">
                 {nameExists && (
                   <p className="text-sm text-yellow-500">
-                    An app with this name already exists. Please choose a
-                    different name:
+                    An app with this name already exists. Please choose a different name:
                   </p>
                 )}
                 <div className="relative">
@@ -244,9 +239,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
                   </AccordionTrigger>
                   <AccordionContent className="space-y-4">
                     <div className="grid gap-2">
-                      <Label className="text-sm ml-2 mb-2">
-                        Install command
-                      </Label>
+                      <Label className="text-sm ml-2 mb-2">Install command</Label>
                       <Input
                         value={installCommand}
                         onChange={(e) => setInstallCommand(e.target.value)}
@@ -281,15 +274,15 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          AI_RULES.md lets Dyad know which tech stack to use for
-                          editing the app
+                          AI_RULES.md lets Dyad know which tech stack to use for editing
+                          the app
                         </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                   <AlertDescription>
-                    No AI_RULES.md found. Dyad will automatically generate one
-                    after importing.
+                    No AI_RULES.md found. Dyad will automatically generate one after
+                    importing.
                   </AlertDescription>
                 </Alert>
               )}

@@ -1,13 +1,15 @@
 import log from "@/logger";
 import db, { getDatabasePath } from "@/db";
 import { apps, chats, prompts, messages } from "@/db/schema";
-import { Router, Response } from "express";
 import { desc, eq, like } from "drizzle-orm";
-import * as git from "isomorphic-git";
-import * as fs from "fs";
-import fsPromises from "fs/promises";
+import { Router } from "express";
+import { platform } from "os";
 import path from "path";
 import fixPath from "fix-path";
+import * as fs from "fs";
+import fsPromises from "fs/promises";
+import { spawn } from "child_process";
+import * as git from "isomorphic-git";
 import { createFromTemplate } from "@/utils/createFromTemplate";
 import {
   getApp,
@@ -28,6 +30,11 @@ import {
   stopAppByInfo,
   removeDockerVolumesForApp,
 } from "@/utils/process_manager";
+import {
+  ENV_FILE_NAME,
+  parseEnvFile,
+  serializeEnvFile,
+} from "@/utils/app_env_var_utils";
 import { getFilesRecursively, copyDirectoryRecursive } from "@/utils/file_utils";
 import { withLock } from "@/utils/lock_utils";
 import { gitCommit } from "@/utils/git_utils";
@@ -50,7 +57,6 @@ import { localTemplatesData } from "@/services/llm/templates";
 import { getEeziAppPath, normalizePath, getUserDataPath } from "@/services/paths";
 import { type AppSearchResult } from "@shared/schemas";
 import { AppUpgrade } from "@shared/eeziTypes";
-import { tr } from "zod/v4/locales";
 
 const logger = log.scope("app-route");
 const router = Router();
@@ -58,6 +64,17 @@ const router = Router();
 // Needed, otherwise electron in MacOS/Linux will not be able
 // to find node/pnpm.
 fixPath();
+
+router.get("/get-system-platform", async (req, res) => {
+  try {
+    res.send(platform());
+  } catch (error) {
+    logger.error("Error getting system platform:", error);
+    res
+      .status(500)
+      .json({ error: error instanceof Error ? error.message : "Unknown error" });
+  }
+});
 
 router.post("/create-app", async (req, res) => {
   try {
@@ -653,6 +670,69 @@ router.delete("/delete-app/:appId", async (req, res) => {
   }
 });
 
+// Handler to get app environment variables
+router.get("/get-app-env-vars", async (req, res) => {
+  try {
+    const appId = parseInt(req.query.appId as string, 10);
+    const app = await db.query.apps.findFirst({
+      where: eq(apps.id, appId),
+    });
+
+    if (!app) {
+      throw new Error("App not found");
+    }
+
+    const appPath = getEeziAppPath(app.path);
+    const envFilePath = path.join(appPath, ENV_FILE_NAME);
+
+    // If .env.local doesn't exist, return empty array
+    try {
+      await fs.promises.access(envFilePath);
+    } catch {
+      return [];
+    }
+
+    const content = await fs.promises.readFile(envFilePath, "utf8");
+    const envVars = parseEnvFile(content);
+
+    res.json(envVars);
+  } catch (error) {
+    console.error("Error getting app environment variables:", error);
+    res.status(500).json({
+      error: `Failed to get environment variables: ${error instanceof Error ? error.message : "Unknown error"}`,
+    });
+  }
+});
+
+// Handler to set app environment variables
+router.post("/set-app-env-vars", async (req, res) => {
+  try {
+    const { appId, envVars } = req.body;
+    const app = await db.query.apps.findFirst({
+      where: eq(apps.id, appId),
+    });
+
+    if (!app) {
+      throw new Error("App not found");
+    }
+
+    const appPath = getEeziAppPath(app.path);
+    const envFilePath = path.join(appPath, ENV_FILE_NAME);
+
+    // Serialize environment variables to .env.local format
+    const content = serializeEnvFile(envVars);
+
+    // Write to .env.local file
+    await fs.promises.writeFile(envFilePath, content, "utf8");
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error setting app environment variables:", error);
+    res.status(500).json({
+      error: `Failed to set environment variables: ${error instanceof Error ? error.message : "Unknown error"}`,
+    });
+  }
+});
+
 router.post("/add-to-favorite", async (req, res) => {
   try {
     const { appId } = req.body;
@@ -1010,23 +1090,6 @@ router.get("/get-templates", async (req, res) => {
     res.status(500).json(localTemplatesData);
   }
 });
-
-// // Handler for selecting an app folder
-// handle("select-app-folder", async () => {
-//   const result = await dialog.showOpenDialog({
-//     properties: ["openDirectory"],
-//     title: "Select App Folder to Import",
-//   });
-
-//   if (result.canceled) {
-//     return { path: null, name: null };
-//   }
-
-//   const selectedPath = result.filePaths[0];
-//   const folderName = path.basename(selectedPath);
-
-//   return { path: selectedPath, name: folderName };
-// });
 
 // Handler for checking if AI_RULES.md exists
 router.get("/check-ai-rules", async (req, res) => {
@@ -1549,4 +1612,111 @@ router.delete("/prompts/:id", async (req, res) => {
   }
 });
 // --- End Prompts Library ---
+
+// --- Portal Management ---
+router.post("/portal/migrate-create", async (req, res) => {
+  try {
+    const { appId } = req.body;
+    const app = await getApp(appId);
+    const appPath = getEeziAppPath(app.path);
+
+    // Run the migration command
+    const migrationOutput = await new Promise<string>((resolve, reject) => {
+      logger.info(`Running migrate:create for app ${appId} at ${appPath}`);
+
+      const process = spawn("npm run migrate:create -- --skip-empty", {
+        cwd: appPath,
+        shell: true,
+        stdio: "pipe",
+      });
+
+      let stdout = "";
+      let stderr = "";
+
+      process.stdout?.on("data", (data) => {
+        const output = data.toString();
+        stdout += output;
+        logger.info(`migrate:create stdout: ${output}`);
+        if (output.includes("created or renamed from another")) {
+          process.stdin.write(`\r\n`);
+          logger.info(
+            `App ${appId} (PID: ${process.pid}) wrote enter to stdin to automatically respond to drizzle migrate input`
+          );
+        }
+      });
+
+      process.stderr?.on("data", (data) => {
+        const output = data.toString();
+        stderr += output;
+        logger.warn(`migrate:create stderr: ${output}`);
+      });
+
+      process.on("close", (code) => {
+        const combinedOutput =
+          stdout + (stderr ? `\n\nErrors/Warnings:\n${stderr}` : "");
+
+        if (code === 0) {
+          if (stdout.includes("Migration created at")) {
+            logger.info(`migrate:create completed successfully for app ${appId}`);
+            resolve(combinedOutput);
+          } else {
+            logger.error(
+              `migrate:create completed successfully for app ${appId} but no migration was created`
+            );
+            reject(new Error("No migration was created because no changes were found."));
+          }
+        } else {
+          logger.error(`migrate:create failed for app ${appId} with exit code ${code}`);
+          const errorMessage = `Migration creation failed (exit code ${code})\n\n${combinedOutput}`;
+          reject(new Error(errorMessage));
+        }
+      });
+
+      process.on("error", (err) => {
+        logger.error(`Failed to spawn migrate:create for app ${appId}:`, err);
+        const errorMessage = `Failed to run migration command: ${err.message}\n\nOutput:\n${stdout}\n\nErrors:\n${stderr}`;
+        reject(new Error(errorMessage));
+      });
+    });
+
+    if (app.neonProjectId && app.neonDevelopmentBranchId) {
+      try {
+        await storeDbTimestampAtCurrentVersion({
+          appId: app.id,
+        });
+      } catch (error) {
+        logger.error("Error storing Neon timestamp at current version:", error);
+        throw new Error(
+          "Could not store Neon timestamp at current version; database versioning functionality is not working: " +
+            error
+        );
+      }
+    }
+
+    // Stage all changes and commit
+    try {
+      await git.add({
+        fs,
+        dir: appPath,
+        filepath: ".",
+      });
+
+      const commitHash = await gitCommit({
+        path: appPath,
+        message: "[dyad] Generate database migration file",
+      });
+
+      logger.info(`Successfully committed migration changes: ${commitHash}`);
+      res.json({ output: migrationOutput });
+    } catch (gitError) {
+      logger.error(`Migration created but failed to commit: ${gitError}`);
+      throw new Error(`Migration created but failed to commit: ${gitError}`);
+    }
+  } catch (error: any) {
+    logger.error("Error during migrate:create:", error);
+    res.status(500).json({ error: "Failed to create migration: " + error.message });
+  }
+});
+// --- End Portal Management ---
+
 export default router;

@@ -1,6 +1,5 @@
 import { useAtom, useAtomValue } from "jotai";
 import { previewModeAtom, selectedAppIdAtom } from "../../atoms/appAtoms";
-import { IpcClient } from "@/ipc/ipc_client";
 
 import {
   Eye,
@@ -33,6 +32,7 @@ import { showError, showSuccess } from "@/components/Toast";
 import { useMutation } from "@tanstack/react-query";
 import { useCheckProblems } from "@/hooks/useCheckProblems";
 import { isPreviewOpenAtom } from "@/atoms/viewAtoms";
+import api from "@/api";
 
 export type PreviewMode =
   | "preview"
@@ -87,8 +87,7 @@ export const ActionHeader = () => {
   const useClearSessionData = () => {
     return useMutation({
       mutationFn: () => {
-        const ipcClient = IpcClient.getInstance();
-        return ipcClient.clearSessionData();
+        return api.app.clearSessionData();
       },
       onSuccess: async () => {
         await refreshAppIframe();

@@ -16,7 +16,6 @@ import { isStreamingByIdAtom, selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { CustomTagState } from "./stateTypes";
 import { DyadOutput } from "./DyadOutput";
 import { DyadProblemSummary } from "./DyadProblemSummary";
-import { IpcClient } from "@/ipc/ipc_client";
 import { DyadMcpToolCall } from "./DyadMcpToolCall";
 import { DyadMcpToolResult } from "./DyadMcpToolResult";
 import { DyadWebSearchResult } from "./DyadWebSearchResult";
@@ -24,6 +23,7 @@ import { DyadWebSearch } from "./DyadWebSearch";
 import { DyadRead } from "./DyadRead";
 import { mapActionToButton } from "./ChatInput";
 import { SuggestedAction } from "@shared/schemas";
+import api from "@/api";
 
 interface DyadMarkdownParserProps {
   content: string;
@@ -41,20 +41,14 @@ type ContentPiece =
   | { type: "markdown"; content: string }
   | { type: "custom-tag"; tagInfo: CustomTagInfo };
 
-const customLink = ({
-  node: _node,
-  ...props
-}: {
-  node?: any;
-  [key: string]: any;
-}) => (
+const customLink = ({ node: _node, ...props }: { node?: any; [key: string]: any }) => (
   <a
     {...props}
     onClick={(e) => {
       const url = props.href;
       if (url) {
         e.preventDefault();
-        IpcClient.getInstance().openExternalUrl(url);
+        api.app.openExternalUrl(url);
       }
     }}
   />
@@ -76,9 +70,7 @@ export const VanillaMarkdownParser = ({ content }: { content: string }) => {
 /**
  * Custom component to parse markdown content with Dyad-specific tags
  */
-export const DyadMarkdownParser: React.FC<DyadMarkdownParserProps> = ({
-  content,
-}) => {
+export const DyadMarkdownParser: React.FC<DyadMarkdownParserProps> = ({ content }) => {
   const chatId = useAtomValue(selectedChatIdAtom);
   const isStreaming = useAtomValue(isStreamingByIdAtom).get(chatId!) ?? false;
   // Extract content pieces (markdown and custom tags)
@@ -167,9 +159,7 @@ function preprocessUnclosedTags(content: string): {
     const missingCloseTags = openCount - closeCount;
     if (missingCloseTags > 0) {
       // Add the required number of closing tags at the end
-      processedContent += Array(missingCloseTags)
-        .fill(`</${tagName}>`)
-        .join("");
+      processedContent += Array(missingCloseTags).fill(`</${tagName}>`).join("");
 
       // Mark the last N tags as in progress where N is the number of missing closing tags
       const inProgressIndexes = new Set<number>();
@@ -213,7 +203,7 @@ function parseCustomTags(content: string): ContentPiece[] {
 
   const tagPattern = new RegExp(
     `<(${customTagNames.join("|")})\\s*([^>]*)>(.*?)<\\/\\1>`,
-    "gs",
+    "gs"
   );
 
   const contentPieces: ContentPiece[] = [];
@@ -289,7 +279,7 @@ function getState({
  */
 function renderCustomTag(
   tagInfo: CustomTagInfo,
-  { isStreaming }: { isStreaming: boolean },
+  { isStreaming }: { isStreaming: boolean }
 ): React.ReactNode {
   const { tag, attributes, content, inProgress } = tagInfo;
 
@@ -491,9 +481,7 @@ function renderCustomTag(
 
     case "dyad-problem-report":
       return (
-        <DyadProblemSummary summary={attributes.summary}>
-          {content}
-        </DyadProblemSummary>
+        <DyadProblemSummary summary={attributes.summary}>{content}</DyadProblemSummary>
       );
 
     case "dyad-chat-summary":

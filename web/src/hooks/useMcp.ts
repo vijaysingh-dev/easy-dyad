@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { IpcClient } from "@/ipc/ipc_client";
 import type {
   McpServer,
   McpServerUpdate,
@@ -8,6 +7,7 @@ import type {
   McpToolConsent,
   CreateMcpServer,
 } from "@shared/eeziTypes";
+import api from "@/api";
 
 export type Transport = "stdio" | "http";
 
@@ -17,8 +17,7 @@ export function useMcp() {
   const serversQuery = useQuery<McpServer[], Error>({
     queryKey: ["mcp", "servers"],
     queryFn: async () => {
-      const ipc = IpcClient.getInstance();
-      const list = await ipc.listMcpServers();
+      const list = await api.mcp.listMcpServers();
       return (list || []) as McpServer[];
     },
     meta: { showErrorToast: true },

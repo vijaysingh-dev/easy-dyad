@@ -1,38 +1,35 @@
-import db from "@/db";
 import log from "@/logger";
+import db from "@/db";
+import { apps } from "@/db/schema";
 import { Router, Response } from "express";
-import { IS_TEST_BUILD } from "../ipc/utils/test_utils";
-import {
-  type SaveVercelAccessTokenParams,
-  type ConnectToExistingVercelProjectParams,
-  type CreateVercelProjectParams,
-  type GetVercelDeploymentsParams,
-  type DisconnectVercelProjectParams,
-  type IsVercelProjectAvailableParams,
-  type CreateNeonProjectParams,
-  type GetNeonProjectParams,
-  type GetNeonProjectResponse,
-  type NeonBranch,
-} from "@shared/eeziTypes";
-import { readSettings, writeSettings } from "../services/settings";
-import { apps } from "../db/schema";
+import { EndpointType } from "@neondatabase/api-client";
 import { eq } from "drizzle-orm";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
 import fs from "node:fs";
-import { getSupabaseClient } from "../ipc/utils/supabase_client";
 import {
   getNeonClient,
   getNeonErrorMessage,
   getNeonOrganizationId,
 } from "@/services/neon_admin/neon_management_client";
+import { readSettings, writeSettings } from "../services/settings";
 import { handleNeonOAuthReturn } from "@/services/neon_admin/neon_return_handler";
 import { handleSupabaseOAuthReturn } from "@/services/supabase/supabase_return_handler";
-import { updateAppGithubRepo } from "@/utils/integration_utils";
+import { getSupabaseClient } from "@/services/supabase/supabase_management_client";
+import {
+  updateAppGithubRepo,
+  validateVercelToken,
+  createVercelClient,
+  detectFramework,
+  getDefaultTeamId,
+  updateAppVercelProject,
+} from "@/utils/integration_utils";
+import { IS_TEST_BUILD } from "@/utils/test_utils";
 import { withLock } from "@/utils/lock_utils";
+import { retryOnLocked } from "@/utils/retryOnLocked";
 import { safeSend } from "@/utils/safe_sender";
 import { getEeziAppPath } from "@/services/paths";
-import { cli } from "winston/lib/winston/config";
+import { NeonBranch } from "@shared/eeziTypes";
 
 const logger = log.scope("integration-route");
 const router = Router();
@@ -139,6 +136,165 @@ router.post("/supabase/fake-connect-and-set-project", async (req, res) => {
 // --- End Deep Link SSE Management ---
 
 // --- Neon Management ---
+router.get("/neon/get-project", async (req, res) => {
+  try {
+    const appId = parseInt(req.query.appId as string, 10);
+    logger.info(`Getting Neon project info for app ${appId}`);
+    // Get the app from the database to find the neonProjectId and neonBranchId
+    const app = await db.select().from(apps).where(eq(apps.id, appId)).limit(1);
+
+    if (app.length === 0) {
+      throw new Error(`App with ID ${appId} not found`);
+    }
+
+    const appData = app[0];
+    if (!appData.neonProjectId) {
+      throw new Error(`No Neon project found for app ${appId}`);
+    }
+
+    const neonClient = await getNeonClient();
+    console.log("PROJECT ID", appData.neonProjectId);
+
+    // Get project info
+    const projectResponse = await neonClient.getProject(appData.neonProjectId);
+
+    if (!projectResponse.data.project) {
+      throw new Error("Failed to get project: No project data returned.");
+    }
+
+    const project = projectResponse.data.project;
+
+    // Get list of branches
+    const branchesResponse = await neonClient.listProjectBranches({
+      projectId: appData.neonProjectId,
+    });
+
+    if (!branchesResponse.data.branches) {
+      throw new Error("Failed to get branches: No branch data returned.");
+    }
+
+    // Map branches to our format
+    const branches: NeonBranch[] = branchesResponse.data.branches.map((branch) => {
+      let type: "production" | "development" | "snapshot" | "preview";
+
+      if (branch.default) {
+        type = "production";
+      } else if (branch.id === appData.neonDevelopmentBranchId) {
+        type = "development";
+      } else if (branch.id === appData.neonPreviewBranchId) {
+        type = "preview";
+      } else {
+        type = "snapshot";
+      }
+
+      // Find parent branch name if parent_id exists
+      let parentBranchName: string | undefined;
+      if (branch.parent_id) {
+        const parentBranch = branchesResponse.data.branches?.find(
+          (b) => b.id === branch.parent_id
+        );
+        parentBranchName = parentBranch?.name;
+      }
+
+      return {
+        type,
+        branchId: branch.id,
+        branchName: branch.name,
+        lastUpdated: branch.updated_at,
+        parentBranchId: branch.parent_id,
+        parentBranchName,
+      };
+    });
+
+    logger.info(`Successfully retrieved Neon project info for app ${appId}`);
+
+    res.json({
+      projectId: project.id,
+      projectName: project.name,
+      orgId: project.org_id ?? "<unknown_org_id>",
+      branches,
+    });
+  } catch (error) {
+    logger.error(`Failed to get Neon project info:`, error);
+    res.status(500).json({ error: "Failed to get Neon project info" });
+  }
+});
+
+router.post("/neon/create-project", async (req, res) => {
+  try {
+    const neonClient = await getNeonClient();
+
+    const { name, appId } = req.body;
+    logger.info(`Creating Neon project: ${name} for app ${appId}`);
+
+    // Get the organization ID
+    const orgId = await getNeonOrganizationId();
+
+    // Create project with retry on locked errors
+    const response = await retryOnLocked(
+      () =>
+        neonClient.createProject({
+          project: {
+            name: name,
+            org_id: orgId,
+          },
+        }),
+      `Create project ${name} for app ${appId}`
+    );
+
+    if (!response.data.project) {
+      throw new Error("Failed to create project: No project data returned.");
+    }
+
+    const project = response.data.project;
+    const developmentBranch = response.data.branch;
+
+    const previewBranchResponse = await retryOnLocked(
+      () =>
+        neonClient.createProjectBranch(project.id, {
+          endpoints: [{ type: EndpointType.ReadOnly }],
+          branch: {
+            name: "preview",
+            parent_id: developmentBranch.id,
+          },
+        }),
+      `Create preview branch for project ${project.id}`
+    );
+
+    if (
+      !previewBranchResponse.data.branch ||
+      !previewBranchResponse.data.connection_uris
+    ) {
+      throw new Error("Failed to create preview branch: No branch data returned.");
+    }
+
+    const previewBranch = previewBranchResponse.data.branch;
+
+    // Store project and branch info in the app's DB row
+    await db
+      .update(apps)
+      .set({
+        neonProjectId: project.id,
+        neonDevelopmentBranchId: developmentBranch.id,
+        neonPreviewBranchId: previewBranch.id,
+      })
+      .where(eq(apps.id, appId));
+
+    logger.info(
+      `Successfully created Neon project: ${project.id} and development branch: ${developmentBranch.id} for app ${appId}`
+    );
+    res.json({
+      id: project.id,
+      name: project.name,
+      connectionString: response.data.connection_uris[0].connection_uri,
+      branchId: developmentBranch.id,
+    });
+  } catch (error: any) {
+    const errorMessage = getNeonErrorMessage(error);
+    logger.error("Error creating Neon project:", errorMessage);
+    res.status(500).json({ error: "Failed to create Neon project" });
+  }
+});
 // --- End Neon Management ---
 
 // --- Supabase Management ---
@@ -817,7 +973,331 @@ export function stopPolling(appId: number) {
     logger.debug("[GitHub Handler] Polling stopped.");
   }
 }
-
 // --- End GitHub Repo Management ---
+
+// --- Vercel Project Management ---
+router.post("/vercel/save-token", async (req, res) => {
+  try {
+    logger.debug("Saving Vercel access token");
+    const { token } = req.body;
+    if (!token || token.trim() === "") {
+      throw new Error("Access token is required.");
+    }
+
+    // Validate the token by making a test API call
+    const isValid = await validateVercelToken(token.trim());
+    if (!isValid) {
+      throw new Error("Invalid access token. Please check your token and try again.");
+    }
+
+    writeSettings({
+      vercelAccessToken: {
+        value: token.trim(),
+      },
+    });
+
+    logger.log("Successfully saved Vercel access token.");
+    res.json({ success: true });
+  } catch (error: any) {
+    logger.error("Error saving Vercel token:", error);
+    res.status(500).json({ error: `Failed to save access token: ${error.message}` });
+  }
+});
+
+// --- Vercel List Projects Handler ---
+router.get("/vercel/list-projects", async (req, res) => {
+  try {
+    const settings = readSettings();
+    const accessToken = settings.vercelAccessToken?.value;
+    if (!accessToken) {
+      throw new Error("Not authenticated with Vercel.");
+    }
+
+    const vercel = createVercelClient(accessToken);
+    const response = await vercel.projects.getProjects({});
+
+    if (!response.projects) {
+      throw new Error("Failed to retrieve projects from Vercel.");
+    }
+
+    res.send(
+      response.projects.map((project) => ({
+        id: project.id,
+        name: project.name,
+        framework: project.framework || null,
+      }))
+    );
+  } catch (err: any) {
+    logger.error("[Vercel Handler] Failed to list projects:", err);
+    res.status(500).json({ error: err.message || "Failed to list Vercel projects." });
+  }
+});
+
+// --- Vercel Project Availability Handler ---
+router.get("/vercel/is-project-available", async (req, res) => {
+  try {
+    const { name } = req.query as { name: string };
+    const settings = readSettings();
+    const accessToken = settings.vercelAccessToken?.value;
+    if (!accessToken) {
+      res.json({ available: false, error: "Not authenticated with Vercel." });
+      return;
+    }
+
+    const vercel = createVercelClient(accessToken);
+
+    // Check if project name is available by searching for projects with that name
+    const response = await vercel.projects.getProjects({
+      search: name,
+    });
+
+    if (!response.projects) {
+      res.json({
+        available: false,
+        error: "Failed to check project availability.",
+      });
+      return;
+    }
+
+    const projectExists = response.projects.some((project) => project.name === name);
+
+    res.json({
+      available: !projectExists,
+      error: projectExists ? "Project name is not available." : undefined,
+    });
+  } catch (err: any) {
+    res.json({ available: false, error: err.message || "Unknown error" });
+  }
+});
+
+// --- Vercel Create Project Handler ---
+router.post("/vercel/create-project", async (req, res) => {
+  try {
+    const { name, appId } = req.body;
+    const settings = readSettings();
+    const accessToken = settings.vercelAccessToken?.value;
+    if (!accessToken) {
+      throw new Error("Not authenticated with Vercel.");
+    }
+    logger.info(`Creating Vercel project: ${name} for app ${appId}`);
+
+    // Get app details to determine the framework
+    const app = await db.query.apps.findFirst({ where: eq(apps.id, appId) });
+    if (!app) {
+      throw new Error("App not found.");
+    }
+
+    // Check if app has GitHub repository configured
+    if (!app.githubOrg || !app.githubRepo) {
+      throw new Error(
+        "App must be connected to a GitHub repository before creating a Vercel project."
+      );
+    }
+
+    // Detect the framework from the app's directory
+    const detectedFramework = await detectFramework(getEeziAppPath(app.path));
+
+    logger.info(
+      `Detected framework: ${detectedFramework || "none detected"} for app at ${app.path}`
+    );
+
+    const vercel = createVercelClient(accessToken);
+
+    const projectData = await vercel.projects.createProject({
+      requestBody: {
+        name: name,
+        gitRepository: {
+          type: "github",
+          repo: `${app.githubOrg}/${app.githubRepo}`,
+        },
+        framework: detectedFramework,
+      },
+    });
+    if (!projectData.id) {
+      throw new Error("Failed to create project: No project ID returned.");
+    }
+
+    // Get the default team ID
+    const teamId = await getDefaultTeamId(accessToken);
+
+    const projectDomains = await vercel.projects.getProjectDomains({
+      idOrName: projectData.id,
+    });
+    const projectUrl = "https://" + projectDomains.domains[0].name;
+
+    // Store project info in the app's DB row
+    await updateAppVercelProject({
+      appId,
+      projectId: projectData.id,
+      projectName: projectData.name,
+      teamId: teamId,
+      deploymentUrl: projectUrl,
+    });
+
+    logger.info(
+      `Successfully created Vercel project: ${projectData.id} with GitHub repo: ${app.githubOrg}/${app.githubRepo}`
+    );
+
+    // Trigger the first deployment
+    logger.info(`Triggering first deployment for project: ${projectData.id}`);
+    try {
+      // Create deployment via Vercel SDK using the project settings we just created
+      const deploymentData = await vercel.deployments.createDeployment({
+        requestBody: {
+          name: projectData.name,
+          project: projectData.id,
+          target: "production",
+          gitSource: {
+            type: "github",
+            org: app.githubOrg,
+            repo: app.githubRepo,
+            ref: app.githubBranch || "main",
+          },
+        },
+      });
+
+      if (deploymentData.url) {
+        logger.info(`First deployment successful: ${deploymentData.url}`);
+      } else {
+        logger.warn("First deployment failed: No deployment URL returned");
+      }
+    } catch (deployError: any) {
+      logger.warn(`First deployment failed with error: ${deployError.message}`);
+      // Don't throw here - project creation was successful, deployment failure is non-critical
+    }
+    res.json({ success: true });
+  } catch (err: any) {
+    logger.error("Failed to create vercel project:", err);
+    res.json({ error: err.message || "Failed to create Vercel project." });
+  }
+});
+
+// --- Vercel Connect to Existing Project Handler ---
+router.post("/vercel/connect-existing-project", async (req, res) => {
+  try {
+    const { projectId, appId } = req.body;
+    const settings = readSettings();
+    const accessToken = settings.vercelAccessToken?.value;
+    if (!accessToken) {
+      throw new Error("Not authenticated with Vercel.");
+    }
+
+    logger.info(`Connecting to existing Vercel project: ${projectId} for app ${appId}`);
+
+    const vercel = createVercelClient(accessToken);
+
+    // Verify the project exists and get its details
+    const response = await vercel.projects.getProjects({});
+    const projectData = response.projects?.find(
+      (p) => p.id === projectId || p.name === projectId
+    );
+
+    if (!projectData) {
+      throw new Error("Project not found. Please check the project ID.");
+    }
+
+    // Get the default team ID
+    const teamId = await getDefaultTeamId(accessToken);
+
+    // Store project info in the app's DB row
+    await updateAppVercelProject({
+      appId,
+      projectId: projectData.id,
+      projectName: projectData.name,
+      teamId: teamId,
+      deploymentUrl: projectData.targets?.production?.url
+        ? `https://${projectData.targets.production.url}`
+        : null,
+    });
+
+    logger.info(`Successfully connected to Vercel project: ${projectData.id}`);
+    res.json({ success: true });
+  } catch (err: any) {
+    logger.error("Failed to connect to existing vercel project:", err);
+    res
+      .status(500)
+      .json({ error: err.message || "Failed to connect to existing vercel project." });
+  }
+});
+
+// --- Vercel Get Deployments Handler ---
+router.get("/vercel/get-deployments", async (req, res) => {
+  try {
+    const appId = parseInt(req.query.appId as string);
+    const settings = readSettings();
+    const accessToken = settings.vercelAccessToken?.value;
+    if (!accessToken) {
+      throw new Error("Not authenticated with Vercel.");
+    }
+
+    const app = await db.query.apps.findFirst({ where: eq(apps.id, appId) });
+    if (!app || !app.vercelProjectId) {
+      throw new Error("App is not linked to a Vercel project.");
+    }
+
+    logger.info(
+      `Getting deployments for Vercel project: ${app.vercelProjectId} for app ${appId}`
+    );
+
+    const vercel = createVercelClient(accessToken);
+
+    // Get deployments for the project
+    const deploymentsResponse = await vercel.deployments.getDeployments({
+      projectId: app.vercelProjectId,
+      limit: 3, // Get last 3 deployments
+    });
+
+    if (!deploymentsResponse.deployments) {
+      throw new Error("Failed to retrieve deployments from Vercel.");
+    }
+
+    // Map deployments to our interface format
+    res.send(
+      deploymentsResponse.deployments.map((deployment) => ({
+        uid: deployment.uid,
+        url: deployment.url,
+        state: deployment.state || "unknown",
+        createdAt: deployment.createdAt || 0,
+        target: deployment.target || "production",
+        readyState: deployment.readyState || "unknown",
+      }))
+    );
+  } catch (err: any) {
+    logger.error("[Vercel Handler] Failed to get deployments:", err);
+    res.status(500).json({ error: err.message || "Failed to get Vercel deployments." });
+  }
+});
+
+router.post("/vercel/disconnect", async (req, res) => {
+  try {
+    const { appId } = req.body;
+
+    logger.log(`Disconnecting Vercel project for appId: ${appId}`);
+
+    const app = await db.query.apps.findFirst({
+      where: eq(apps.id, appId),
+    });
+
+    if (!app) {
+      throw new Error("App not found");
+    }
+
+    // Update app in database to remove Vercel project info
+    await db
+      .update(apps)
+      .set({
+        vercelProjectId: null,
+        vercelProjectName: null,
+        vercelTeamId: null,
+        vercelDeploymentUrl: null,
+      })
+      .where(eq(apps.id, appId));
+    res.json({ success: true });
+  } catch (error) {
+    logger.error("Error disconnecting Vercel project:", error);
+    res.status(500).json({ error: "Failed to disconnect Vercel project" });
+  }
+});
+// --- End Vercel Project Management ---
 
 export default router;

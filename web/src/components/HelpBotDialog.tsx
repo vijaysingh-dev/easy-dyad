@@ -6,9 +6,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { IpcClient } from "@/ipc/ipc_client";
 import { v4 as uuidv4 } from "uuid";
 import { LoadingBlock, VanillaMarkdownParser } from "@/components/LoadingBlock";
+import api from "@/api";
 
 interface HelpBotDialogProps {
   isOpen: boolean;
@@ -75,7 +75,7 @@ export function HelpBotDialog({ isOpen, onClose }: HelpBotDialogProps) {
     setInput("");
     setStreaming(true);
 
-    IpcClient.getInstance().startHelpChat(sessionId, trimmed, {
+    api.chat.startHelpChat(sessionId, trimmed, {
       onChunk: (delta) => {
         // Buffer assistant content; UI will flush on interval for smoothness
         assistantBufferRef.current += delta;

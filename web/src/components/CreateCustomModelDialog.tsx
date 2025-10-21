@@ -10,9 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { IpcClient } from "@/ipc/ipc_client";
 import { useMutation } from "@tanstack/react-query";
 import { showError, showSuccess } from "@/components/Toast";
+import api from "@/api";
 
 interface CreateCustomModelDialogProps {
   isOpen: boolean;
@@ -33,8 +33,6 @@ export function CreateCustomModelDialog({
   const [maxOutputTokens, setMaxOutputTokens] = useState<string>("");
   const [contextWindow, setContextWindow] = useState<string>("");
 
-  const ipcClient = IpcClient.getInstance();
-
   const mutation = useMutation({
     mutationFn: async () => {
       const params = {
@@ -42,21 +40,18 @@ export function CreateCustomModelDialog({
         displayName,
         providerId,
         description: description || undefined,
-        maxOutputTokens: maxOutputTokens
-          ? parseInt(maxOutputTokens, 10)
-          : undefined,
+        maxOutputTokens: maxOutputTokens ? parseInt(maxOutputTokens, 10) : undefined,
         contextWindow: contextWindow ? parseInt(contextWindow, 10) : undefined,
       };
 
       if (!params.apiName) throw new Error("Model API name is required");
-      if (!params.displayName)
-        throw new Error("Model display name is required");
+      if (!params.displayName) throw new Error("Model display name is required");
       if (maxOutputTokens && isNaN(params.maxOutputTokens ?? NaN))
         throw new Error("Max Output Tokens must be a valid number");
       if (contextWindow && isNaN(params.contextWindow ?? NaN))
         throw new Error("Context Window must be a valid number");
 
-      await ipcClient.createCustomLanguageModel(params);
+      await api.mcp.createCustomLanguageModel(params);
     },
     onSuccess: () => {
       showSuccess("Custom model created successfully!");

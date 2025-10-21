@@ -6,7 +6,7 @@ import appRoutes from "./routes/app";
 import chatRoutes from "./routes/chat";
 import integrationRoutes from "./routes/integration";
 import mcpRoutes from "./routes/mcp";
-import helpRoutes from "./routes/help";
+import llmRoutes from "./routes/llm";
 import settingsRoutes from "./routes/settings";
 import versionRoutes from "./routes/version";
 
@@ -19,7 +19,7 @@ app.use("/api/app", appRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/integration", integrationRoutes);
 app.use("/api/mcp", mcpRoutes);
-app.use("/api/help", helpRoutes);
+app.use("/api/llm", llmRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/version", versionRoutes);
 

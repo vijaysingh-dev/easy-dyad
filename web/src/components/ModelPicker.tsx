@@ -1,10 +1,6 @@
 import { isDyadProEnabled, type LargeLanguageModel } from "@shared/schemas";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +21,7 @@ import { LocalModel } from "@shared/eeziTypes";
 import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";
 import { useSettings } from "@/hooks/useSettings";
 import { PriceBadge } from "@/components/PriceBadge";
-import { TURBO_MODELS } from "@/ipc/shared/language_model_constants";
+import { TURBO_MODELS } from "@shared/constants";
 import { cn } from "@shared/utils";
 
 export function ModelPicker() {
@@ -40,8 +36,7 @@ export function ModelPicker() {
   const { data: modelsByProviders, isLoading: modelsByProvidersLoading } =
     useLanguageModelsByProviders();
 
-  const { data: providers, isLoading: providersLoading } =
-    useLanguageModelProviders();
+  const { data: providers, isLoading: providersLoading } = useLanguageModelProviders();
 
   const loading = modelsByProvidersLoading || providersLoading;
   // Ollama Models Hook
@@ -72,15 +67,14 @@ export function ModelPicker() {
   const getModelDisplayName = () => {
     if (selectedModel.provider === "ollama") {
       return (
-        ollamaModels.find(
-          (model: LocalModel) => model.modelName === selectedModel.name,
-        )?.displayName || selectedModel.name
+        ollamaModels.find((model: LocalModel) => model.modelName === selectedModel.name)
+          ?.displayName || selectedModel.name
       );
     }
     if (selectedModel.provider === "lmstudio") {
       return (
         lmStudioModels.find(
-          (model: LocalModel) => model.modelName === selectedModel.name,
+          (model: LocalModel) => model.modelName === selectedModel.name
         )?.displayName || selectedModel.name // Fallback to path if not found
       );
     }
@@ -88,14 +82,13 @@ export function ModelPicker() {
     // For cloud models, look up in the modelsByProviders data
     if (modelsByProviders && modelsByProviders[selectedModel.provider]) {
       const customFoundModel = modelsByProviders[selectedModel.provider].find(
-        (model) =>
-          model.type === "custom" && model.id === selectedModel.customModelId,
+        (model) => model.type === "custom" && model.id === selectedModel.customModelId
       );
       if (customFoundModel) {
         return customFoundModel.displayName;
       }
       const foundModel = modelsByProviders[selectedModel.provider].find(
-        (model) => model.apiName === selectedModel.name,
+        (model) => model.apiName === selectedModel.name
       );
       if (foundModel) {
         return foundModel.displayName;
@@ -117,11 +110,7 @@ export function ModelPicker() {
           ) {
             return false;
           }
-          if (
-            settings &&
-            isDyadProEnabled(settings) &&
-            model.apiName === "free"
-          ) {
+          if (settings && isDyadProEnabled(settings) && model.apiName === "free") {
             return false;
           }
           return true;
@@ -129,8 +118,7 @@ export function ModelPicker() {
       : [];
 
   // Determine availability of local models
-  const hasOllamaModels =
-    !ollamaLoading && !ollamaError && ollamaModels.length > 0;
+  const hasOllamaModels = !ollamaLoading && !ollamaError && ollamaModels.length > 0;
   const hasLMStudioModels =
     !lmStudioLoading && !lmStudioError && lmStudioModels.length > 0;
 
@@ -144,9 +132,7 @@ export function ModelPicker() {
   // Split providers into primary and secondary groups (excluding auto)
   const providerEntries =
     !loading && modelsByProviders
-      ? Object.entries(modelsByProviders).filter(
-          ([providerId]) => providerId !== "auto",
-        )
+      ? Object.entries(modelsByProviders).filter(([providerId]) => providerId !== "auto")
       : [];
   const primaryProviders = providerEntries.filter(([providerId, models]) => {
     if (models.length === 0) return false;
@@ -175,9 +161,7 @@ export function ModelPicker() {
               <span className="truncate">
                 {modelDisplayName === "Auto" && (
                   <>
-                    <span className="text-xs text-muted-foreground">
-                      Model:
-                    </span>{" "}
+                    <span className="text-xs text-muted-foreground">Model:</span>{" "}
                   </>
                 )}
                 {modelDisplayName}
@@ -200,8 +184,7 @@ export function ModelPicker() {
           <div className="text-xs text-center py-2 text-muted-foreground">
             Loading models...
           </div>
-        ) : !modelsByProviders ||
-          Object.keys(modelsByProviders).length === 0 ? (
+        ) : !modelsByProviders || Object.keys(modelsByProviders).length === 0 ? (
           <div className="text-xs text-center py-2 text-muted-foreground">
             No cloud models available
           </div>
@@ -248,7 +231,7 @@ export function ModelPicker() {
                               <span
                                 className={cn(
                                   "text-[11px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium",
-                                  model.tagColor,
+                                  model.tagColor
                                 )}
                               >
                                 {model.tag}
@@ -261,8 +244,8 @@ export function ModelPicker() {
                     <TooltipContent side="right">
                       {isSmartAutoEnabled && model.apiName === "auto" ? (
                         <p>
-                          <strong>Smart Auto</strong> uses a cheaper model for
-                          easier tasks
+                          <strong>Smart Auto</strong> uses a cheaper model for easier
+                          tasks
                           <br /> and a flagship model for harder tasks
                         </p>
                       ) : (
@@ -271,9 +254,7 @@ export function ModelPicker() {
                     </TooltipContent>
                   </Tooltip>
                 ))}
-                {Object.keys(modelsByProviders).length > 1 && (
-                  <DropdownMenuSeparator />
-                )}
+                {Object.keys(modelsByProviders).length > 1 && <DropdownMenuSeparator />}
               </>
             )}
 
@@ -283,19 +264,14 @@ export function ModelPicker() {
                 // Don't show free models if Dyad Pro is enabled because
                 // we will use the paid models (in Dyad Pro backend) which
                 // don't have the free limitations.
-                if (
-                  isDyadProEnabled(settings) &&
-                  model.apiName.endsWith(":free")
-                ) {
+                if (isDyadProEnabled(settings) && model.apiName.endsWith(":free")) {
                   return false;
                 }
                 return true;
               });
               const provider = providers?.find((p) => p.id === providerId);
               const providerDisplayName =
-                provider?.id === "auto"
-                  ? "Dyad Turbo"
-                  : (provider?.name ?? providerId);
+                provider?.id === "auto" ? "Dyad Turbo" : (provider?.name ?? providerId);
               return (
                 <DropdownMenuSub key={providerId}>
                   <DropdownMenuSubTrigger className="w-full font-normal">
@@ -357,9 +333,7 @@ export function ModelPicker() {
                             </div>
                           </DropdownMenuItem>
                         </TooltipTrigger>
-                        <TooltipContent side="right">
-                          {model.description}
-                        </TooltipContent>
+                        <TooltipContent side="right">{model.description}</TooltipContent>
                       </Tooltip>
                     ))}
                   </DropdownMenuSubContent>
@@ -382,9 +356,7 @@ export function ModelPicker() {
                   <DropdownMenuLabel>Other AI providers</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {secondaryProviders.map(([providerId, models]) => {
-                    const provider = providers?.find(
-                      (p) => p.id === providerId,
-                    );
+                    const provider = providers?.find((p) => p.id === providerId);
                     return (
                       <DropdownMenuSub key={providerId}>
                         <DropdownMenuSubTrigger className="w-full font-normal">
@@ -419,9 +391,7 @@ export function ModelPicker() {
                                   }
                                   onClick={() => {
                                     const customModelId =
-                                      model.type === "custom"
-                                        ? model.id
-                                        : undefined;
+                                      model.type === "custom" ? model.id : undefined;
                                     onModelSelect({
                                       name: model.apiName,
                                       provider: providerId,
@@ -461,9 +431,7 @@ export function ModelPicker() {
           <DropdownMenuSubTrigger className="w-full font-normal">
             <div className="flex flex-col items-start">
               <span>Local models</span>
-              <span className="text-xs text-muted-foreground">
-                LM Studio, Ollama
-              </span>
+              <span className="text-xs text-muted-foreground">LM Studio, Ollama</span>
             </div>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="w-56">
@@ -476,15 +444,11 @@ export function ModelPicker() {
                 <div className="flex flex-col items-start">
                   <span>Ollama</span>
                   {ollamaLoading ? (
-                    <span className="text-xs text-muted-foreground">
-                      Loading...
-                    </span>
+                    <span className="text-xs text-muted-foreground">Loading...</span>
                   ) : ollamaError ? (
                     <span className="text-xs text-red-500">Error loading</span>
                   ) : !hasOllamaModels ? (
-                    <span className="text-xs text-muted-foreground">
-                      None available
-                    </span>
+                    <span className="text-xs text-muted-foreground">None available</span>
                   ) : (
                     <span className="text-xs text-muted-foreground">
                       {ollamaModels.length} models
@@ -557,15 +521,11 @@ export function ModelPicker() {
                 <div className="flex flex-col items-start">
                   <span>LM Studio</span>
                   {lmStudioLoading ? (
-                    <span className="text-xs text-muted-foreground">
-                      Loading...
-                    </span>
+                    <span className="text-xs text-muted-foreground">Loading...</span>
                   ) : lmStudioError ? (
                     <span className="text-xs text-red-500">Error loading</span>
                   ) : !hasLMStudioModels ? (
-                    <span className="text-xs text-muted-foreground">
-                      None available
-                    </span>
+                    <span className="text-xs text-muted-foreground">None available</span>
                   ) : (
                     <span className="text-xs text-muted-foreground">
                       {lmStudioModels.length} models

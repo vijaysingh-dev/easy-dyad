@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { IpcClient } from "@/ipc/ipc_client";
+import api from "@/api";
 
 export function useLoadAppFile(appId: number | null, filePath: string | null) {
   const [content, setContent] = useState<string | null>(null);
@@ -22,10 +22,7 @@ export function useLoadAppFile(appId: number | null, filePath: string | null) {
         setContent(fileContent);
         setError(null);
       } catch (error) {
-        console.error(
-          `Error loading file ${filePath} for app ${appId}:`,
-          error,
-        );
+        console.error(`Error loading file ${filePath} for app ${appId}:`, error);
         setError(error instanceof Error ? error : new Error(String(error)));
         setContent(null);
       } finally {
@@ -43,15 +40,11 @@ export function useLoadAppFile(appId: number | null, filePath: string | null) {
 
     setLoading(true);
     try {
-      const ipcClient = IpcClient.getInstance();
-      const fileContent = await ipcClient.readAppFile(appId, filePath);
+      const fileContent = await api.app.readAppFile(appId, filePath);
       setContent(fileContent);
       setError(null);
     } catch (error) {
-      console.error(
-        `Error refreshing file ${filePath} for app ${appId}:`,
-        error,
-      );
+      console.error(`Error refreshing file ${filePath} for app ${appId}:`, error);
       setError(error instanceof Error ? error : new Error(String(error)));
     } finally {
       setLoading(false);

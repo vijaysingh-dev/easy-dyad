@@ -1,20 +1,12 @@
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Sparkles, Info } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
-import { IpcClient } from "@/ipc/ipc_client";
 import { hasDyadProKey, type UserSettings } from "@shared/schemas";
+import api from "@/api";
 
 export function ProModeSelector() {
   const { settings, updateSettings } = useSettings();
@@ -31,9 +23,7 @@ export function ProModeSelector() {
     });
   };
 
-  const handleSmartContextChange = (
-    newValue: "off" | "conservative" | "balanced",
-  ) => {
+  const handleSmartContextChange = (newValue: "off" | "conservative" | "balanced") => {
     if (newValue === "off") {
       updateSettings({
         enableProSmartFilesContextMode: false,
@@ -92,9 +82,7 @@ export function ProModeSelector() {
               <a
                 className="inline-flex items-center justify-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary shadow-sm transition-colors hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 onClick={() => {
-                  IpcClient.getInstance().openExternalUrl(
-                    "https://dyad.sh/pro#ai",
-                  );
+                  api.app.openExternalUrl("https://dyad.sh/pro#ai");
                 }}
               >
                 Unlock Pro modes
@@ -161,10 +149,7 @@ function SelectorRow({
   return (
     <div className="flex items-center justify-between">
       <div className="space-y-1.5">
-        <Label
-          htmlFor={id}
-          className={!isTogglable ? "text-muted-foreground/50" : ""}
-        >
+        <Label htmlFor={id} className={!isTogglable ? "text-muted-foreground/50" : ""}>
           {label}
         </Label>
         <div className="flex items-center gap-1">

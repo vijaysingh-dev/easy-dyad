@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { IpcClient } from "@/ipc/ipc_client";
 import type { LanguageModel } from "@shared/eeziTypes";
+import api from "@/api";
 
 /**
  * Fetches the list of available language models for a specific provider.
@@ -9,8 +9,6 @@ import type { LanguageModel } from "@shared/eeziTypes";
  * @returns TanStack Query result object for the language models.
  */
 export function useLanguageModelsForProvider(providerId: string | undefined) {
-  const ipcClient = IpcClient.getInstance();
-
   return useQuery<
     LanguageModel[],
     Error // Specify Error type for better error handling
@@ -22,7 +20,7 @@ export function useLanguageModelsForProvider(providerId: string | undefined) {
         // Return an empty array as it's a query, not an error state
         return [];
       }
-      return ipcClient.getLanguageModels({ providerId });
+      return api.mcp.getLanguageModels({ providerId });
     },
     enabled: !!providerId,
   });
