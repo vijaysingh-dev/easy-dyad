@@ -1,8 +1,6 @@
-import log from "@/logger";
-import { normalizePath } from "@/shared/paths";
+import logger from "@/logger";
+import { normalizePath } from "@/services/paths";
 import { SqlQuery } from "@shared/schemas";
-
-const logger = log.scope("dyad_tag_parser");
 
 export function getDyadWriteTags(fullResponse: string): {
   path: string;
@@ -38,10 +36,7 @@ export function getDyadWriteTags(fullResponse: string): {
 
       tags.push({ path: normalizePath(path), content, description });
     } else {
-      logger.warn(
-        "Found <dyad-write> tag without a valid 'path' attribute:",
-        match[0],
-      );
+      logger.warn("Found <dyad-write> tag without a valid 'path' attribute:", match[0]);
     }
   }
   return tags;
@@ -65,8 +60,7 @@ export function getDyadRenameTags(fullResponse: string): {
 }
 
 export function getDyadDeleteTags(fullResponse: string): string[] {
-  const dyadDeleteRegex =
-    /<dyad-delete path="([^"]+)"[^>]*>([\s\S]*?)<\/dyad-delete>/g;
+  const dyadDeleteRegex = /<dyad-delete path="([^"]+)"[^>]*>([\s\S]*?)<\/dyad-delete>/g;
   let match;
   const paths: string[] = [];
   while ((match = dyadDeleteRegex.exec(fullResponse)) !== null) {
@@ -87,8 +81,7 @@ export function getDyadAddDependencyTags(fullResponse: string): string[] {
 }
 
 export function getDyadChatSummaryTag(fullResponse: string): string | null {
-  const dyadChatSummaryRegex =
-    /<dyad-chat-summary>([\s\S]*?)<\/dyad-chat-summary>/g;
+  const dyadChatSummaryRegex = /<dyad-chat-summary>([\s\S]*?)<\/dyad-chat-summary>/g;
   const match = dyadChatSummaryRegex.exec(fullResponse);
   if (match && match[1]) {
     return match[1].trim();
@@ -97,8 +90,7 @@ export function getDyadChatSummaryTag(fullResponse: string): string | null {
 }
 
 export function getDyadExecuteSqlTags(fullResponse: string): SqlQuery[] {
-  const dyadExecuteSqlRegex =
-    /<dyad-execute-sql([^>]*)>([\s\S]*?)<\/dyad-execute-sql>/g;
+  const dyadExecuteSqlRegex = /<dyad-execute-sql([^>]*)>([\s\S]*?)<\/dyad-execute-sql>/g;
   const descriptionRegex = /description="([^"]+)"/;
   let match;
   const queries: { content: string; description?: string }[] = [];
@@ -126,8 +118,7 @@ export function getDyadExecuteSqlTags(fullResponse: string): SqlQuery[] {
 }
 
 export function getDyadCommandTags(fullResponse: string): string[] {
-  const dyadCommandRegex =
-    /<dyad-command type="([^"]+)"[^>]*><\/dyad-command>/g;
+  const dyadCommandRegex = /<dyad-command type="([^"]+)"[^>]*><\/dyad-command>/g;
   let match;
   const commands: string[] = [];
 

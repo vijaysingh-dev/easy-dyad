@@ -1,7 +1,5 @@
 import log from "electron-log";
 
-const logger = log.scope("debug-fetch");
-
 interface DebugFetchOptions extends RequestInit {
   debugTag?: string;
   logResponse?: boolean;
@@ -15,7 +13,7 @@ interface DebugFetchOptions extends RequestInit {
  */
 export async function debugFetch(
   url: RequestInfo | URL,
-  options: DebugFetchOptions = {},
+  options: DebugFetchOptions = {}
 ): Promise<Response> {
   const {
     debugTag = "fetch",

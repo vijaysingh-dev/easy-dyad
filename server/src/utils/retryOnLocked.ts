@@ -1,6 +1,4 @@
-import log from "electron-log";
-
-export const logger = log.scope("retryOnLocked");
+import logger from "@/logger";
 
 export function isLockedError(error: any): boolean {
   return error.response?.status === 423;
@@ -21,9 +19,7 @@ const RETRY_CONFIG = {
 export async function retryOnLocked<T>(
   operation: () => Promise<T>,
   context: string,
-  {
-    retryBranchWithChildError = false,
-  }: { retryBranchWithChildError?: boolean } = {},
+  { retryBranchWithChildError = false }: { retryBranchWithChildError?: boolean } = {}
 ): Promise<T> {
   let lastError: any;
 
@@ -39,7 +35,7 @@ export async function retryOnLocked<T>(
       if (!isLockedError(error)) {
         if (retryBranchWithChildError && error.response?.status === 422) {
           logger.info(
-            `${context}: Branch with child error (attempt ${attempt + 1}/${RETRY_CONFIG.maxRetries + 1})`,
+            `${context}: Branch with child error (attempt ${attempt + 1}/${RETRY_CONFIG.maxRetries + 1})`
           );
         } else {
           throw error;
@@ -49,7 +45,7 @@ export async function retryOnLocked<T>(
       // Don't retry if we've exhausted all attempts
       if (attempt === RETRY_CONFIG.maxRetries) {
         logger.error(
-          `${context}: Failed after ${RETRY_CONFIG.maxRetries + 1} attempts due to locked error`,
+          `${context}: Failed after ${RETRY_CONFIG.maxRetries + 1} attempts due to locked error`
         );
         throw error;
       }
@@ -60,7 +56,7 @@ export async function retryOnLocked<T>(
       const delay = Math.min(baseDelay + jitter, RETRY_CONFIG.maxDelay);
 
       logger.warn(
-        `${context}: Locked error (attempt ${attempt + 1}/${RETRY_CONFIG.maxRetries + 1}), retrying in ${Math.round(delay)}ms`,
+        `${context}: Locked error (attempt ${attempt + 1}/${RETRY_CONFIG.maxRetries + 1}), retrying in ${Math.round(delay)}ms`
       );
 
       await new Promise((resolve) => setTimeout(resolve, delay));

@@ -1,9 +1,9 @@
-import { LargeLanguageModel } from "@/lib/schemas";
-import { LanguageModel } from "../ipc_types";
-import { getLanguageModels } from "../shared/language_model_helpers";
+import { getLanguageModels } from "@/services/llm/language_model_helpers";
+import { LargeLanguageModel } from "@shared/schemas";
+import { LanguageModel } from "@shared/eeziTypes";
 
 export async function findLanguageModel(
-  model: LargeLanguageModel,
+  model: LargeLanguageModel
 ): Promise<LanguageModel | undefined> {
   const models = await getLanguageModels({
     providerId: model.provider,
@@ -11,7 +11,7 @@ export async function findLanguageModel(
 
   if (model.customModelId) {
     const customModel = models.find(
-      (m) => m.type === "custom" && m.id === model.customModelId,
+      (m) => m.type === "custom" && m.id === model.customModelId
     );
     if (customModel) {
       return customModel;

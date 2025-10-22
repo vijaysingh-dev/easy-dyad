@@ -2,8 +2,8 @@ import fs from "node:fs";
 import { promises as fsPromises } from "node:fs";
 import path from "node:path";
 import fsExtra from "fs-extra";
-import { generateCuteAppName } from "../../lib/utils";
-import { normalizePath } from "../../../shared/normalizePath";
+import { generateCuteAppName } from "@shared/utils";
+import { normalizePath } from "@/services/paths";
 
 // Directories to exclude when scanning files
 const EXCLUDED_DIRS = ["node_modules", ".git", ".next"];
@@ -39,10 +39,7 @@ export function getFilesRecursively(dir: string, baseDir: string): string[] {
   return files;
 }
 
-export async function copyDirectoryRecursive(
-  source: string,
-  destination: string,
-) {
+export async function copyDirectoryRecursive(source: string, destination: string) {
   await fsPromises.mkdir(destination, { recursive: true });
   const entries = await fsPromises.readdir(source, { withFileTypes: true });
   // Why do we sort? This ensures stable ordering of files across platforms
@@ -67,7 +64,7 @@ export async function copyDirectoryRecursive(
 export async function writeMigrationFile(
   appPath: string,
   queryContent: string,
-  queryDescription?: string,
+  queryDescription?: string
 ): Promise<string> {
   const migrationsDir = path.join(appPath, "supabase", "migrations");
   await fsExtra.ensureDir(migrationsDir);

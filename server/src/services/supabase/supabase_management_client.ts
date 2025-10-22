@@ -1,13 +1,11 @@
-import { withLock } from "../ipc/utils/lock_utils";
-import { readSettings, writeSettings } from "../../../shared/settings";
+import logger from "@/logger";
 import {
   SupabaseManagementAPI,
   SupabaseManagementAPIError,
 } from "@dyad-sh/supabase-management-js";
-import log from "electron-log";
-import { IS_TEST_BUILD } from "../ipc/utils/test_utils";
-
-const logger = log.scope("supabase_management_client");
+import { readSettings, writeSettings } from "@/services/settings";
+import { IS_TEST_BUILD } from "@/utils/test_utils";
+import { withLock } from "@/utils/lock_utils";
 
 /**
  * Checks if the Supabase access token is expired or about to expire
@@ -38,9 +36,7 @@ export async function refreshSupabaseToken(): Promise<void> {
   }
 
   if (!refreshToken) {
-    throw new Error(
-      "Supabase refresh token not found. Please authenticate first.",
-    );
+    throw new Error("Supabase refresh token not found. Please authenticate first.");
   }
 
   try {
@@ -53,12 +49,12 @@ export async function refreshSupabaseToken(): Promise<void> {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ refreshToken }),
-      },
+      }
     );
 
     if (!response.ok) {
       throw new Error(
-        `Supabase token refresh failed. Try going to Settings to disconnect Supabase and then reconnect to Supabase. Error status: ${response.statusText}`,
+        `Supabase token refresh failed. Try going to Settings to disconnect Supabase and then reconnect to Supabase. Error status: ${response.statusText}`
       );
     }
 
@@ -96,9 +92,7 @@ export async function getSupabaseClient(): Promise<SupabaseManagementAPI> {
   const expiresIn = settings.supabase?.expiresIn;
 
   if (!supabaseAccessToken) {
-    throw new Error(
-      "Supabase access token not found. Please authenticate first.",
-    );
+    throw new Error("Supabase access token not found. Please authenticate first.");
   }
 
   // Check if token needs refreshing
@@ -122,9 +116,7 @@ export async function getSupabaseClient(): Promise<SupabaseManagementAPI> {
   });
 }
 
-export async function getSupabaseProjectName(
-  projectId: string,
-): Promise<string> {
+export async function getSupabaseProjectName(projectId: string): Promise<string> {
   if (IS_TEST_BUILD) {
     return "Fake Supabase Project";
   }
@@ -159,12 +151,12 @@ export async function deleteSupabaseFunction({
   functionName: string;
 }): Promise<void> {
   logger.info(
-    `Deleting Supabase function: ${functionName} from project: ${supabaseProjectId}`,
+    `Deleting Supabase function: ${functionName} from project: ${supabaseProjectId}`
   );
   const supabase = await getSupabaseClient();
   await supabase.deleteFunction(supabaseProjectId, functionName);
   logger.info(
-    `Deleted Supabase function: ${functionName} from project: ${supabaseProjectId}`,
+    `Deleted Supabase function: ${functionName} from project: ${supabaseProjectId}`
   );
 }
 
@@ -178,7 +170,7 @@ export async function deploySupabaseFunctions({
   content: string;
 }): Promise<void> {
   logger.info(
-    `Deploying Supabase function: ${functionName} to project: ${supabaseProjectId}`,
+    `Deploying Supabase function: ${functionName} to project: ${supabaseProjectId}`
   );
   const supabase = await getSupabaseClient();
   const formData = new FormData();
@@ -189,7 +181,7 @@ export async function deploySupabaseFunctions({
       name: functionName,
       // See: https://github.com/dyad-sh/dyad/issues/1010
       verify_jwt: false,
-    }),
+    })
   );
   formData.append("file", new Blob([content]), "index.ts");
 
@@ -201,7 +193,7 @@ export async function deploySupabaseFunctions({
         Authorization: `Bearer ${(supabase as any).options.accessToken}`,
       },
       body: formData,
-    },
+    }
   );
 
   if (response.status !== 201) {
@@ -209,7 +201,7 @@ export async function deploySupabaseFunctions({
   }
 
   logger.info(
-    `Deployed Supabase function: ${functionName} to project: ${supabaseProjectId}`,
+    `Deployed Supabase function: ${functionName} to project: ${supabaseProjectId}`
   );
   return response.json();
 }
@@ -221,12 +213,12 @@ async function createResponseError(response: Response, action: string) {
     `Failed to ${action}: ${response.statusText} (${response.status})${
       errorBody ? `: ${errorBody.message}` : ""
     }`,
-    response,
+    response
   );
 }
 
 async function safeParseErrorResponseBody(
-  response: Response,
+  response: Response
 ): Promise<{ message: string } | undefined> {
   try {
     const body = await response.json();

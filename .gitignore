@@ -102,6 +102,7 @@ sqlite.db
 userData/
 .env.local
 .idea/
+.vscode/
 
 # For development only
 **/src/ipc/

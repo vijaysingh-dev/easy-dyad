@@ -2,19 +2,16 @@
  * DO NOT USE LOGGER HERE.
  * Environment variables are sensitive and should not be logged.
  */
-
-import { getDyadAppPath } from "@/paths/paths";
-import { EnvVar } from "../ipc_types";
+import logger from "@/logger";
 import path from "path";
 import fs from "fs";
-import log from "electron-log";
-
-const logger = log.scope("app_env_var_utils");
+import { getEeziAppPath } from "@/services/paths";
+import { EnvVar } from "@shared/eeziTypes";
 
 export const ENV_FILE_NAME = ".env.local";
 
 function getEnvFilePath({ appPath }: { appPath: string }): string {
-  return path.join(getDyadAppPath(appPath), ENV_FILE_NAME);
+  return path.join(getEeziAppPath(appPath), ENV_FILE_NAME);
 }
 
 export async function updatePostgresUrlEnvVar({
@@ -61,9 +58,7 @@ export async function updateDbPushEnvVar({
     }
 
     // Update or add DYAD_DISABLE_DB_PUSH
-    const existingVar = envVars.find(
-      (envVar) => envVar.key === "DYAD_DISABLE_DB_PUSH",
-    );
+    const existingVar = envVars.find((envVar) => envVar.key === "DYAD_DISABLE_DB_PUSH");
     if (existingVar) {
       existingVar.value = disabled ? "true" : "false";
     } else {
@@ -77,7 +72,7 @@ export async function updateDbPushEnvVar({
     await fs.promises.writeFile(getEnvFilePath({ appPath }), envFileContents);
   } catch (error) {
     logger.error(
-      `Failed to update DB push environment variable for app ${appPath}: ${error}`,
+      `Failed to update DB push environment variable for app ${appPath}: ${error}`
     );
     throw error;
   }
@@ -90,20 +85,14 @@ export async function readPostgresUrlFromEnvFile({
 }): Promise<string> {
   const contents = await readEnvFile({ appPath });
   const envVars = parseEnvFile(contents);
-  const postgresUrl = envVars.find(
-    (envVar) => envVar.key === "POSTGRES_URL",
-  )?.value;
+  const postgresUrl = envVars.find((envVar) => envVar.key === "POSTGRES_URL")?.value;
   if (!postgresUrl) {
     throw new Error("POSTGRES_URL not found in .env.local");
   }
   return postgresUrl;
 }
 
-export async function readEnvFile({
-  appPath,
-}: {
-  appPath: string;
-}): Promise<string> {
+export async function readEnvFile({ appPath }: { appPath: string }): Promise<string> {
   return fs.promises.readFile(getEnvFilePath({ appPath }), "utf8");
 }
 
@@ -164,9 +153,7 @@ export function serializeEnvFile(envVars: EnvVar[]): string {
     .map(({ key, value }) => {
       // Add quotes if value contains spaces or special characters
       const needsQuotes = /[\s#"'=&?]/.test(value);
-      const quotedValue = needsQuotes
-        ? `"${value.replace(/"/g, '\\"')}"`
-        : value;
+      const quotedValue = needsQuotes ? `"${value.replace(/"/g, '\\"')}"` : value;
       return `${key}=${quotedValue}`;
     })
     .join("\n");

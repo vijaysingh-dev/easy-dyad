@@ -1,8 +1,6 @@
+import logger from "@/logger";
 import path from "node:path";
 import fs from "node:fs";
-import log from "electron-log";
-
-const logger = log.scope("system_prompt");
 
 export const THINKING_PROMPT = `
 # Thinking Process
@@ -116,13 +114,13 @@ import React from 'react';
 
 const Button = ({ children, variant = 'primary', onClick, disabled = false }) => {
   const baseClasses = "px-4 py-2 rounded-md font-medium transition-colors";
-  
+
   const variantClasses = {
     primary: "bg-blue-600 hover:bg-blue-700 text-white",
     secondary: "bg-gray-200 hover:bg-gray-300 text-gray-800",
     danger: "bg-red-600 hover:bg-red-700 text-white"
   };
-  
+
   return (
     <button
       onClick={onClick}
@@ -145,17 +143,17 @@ import Button from './components/Button';
 
 function App() {
 
-  
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">My Application</h1>
-      
+
       <div className="space-x-2">
         <Button onClick={() => console.log('Primary clicked')}>Primary Button</Button>
         <Button variant="secondary" onClick={() => console.log('Secondary clicked')}>Secondary Button</Button>
         <Button variant="danger" onClick={() => console.log('Danger clicked')}>Danger Button</Button>
       </div>
-      
+
       {/* ... keep existing code (rest of the component) */}
     </div>
   );
@@ -242,9 +240,9 @@ const ProfileCard = ({ user }) => {
     <div className="bg-white shadow rounded-lg p-6">
       <div className="flex items-center">
         {user.avatar ? (
-          <img 
-            src={user.avatar} 
-            alt={user.name} 
+          <img
+            src={user.avatar}
+            alt={user.name}
             className="w-12 h-12 rounded-full mr-4"
           />
         ) : (
@@ -274,11 +272,11 @@ import ProfileCard from '../components/ProfileCard';
 
 const Dashboard = () => {
 
-  
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      
+
       <ProfileCard user={currentUser} />
     </div>
   );
@@ -466,7 +464,7 @@ Determine what tools, APIs, data, or external resources are needed to build the 
 
 ### Use Tools To Research:
 - Available APIs and their documentation
-- Authentication methods and implementation approaches  
+- Authentication methods and implementation approaches
 - Database options and setup requirements
 - UI/UX frameworks and component libraries
 - Deployment platforms and requirements
@@ -489,7 +487,7 @@ This applies to simple apps like:
 
 - ABSOLUTELY NO CODE GENERATION
 - **Never write HTML, CSS, JavaScript, TypeScript, or any programming code**
-- **Do not create component examples or code snippets**  
+- **Do not create component examples or code snippets**
 - **Do not provide implementation details or syntax**
 - **Do not use <dyad-write>, <dyad-edit>, <dyad-add-dependency> OR ANY OTHER <dyad-*> tags**
 - Your job ends with information gathering and requirement analysis
@@ -513,9 +511,7 @@ export const constructSystemPrompt = ({
   return systemPrompt.replace("[[AI_RULES]]", aiRules ?? DEFAULT_AI_RULES);
 };
 
-export const getSystemPromptForChatMode = (
-  chatMode: "build" | "ask" | "agent",
-) => {
+export const getSystemPromptForChatMode = (chatMode: "build" | "ask" | "agent") => {
   if (chatMode === "agent") {
     return AGENT_MODE_SYSTEM_PROMPT;
   }
@@ -531,9 +527,7 @@ export const readAiRules = async (dyadAppPath: string) => {
     const aiRules = await fs.promises.readFile(aiRulesPath, "utf8");
     return aiRules;
   } catch (error) {
-    logger.info(
-      `Error reading AI_RULES.md, fallback to default AI rules: ${error}`,
-    );
+    logger.info(`Error reading AI_RULES.md, fallback to default AI rules: ${error}`);
     return DEFAULT_AI_RULES;
   }
 };

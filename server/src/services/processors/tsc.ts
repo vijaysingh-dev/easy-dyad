@@ -1,4 +1,4 @@
-import log from "@/logger";
+import logger from "@/logger";
 import * as path from "node:path";
 import { Worker } from "node:worker_threads";
 
@@ -10,8 +10,6 @@ import {
 import { getTypeScriptCachePath } from "@/services/paths";
 import { WorkerInput, WorkerOutput } from "@shared/tscTypes";
 import { ProblemReport } from "@shared/eeziTypes";
-
-const logger = log.scope("tsc");
 
 export async function generateProblemReport({
   fullResponse,

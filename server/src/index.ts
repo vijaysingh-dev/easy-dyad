@@ -2,6 +2,7 @@ import express, { type Request, type Response, type NextFunction } from "express
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import { initializeDatabase } from "@/db";
 import appRoutes from "./routes/app";
 import chatRoutes from "./routes/chat";
 import integrationRoutes from "./routes/integration";
@@ -11,6 +12,7 @@ import settingsRoutes from "./routes/settings";
 import versionRoutes from "./routes/version";
 
 dotenv.config();
+initializeDatabase();
 
 const app = express();
 
@@ -23,7 +25,7 @@ app.use("/api/llm", llmRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/version", versionRoutes);
 
-app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") ?? true }));
+app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(",") ?? [] }));
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 

@@ -13,6 +13,7 @@ import {
   ChatSearchResult,
   ChatSearchResultsSchema,
   ProposalResult,
+  AppChatContext,
 } from "@shared/schemas";
 import { AxiosRequestConfig } from "axios";
 import { showError } from "@/components/Toast";
@@ -77,6 +78,17 @@ class ChatApiService {
       showError(error);
       throw error;
     }
+  }
+
+  public async getChatContextResults(params: { appId: number }) {
+    const config: AxiosRequestConfig = { params };
+    const { data } = await Api.get("/chat/get-context-paths", { config });
+    return data;
+  }
+
+  public async setChatContext(params: { appId: number; chatContext: AppChatContext }) {
+    const { data } = await Api.post("/chat/set-context-paths", params);
+    return data;
   }
 
   public async addDependency(params: { chatId: number; packages: string[] }) {

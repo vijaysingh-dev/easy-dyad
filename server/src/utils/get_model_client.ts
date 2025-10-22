@@ -1,3 +1,4 @@
+import logger from "@/logger";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createGoogleGenerativeAI as createGoogle } from "@ai-sdk/google";
 import { createAnthropic } from "@ai-sdk/anthropic";
@@ -8,23 +9,23 @@ import { LanguageModelV2 } from "@ai-sdk/provider";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
+
+import { FREE_OPENROUTER_MODEL_NAMES } from "@/services/llm/language_model_constants";
+import { getLanguageModelProviders } from "@/services/llm/language_model_helpers";
+import { createDyadEngine } from "./llm_engine_provider";
+
+import { getOllamaApiUrl } from "./misc_utils";
+import { getEnvVar } from "./read_env";
+import { LM_STUDIO_BASE_URL } from "./lm_studio_utils";
+import { createOllamaProvider } from "./ollama_provider";
+import { createFallback } from "./fallback_ai_model";
 import type {
   LargeLanguageModel,
   UserSettings,
   VertexProviderSetting,
   AzureProviderSetting,
-} from "../../lib/schemas";
-import { getEnvVar } from "./read_env";
-import log from "electron-log";
-import { FREE_OPENROUTER_MODEL_NAMES } from "../services/llm/language_model_constants";
-import { getLanguageModelProviders } from "../shared/language_model_helpers";
-import { LanguageModelProvider } from "../ipc_types";
-import { createDyadEngine } from "./llm_engine_provider";
-
-import { LM_STUDIO_BASE_URL } from "./lm_studio_utils";
-import { createOllamaProvider } from "./ollama_provider";
-import { getOllamaApiUrl } from "../handlers/local_model_ollama_handler";
-import { createFallback } from "./fallback_ai_model";
+} from "@shared/schemas";
+import { LanguageModelProvider } from "@shared/eeziTypes";
 
 const dyadEngineUrl = process.env.DYAD_ENGINE_URL;
 const dyadGatewayUrl = process.env.DYAD_GATEWAY_URL;
@@ -58,11 +59,10 @@ interface File {
   content: string;
 }
 
-const logger = log.scope("getModelClient");
 export async function getModelClient(
   model: LargeLanguageModel,
   settings: UserSettings,
-  files?: File[],
+  files?: File[]
 ): Promise<{
   modelClient: ModelClient;
   isEngineEnabled?: boolean;
@@ -113,15 +113,15 @@ export async function getModelClient(
           });
 
       logger.info(
-        `\x1b[1;97;44m Using Dyad Pro API key for model: ${model.name}. engine_enabled=${isEngineEnabled} \x1b[0m`,
+        `\x1b[1;97;44m Using Dyad Pro API key for model: ${model.name}. engine_enabled=${isEngineEnabled} \x1b[0m`
       );
       if (isEngineEnabled) {
         logger.info(
-          `\x1b[1;30;42m Using Dyad Pro engine: ${dyadEngineUrl ?? "<prod>"} \x1b[0m`,
+          `\x1b[1;30;42m Using Dyad Pro engine: ${dyadEngineUrl ?? "<prod>"} \x1b[0m`
         );
       } else {
         logger.info(
-          `\x1b[1;30;43m Using Dyad Pro gateway: ${dyadGatewayUrl ?? "<prod>"} \x1b[0m`,
+          `\x1b[1;30;43m Using Dyad Pro gateway: ${dyadGatewayUrl ?? "<prod>"} \x1b[0m`
         );
       }
       // Do not use free variant (for openrouter).
@@ -133,7 +133,7 @@ export async function getModelClient(
             ? {
                 files,
               }
-            : undefined,
+            : undefined
         ),
         builtinProviderId: model.provider,
       };
@@ -144,7 +144,7 @@ export async function getModelClient(
       };
     } else {
       logger.warn(
-        `Dyad Pro enabled, but provider ${model.provider} does not have a gateway prefix defined. Falling back to direct provider connection.`,
+        `Dyad Pro enabled, but provider ${model.provider} does not have a gateway prefix defined. Falling back to direct provider connection.`
       );
       // Fall through to regular provider logic if gateway prefix is missing
     }
@@ -152,9 +152,7 @@ export async function getModelClient(
   // Handle 'auto' provider by trying each model in AUTO_MODELS until one works
   if (model.provider === "auto") {
     if (model.name === "free") {
-      const openRouterProvider = allProviders.find(
-        (p) => p.id === "openrouter",
-      );
+      const openRouterProvider = allProviders.find((p) => p.id === "openrouter");
       if (!openRouterProvider) {
         throw new Error("OpenRouter provider not found");
       }
@@ -166,8 +164,8 @@ export async function getModelClient(
                 getRegularModelClient(
                   { provider: "openrouter", name },
                   settings,
-                  openRouterProvider,
-                ).modelClient.model,
+                  openRouterProvider
+                ).modelClient.model
             ),
           }),
           builtinProviderId: "openrouter",
@@ -176,9 +174,7 @@ export async function getModelClient(
       };
     }
     for (const autoModel of AUTO_MODELS) {
-      const providerInfo = allProviders.find(
-        (p) => p.id === autoModel.provider,
-      );
+      const providerInfo = allProviders.find((p) => p.id === autoModel.provider);
       const envVarName = providerInfo?.envVarName;
 
       const apiKey =
@@ -186,9 +182,7 @@ export async function getModelClient(
         (envVarName ? getEnvVar(envVarName) : undefined);
 
       if (apiKey) {
-        logger.log(
-          `Using provider: ${autoModel.provider} model: ${autoModel.name}`,
-        );
+        logger.log(`Using provider: ${autoModel.provider} model: ${autoModel.name}`);
         // Recursively call with the specific model found
         return await getModelClient(
           {
@@ -196,13 +190,13 @@ export async function getModelClient(
             name: autoModel.name,
           },
           settings,
-          files,
+          files
         );
       }
     }
     // If no models have API keys, throw an error
     throw new Error(
-      "No API keys available for any model supported by the 'auto' provider.",
+      "No API keys available for any model supported by the 'auto' provider."
     );
   }
   return getRegularModelClient(model, settings, providerConfig);
@@ -211,7 +205,7 @@ export async function getModelClient(
 function getRegularModelClient(
   model: LargeLanguageModel,
   settings: UserSettings,
-  providerConfig: LanguageModelProvider,
+  providerConfig: LanguageModelProvider
 ): {
   modelClient: ModelClient;
   backupModelClients: ModelClient[];
@@ -219,9 +213,7 @@ function getRegularModelClient(
   // Get API key for the specific provider
   const apiKey =
     settings.providerSettings?.[model.provider]?.apiKey?.value ||
-    (providerConfig.envVarName
-      ? getEnvVar(providerConfig.envVarName)
-      : undefined);
+    (providerConfig.envVarName ? getEnvVar(providerConfig.envVarName) : undefined);
 
   const providerId = providerConfig.id;
   // Create client based on provider ID or type
@@ -298,7 +290,7 @@ function getRegularModelClient(
           model: provider(
             model.name.includes("/")
               ? model.name
-              : `publishers/google/models/${model.name}`,
+              : `publishers/google/models/${model.name}`
           ),
           builtinProviderId: providerId,
         },
@@ -339,12 +331,8 @@ function getRegularModelClient(
       const azureSettings = settings.providerSettings?.azure as
         | AzureProviderSetting
         | undefined;
-      const azureApiKeyFromSettings = (
-        azureSettings?.apiKey?.value ?? ""
-      ).trim();
-      const azureResourceNameFromSettings = (
-        azureSettings?.resourceName ?? ""
-      ).trim();
+      const azureApiKeyFromSettings = (azureSettings?.apiKey?.value ?? "").trim();
+      const azureResourceNameFromSettings = (azureSettings?.resourceName ?? "").trim();
       const envResourceName = (getEnvVar("AZURE_RESOURCE_NAME") ?? "").trim();
       const envAzureApiKey = (getEnvVar("AZURE_API_KEY") ?? "").trim();
 
@@ -353,13 +341,13 @@ function getRegularModelClient(
 
       if (!resourceName) {
         throw new Error(
-          "Azure OpenAI resource name is required. Provide it in Settings or set the AZURE_RESOURCE_NAME environment variable.",
+          "Azure OpenAI resource name is required. Provide it in Settings or set the AZURE_RESOURCE_NAME environment variable."
         );
       }
 
       if (!azureApiKey) {
         throw new Error(
-          "Azure OpenAI API key is required. Provide it in Settings or set the AZURE_API_KEY environment variable.",
+          "Azure OpenAI API key is required. Provide it in Settings or set the AZURE_API_KEY environment variable."
         );
       }
 
@@ -420,7 +408,7 @@ function getRegularModelClient(
       if (providerConfig.type === "custom") {
         if (!providerConfig.apiBaseUrl) {
           throw new Error(
-            `Custom provider ${model.provider} is missing the API Base URL.`,
+            `Custom provider ${model.provider} is missing the API Base URL.`
           );
         }
         // Assume custom providers are OpenAI compatible for now

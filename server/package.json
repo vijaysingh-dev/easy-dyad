@@ -98,16 +98,10 @@
     "kill-port": "^2.0.1",
     "lexical": "^0.33.1",
     "lexical-beautiful-mentions": "^0.1.47",
-    "lucide-react": "^0.487.0",
     "monaco-editor": "^0.52.2",
     "morgan": "^1.10.1",
     "openai": "^4.91.1",
     "posthog-js": "^1.236.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-markdown": "^10.1.0",
-    "react-resizable-panels": "^2.1.7",
-    "react-shiki": "^0.5.2",
     "remark-gfm": "^4.0.1",
     "shell-env": "^4.0.1",
     "shiki": "^3.2.1",
@@ -120,5 +114,6 @@
     "uuid": "^11.1.0",
     "winston": "^3.18.3",
     "zod": "^3.25.76"
-  }
+  },
+  "packageManager": "pnpm@10.19.0+sha512.c9fc7236e92adf5c8af42fd5bf1612df99c2ceb62f27047032f4720b33f8eacdde311865e91c411f2774f618d82f320808ecb51718bfa82c060c4ba7c76a32b8"
 }

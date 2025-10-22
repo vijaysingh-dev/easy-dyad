@@ -1,7 +1,5 @@
+import logger from "@/logger";
 import { spawn } from "child_process";
-import log from "electron-log/main";
-
-const logger = log.scope("simpleSpawn");
 
 export async function simpleSpawn({
   command,

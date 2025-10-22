@@ -1,11 +1,9 @@
-import log from "@/logger";
+import logger from "@/logger";
 import {
   type Template,
   type ApiTemplate,
   localTemplatesData,
 } from "../services/llm/templates";
-
-const logger = log.scope("template_utils");
 
 // In-memory cache for API templates
 let apiTemplatesCache: Template[] | null = null;
@@ -41,7 +39,7 @@ export async function fetchApiTemplates(): Promise<Template[]> {
       const response = await fetch("https://api.dyad.sh/v1/templates");
       if (!response.ok) {
         throw new Error(
-          `Failed to fetch templates: ${response.status} ${response.statusText}`,
+          `Failed to fetch templates: ${response.status} ${response.statusText}`
         );
       }
 
@@ -68,14 +66,12 @@ export async function getAllTemplates(): Promise<Template[]> {
   return [...localTemplatesData, ...apiTemplates];
 }
 
-export async function getTemplateOrThrow(
-  templateId: string,
-): Promise<Template> {
+export async function getTemplateOrThrow(templateId: string): Promise<Template> {
   const allTemplates = await getAllTemplates();
   const template = allTemplates.find((template) => template.id === templateId);
   if (!template) {
     throw new Error(
-      `Template ${templateId} not found. Please select a different template.`,
+      `Template ${templateId} not found. Please select a different template.`
     );
   }
   return template;

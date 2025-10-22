@@ -1,15 +1,12 @@
-import { db } from "../db";
-import { versions, apps } from "../db/schema";
+import logger from "@/logger";
+import db from "@/db";
+import { versions, apps } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import fs from "node:fs";
 import git from "isomorphic-git";
-import { getDyadAppPath } from "../../paths/paths";
+import { getEeziAppPath } from "@/services/paths";
 import { neon } from "@neondatabase/serverless";
-
-import log from "electron-log";
-import { getNeonClient } from "@/neon_admin/neon_management_client";
-
-const logger = log.scope("neon_timestamp_utils");
+import { getNeonClient } from "@/services/neon_admin/neon_management_client";
 
 /**
  * Retrieves the current timestamp from a Neon database
@@ -61,7 +58,7 @@ export async function storeDbTimestampAtCurrentVersion({
     }
 
     // 2. Get the current commit hash
-    const appPath = getDyadAppPath(app.path);
+    const appPath = getEeziAppPath(app.path);
     const currentCommitHash = await git.resolveRef({
       fs,
       dir: appPath,
@@ -87,10 +84,7 @@ export async function storeDbTimestampAtCurrentVersion({
 
     // 4. Check if a version with this commit hash already exists
     const existingVersion = await db.query.versions.findFirst({
-      where: and(
-        eq(versions.appId, appId),
-        eq(versions.commitHash, currentCommitHash),
-      ),
+      where: and(eq(versions.appId, appId), eq(versions.commitHash, currentCommitHash)),
     });
 
     if (existingVersion) {
@@ -102,14 +96,9 @@ export async function storeDbTimestampAtCurrentVersion({
           updatedAt: new Date(),
         })
         .where(
-          and(
-            eq(versions.appId, appId),
-            eq(versions.commitHash, currentCommitHash),
-          ),
+          and(eq(versions.appId, appId), eq(versions.commitHash, currentCommitHash))
         );
-      logger.info(
-        `Updated existing version record with timestamp ${currentTimestamp}`,
-      );
+      logger.info(`Updated existing version record with timestamp ${currentTimestamp}`);
     } else {
       // Create new version record
       await db.insert(versions).values({
@@ -118,12 +107,12 @@ export async function storeDbTimestampAtCurrentVersion({
         neonDbTimestamp: currentTimestamp,
       });
       logger.info(
-        `Created new version record for commit ${currentCommitHash} with timestamp ${currentTimestamp}`,
+        `Created new version record for commit ${currentCommitHash} with timestamp ${currentTimestamp}`
       );
     }
 
     logger.info(
-      `Successfully stored timestamp for commit ${currentCommitHash} in app ${appId}`,
+      `Successfully stored timestamp for commit ${currentCommitHash} in app ${appId}`
     );
 
     return { timestamp: currentTimestamp };

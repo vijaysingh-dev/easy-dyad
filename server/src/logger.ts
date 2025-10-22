@@ -1,62 +1,55 @@
 import winston from "winston";
+import path from "path";
 
-// Create Winston logger with electron-log compatible interface
+const PROJECT_ROOT = path.resolve("server/src");
+
 const winstonLogger = winston.createLogger({
   level: process.env.NODE_ENV === "production" ? "info" : "debug",
   format: winston.format.combine(
     winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
-    winston.format.printf(({ timestamp, level, message, scope, ...meta }) => {
-      const scopeStr = scope ? `[${scope}]` : "";
-      const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : "";
-      return `${timestamp} [${level.toUpperCase()}]${scopeStr} ${message}${metaStr}`;
+    winston.format.printf(({ level, timestamp, message, caller }) => {
+      const lvl = level.toUpperCase().padEnd(5);
+      const fileStr = caller ? `${caller} - ` : "";
+      return `${lvl} ${timestamp} | ${fileStr}${message}`;
     })
   ),
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
-    }),
-    new winston.transports.File({
-      filename: "logs/error.log",
-      level: "error",
-      format: winston.format.json(),
-    }),
-    new winston.transports.File({
-      filename: "logs/combined.log",
-      format: winston.format.json(),
-    }),
-  ],
+  transports: [new winston.transports.Console()],
 });
 
-// Create electron-log compatible interface
-const createLogger = () => {
-  const logger = {
-    log: (message: string, ...args: any[]) => winstonLogger.info(message, ...args),
-    info: (message: string, ...args: any[]) => winstonLogger.info(message, ...args),
-    warn: (message: string, ...args: any[]) => winstonLogger.warn(message, ...args),
-    error: (message: string, ...args: any[]) => winstonLogger.error(message, ...args),
-    debug: (message: string, ...args: any[]) => winstonLogger.debug(message, ...args),
+const formatMsg = (msg: any, args: any[]) =>
+  [msg, ...args]
+    .map((x) => (typeof x === "object" ? JSON.stringify(x) : String(x)))
+    .join(" ");
 
-    // electron-log scope method
-    scope: (scopeName: string) => {
-      return {
-        log: (message: string, ...args: any[]) =>
-          winstonLogger.info(message, { scope: scopeName }, ...args),
-        info: (message: string, ...args: any[]) =>
-          winstonLogger.info(message, { scope: scopeName }, ...args),
-        warn: (message: string, ...args: any[]) =>
-          winstonLogger.warn(message, { scope: scopeName }, ...args),
-        error: (message: string, ...args: any[]) =>
-          winstonLogger.error(message, { scope: scopeName }, ...args),
-        debug: (message: string, ...args: any[]) =>
-          winstonLogger.debug(message, { scope: scopeName }, ...args),
-      };
-    },
-    transports: winstonLogger.transports,
-  };
+function getCaller(): string | undefined {
+  const stack = new Error().stack?.split("\n") || [];
+  const callerLine = stack[3] || stack[2] || "";
+  const match =
+    callerLine.match(/\((.*):(\d+):(\d+)\)$/) || callerLine.match(/at (.*):(\d+):(\d+)/);
+  if (!match) return undefined;
+  const filePath = match[1];
+  const line = match[2];
 
-  return logger;
+  let relativePath = path.relative(PROJECT_ROOT, filePath).replace(/\\/g, "/");
+  if (relativePath.startsWith("..")) {
+    relativePath = relativePath.replace(/^(\.\.\/)+/, "server/");
+  } else {
+    relativePath = `server/${relativePath}`;
+  }
+  return `${relativePath}:${line}`;
+}
+
+const logger = {
+  log: (msg: any, ...args: any[]) =>
+    winstonLogger.info(formatMsg(msg, args), { caller: getCaller() }),
+  info: (msg: any, ...args: any[]) =>
+    winstonLogger.info(formatMsg(msg, args), { caller: getCaller() }),
+  warn: (msg: any, ...args: any[]) =>
+    winstonLogger.warn(formatMsg(msg, args), { caller: getCaller() }),
+  error: (msg: any, ...args: any[]) =>
+    winstonLogger.error(formatMsg(msg, args), { caller: getCaller() }),
+  debug: (msg: any, ...args: any[]) =>
+    winstonLogger.debug(formatMsg(msg, args), { caller: getCaller() }),
 };
 
-const log = createLogger();
-export default log;
+export default logger;

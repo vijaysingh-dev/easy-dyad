@@ -1,9 +1,9 @@
-import { db } from "../../db";
-import { messages } from "../../db/schema";
+import db from "@/db";
+import { messages } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { Message } from "../ipc_types";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
+import { Message } from "@shared/eeziTypes";
 
 export const execPromise = promisify(exec);
 
@@ -22,7 +22,7 @@ export async function executeAddDependency({
     `(pnpm add ${packageStr}) || (npm install --legacy-peer-deps ${packageStr})`,
     {
       cwd: appPath,
-    },
+    }
   );
   const installResults = stdout + (stderr ? `\n${stderr}` : "");
 
@@ -30,13 +30,13 @@ export async function executeAddDependency({
   const updatedContent = message.content.replace(
     new RegExp(
       `<dyad-add-dependency packages="${packages.join(
-        " ",
+        " "
       )}">[^<]*</dyad-add-dependency>`,
-      "g",
+      "g"
     ),
     `<dyad-add-dependency packages="${packages.join(
-      " ",
-    )}">${installResults}</dyad-add-dependency>`,
+      " "
+    )}">${installResults}</dyad-add-dependency>`
   );
 
   // Save the updated message back to the database

@@ -1,10 +1,8 @@
-import { withLock } from "../ipc/utils/lock_utils";
-import { readSettings, writeSettings } from "../../../shared/settings";
+import logger from "@/logger";
 import { Api, createApiClient } from "@neondatabase/api-client";
-import log from "electron-log";
-import { IS_TEST_BUILD } from "../ipc/utils/test_utils";
-
-const logger = log.scope("neon_management_client");
+import { withLock } from "@/utils/lock_utils";
+import { IS_TEST_BUILD } from "@/utils/test_utils";
+import { readSettings, writeSettings } from "@/services/settings";
 
 /**
  * Checks if the Neon access token is expired or about to expire
@@ -49,7 +47,7 @@ export async function refreshNeonToken(): Promise<void> {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ refreshToken }),
-      },
+      }
     );
 
     if (!response.ok) {
@@ -219,10 +217,7 @@ export async function getNeonOrganizationId(): Promise<string> {
   try {
     const response = await neonClient.getCurrentUserOrganizations();
 
-    if (
-      !response.data?.organizations ||
-      response.data.organizations.length === 0
-    ) {
+    if (!response.data?.organizations || response.data.organizations.length === 0) {
       throw new Error("No organizations found for this Neon account");
     }
 

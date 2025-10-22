@@ -1,7 +1,5 @@
+import logger from "@/logger";
 import { spawn } from "child_process";
-import log from "electron-log";
-
-const logger = log.scope("runShellCommand");
 
 export function runShellCommand(command: string): Promise<string | null> {
   logger.log(`Running command: ${command}`);
@@ -29,7 +27,7 @@ export function runShellCommand(command: string): Promise<string | null> {
     process.on("close", (code) => {
       if (code === 0) {
         logger.debug(
-          `Command "${command}" succeeded with code ${code}: ${output.trim()}`,
+          `Command "${command}" succeeded with code ${code}: ${output.trim()}`
         );
         resolve(output.trim()); // Command succeeded, return trimmed output
       } else {

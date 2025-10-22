@@ -1,4 +1,4 @@
-import log from "@/logger";
+import logger from "@/logger";
 
 import {
   getNeonClient,
@@ -6,8 +6,6 @@ import {
 } from "@/services/neon_admin/neon_management_client";
 import { retryOnLocked } from "./retryOnLocked";
 import { updatePostgresUrlEnvVar, updateDbPushEnvVar } from "./app_env_var_utils";
-
-const logger = log.scope("misc-utils");
 
 export async function restoreBranchForPreview({
   appId,

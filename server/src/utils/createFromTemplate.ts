@@ -1,14 +1,12 @@
-import log from "@/logger";
+import logger from "@/logger";
 import path from "path";
 import fs from "fs-extra";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
-import { app } from "electron";
+import { getPath } from "@/services/paths";
+import { readSettings } from "@/services/settings";
 import { copyDirectoryRecursive } from "@/utils/file_utils";
 import { getTemplateOrThrow } from "@/utils/template_utils";
-import { readSettings } from "@/services/settings";
-
-const logger = log.scope("createFromTemplate");
 
 export async function createFromTemplate({ fullAppPath }: { fullAppPath: string }) {
   const settings = readSettings();
@@ -60,7 +58,7 @@ async function cloneRepo(repoUrl: string): Promise<string> {
   }
   logger.info(`Parsed org: ${orgName}, repo: ${repoName} from ${repoUrl}`);
 
-  const cachePath = path.join(app.getPath("userData"), "templates", orgName, repoName);
+  const cachePath = path.join(getPath("userData"), "templates", orgName, repoName);
 
   if (fs.existsSync(cachePath)) {
     try {

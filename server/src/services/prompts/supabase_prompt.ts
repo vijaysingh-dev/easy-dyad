@@ -38,7 +38,7 @@ When asked to add authentication or login feature to the app, always follow thes
 
    b. Session Management:
       - Wrap app with SessionContextProvider (create this yourself)
-      - Import supabase client from @/lib/supabaseClient
+      - Import supabase client from @shared/supabaseClient
       - Implement auth state monitoring using supabase.auth.onAuthStateChange
       - Add automatic redirects:
         - Authenticated users → main page
@@ -139,16 +139,16 @@ CREATE POLICY "Public read access" ON table_name FOR SELECT USING (true);
 
    **User-specific Data Access:**
 <dyad-execute-sql description="Create user-specific data access policy">
-CREATE POLICY "Users can only see their own data" ON table_name 
+CREATE POLICY "Users can only see their own data" ON table_name
 FOR SELECT TO authenticated USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can only insert their own data" ON table_name 
+CREATE POLICY "Users can only insert their own data" ON table_name
 FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can only update their own data" ON table_name 
+CREATE POLICY "Users can only update their own data" ON table_name
 FOR UPDATE TO authenticated USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can only delete their own data" ON table_name 
+CREATE POLICY "Users can only delete their own data" ON table_name
 FOR DELETE TO authenticated USING (auth.uid() = user_id);
 </dyad-execute-sql>
 
@@ -169,16 +169,16 @@ CREATE TABLE table_name (
 ALTER TABLE table_name ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for each operation needed
-CREATE POLICY "policy_name_select" ON table_name 
+CREATE POLICY "policy_name_select" ON table_name
 FOR SELECT TO authenticated USING (auth.uid() = user_id);
 
-CREATE POLICY "policy_name_insert" ON table_name 
+CREATE POLICY "policy_name_insert" ON table_name
 FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "policy_name_update" ON table_name 
+CREATE POLICY "policy_name_update" ON table_name
 FOR UPDATE TO authenticated USING (auth.uid() = user_id);
 
-CREATE POLICY "policy_name_delete" ON table_name 
+CREATE POLICY "policy_name_delete" ON table_name
 FOR DELETE TO authenticated USING (auth.uid() = user_id);
 </dyad-execute-sql>
 
@@ -191,7 +191,7 @@ Before creating any table or database schema, verify:
 - ✅ RLS is enabled on the table
 - ✅ Appropriate SELECT policies are defined
 - ✅ Appropriate INSERT policies are defined
-- ✅ Appropriate UPDATE policies are defined  
+- ✅ Appropriate UPDATE policies are defined
 - ✅ Appropriate DELETE policies are defined
 - ✅ Policies follow the principle of least privilege
 - ✅ User can only access their own data (unless public access is specifically required)
@@ -220,16 +220,16 @@ CREATE TABLE public.profiles (
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- Create secure policies for each operation
-CREATE POLICY "profiles_select_policy" ON public.profiles 
+CREATE POLICY "profiles_select_policy" ON public.profiles
 FOR SELECT TO authenticated USING (auth.uid() = id);
 
-CREATE POLICY "profiles_insert_policy" ON public.profiles 
+CREATE POLICY "profiles_insert_policy" ON public.profiles
 FOR INSERT TO authenticated WITH CHECK (auth.uid() = id);
 
-CREATE POLICY "profiles_update_policy" ON public.profiles 
+CREATE POLICY "profiles_update_policy" ON public.profiles
 FOR UPDATE TO authenticated USING (auth.uid() = id);
 
-CREATE POLICY "profiles_delete_policy" ON public.profiles 
+CREATE POLICY "profiles_delete_policy" ON public.profiles
 FOR DELETE TO authenticated USING (auth.uid() = id);
 </dyad-execute-sql>
 
@@ -237,7 +237,7 @@ FOR DELETE TO authenticated USING (auth.uid() = id);
 
 <dyad-execute-sql description="Optional: Add public read access (only if needed)">
 -- ONLY add this policy if public profile viewing is specifically required
-CREATE POLICY "profiles_public_read_policy" ON public.profiles 
+CREATE POLICY "profiles_public_read_policy" ON public.profiles
 FOR SELECT USING (true);
 </dyad-execute-sql>
 
@@ -258,8 +258,8 @@ AS $$
 BEGIN
   INSERT INTO public.profiles (id, first_name, last_name)
   VALUES (
-    new.id, 
-    new.raw_user_meta_data ->> 'first_name', 
+    new.id,
+    new.raw_user_meta_data ->> 'first_name',
     new.raw_user_meta_data ->> 'last_name'
   );
   RETURN new;
@@ -287,7 +287,7 @@ CREATE TRIGGER on_auth_user_created
 1. Location:
 - Write functions in the supabase/functions folder
 - Each function should be in a standalone directory where the main file is index.ts (e.g., supabase/functions/hello/index.ts)
-- Make sure you use <dyad-write> tags to make changes to edge functions. 
+- Make sure you use <dyad-write> tags to make changes to edge functions.
 - The function will be deployed automatically when the user approves the <dyad-write> changes for edge functions.
 - Do NOT tell the user to manually deploy the edge function using the CLI or Supabase Console. It's unhelpful and not needed.
 
@@ -380,16 +380,16 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
-  
+
   // Manual authentication handling (since verify_jwt is false)
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) {
-    return new Response('Unauthorized', { 
-      status: 401, 
-      headers: corsHeaders 
+    return new Response('Unauthorized', {
+      status: 401,
+      headers: corsHeaders
     })
   }
-  
+
   // ... function logic
 })
 </dyad-write>

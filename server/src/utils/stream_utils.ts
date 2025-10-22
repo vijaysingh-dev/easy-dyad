@@ -1,76 +1,18 @@
+import logger from "@/logger";
+import db from "@/db";
+import { mcpServers } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { Response } from "express";
-import {
-  ModelMessage,
-  TextPart,
-  ImagePart,
-  streamText,
-  ToolSet,
-  TextStreamPart,
-  stepCountIs,
-  hasToolCall,
-} from "ai";
-import { cleanFullResponse } from "./cleanFullResponse";
-import { db } from "../db";
-import { chats, messages } from "../db/schema";
-import { and, eq, isNull } from "drizzle-orm";
-import { constructSystemPrompt, readAiRules } from "../../prompts/system_prompt";
-import {
-  SUPABASE_AVAILABLE_SYSTEM_PROMPT,
-  SUPABASE_NOT_AVAILABLE_SYSTEM_PROMPT,
-} from "../../prompts/supabase_prompt";
-import { getDyadAppPath } from "../../../../shared/lib/paths";
-import { readSettings } from "../services/settings";
-import type { ChatResponseEnd, ChatStreamParams } from "../ipc_types";
-import { extractCodebase, readFileWithCache } from "./codebase";
-import { processFullResponseActions } from "../services/processors/response_processor";
-import { streamTestResponse } from "./testing_chat_handlers";
-import { getTestResponse } from "./testing_chat_handlers";
-import { getModelClient, ModelClient } from "./get_model_client";
-import log from "electron-log";
-import {
-  getSupabaseContext,
-  getSupabaseClientCode,
-} from "../../supabase_admin/supabase_context";
-import { SUMMARIZE_CHAT_SYSTEM_PROMPT } from "../../prompts/summarize_chat_system_prompt";
-import fs from "node:fs";
+import { ModelMessage, TextPart, ImagePart, ToolSet, TextStreamPart } from "ai";
 import * as path from "path";
-import * as os from "os";
-import * as crypto from "crypto";
-import { readFile, writeFile, unlink } from "fs/promises";
-import { getMaxTokens, getTemperature } from "./token_utils";
-import { MAX_CHAT_TURNS_IN_CONTEXT } from "@/constants/settings_constants";
-import { validateChatContext } from "./context_paths_utils";
-import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
-import { mcpServers } from "../db/schema";
+import { readFile } from "fs/promises";
+
 import { requireMcpToolConsent } from "./mcp_consent";
-
-import { getExtraProviderOptions } from "./thinking_utils";
-
-import { safeSend } from "../services/utils/safe_sender";
+import { safeSend } from "./safe_sender";
 import { cleanFullResponse } from "./cleanFullResponse";
-import { generateProblemReport } from "../services/processors/tsc";
-import { createProblemFixPrompt } from "@/shared/problem_prompt";
-import { AsyncVirtualFileSystem } from "../services/VirtualFilesystem";
-import {
-  getDyadAddDependencyTags,
-  getDyadWriteTags,
-  getDyadDeleteTags,
-  getDyadRenameTags,
-} from "./dyad_tag_parser";
-import { fileExists } from "./file_utils";
-import { FileUploadsState } from "./file_uploads_state";
-import { OpenAIResponsesProviderOptions } from "@ai-sdk/openai";
-import { extractMentionedAppsCodebases } from "./mention_apps";
-import { parseAppMentions } from "@/services/llm/parse_mention_apps";
-import { prompts as promptsTable } from "../db/schema";
-import { inArray } from "drizzle-orm";
-import { replacePromptReference } from "./replacePromptReference";
 import { mcpManager } from "./mcp_manager";
-import z from "zod";
 
 type AsyncIterableStream<T> = AsyncIterable<T> & ReadableStream<T>;
-
-const logger = log.scope("chat_stream");
 
 // Common helper export  functions
 const TEXT_FILE_EXTENSIONS = [
@@ -503,7 +445,8 @@ export async function streamTestResponse(
     fullResponse = cleanFullResponse(fullResponse);
 
     // Send the current accumulated response
-    safeSend(res, chatId, "chat:response:chunk", {
+    safeSend(res, "chat:response:chunk", {
+      chatId,
       messages: [
         ...updatedChat.messages,
         {

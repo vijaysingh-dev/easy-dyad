@@ -1,4 +1,4 @@
-import log from "@/logger";
+import logger from "@/logger";
 import db from "@/db";
 import {
   language_models,
@@ -16,7 +16,6 @@ import {
 import { getOllamaApiUrl, LM_STUDIO_BASE_URL } from "@/utils/misc_utils";
 import { LocalModel, OllamaModel, LMStudioModel } from "@shared/eeziTypes";
 
-const logger = log.scope("llm-routes");
 const router = Router();
 
 router.get("/local-models/list-ollama", async (req, res) => {

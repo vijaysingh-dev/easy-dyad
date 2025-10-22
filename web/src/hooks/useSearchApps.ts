@@ -1,6 +1,6 @@
-import { IpcClient } from "@/ipc/ipc_client";
 import { AppSearchResult } from "@shared/schemas";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import api from "@/api";
 
 export function useSearchApps(query: string) {
   const enabled = Boolean(query && query.trim().length > 0);
@@ -9,7 +9,7 @@ export function useSearchApps(query: string) {
     queryKey: ["search-apps", query],
     enabled,
     queryFn: async (): Promise<AppSearchResult[]> => {
-      return IpcClient.getInstance().searchApps(query);
+      return api.app.searchApps(query);
     },
     placeholderData: keepPreviousData,
     retry: 0,

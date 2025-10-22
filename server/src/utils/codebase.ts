@@ -1,15 +1,13 @@
+import logger from "@/logger";
 import fs from "node:fs";
 import fsAsync from "node:fs/promises";
 import path from "node:path";
 import { isIgnored } from "isomorphic-git";
-import log from "electron-log";
 import { IS_TEST_BUILD } from "../ipc/utils/test_utils";
 import { glob } from "glob";
-import { AppChatContext } from "../lib/schemas";
 import { readSettings } from "@/services/settings";
-import { AsyncVirtualFileSystem } from "../../shared/VirtualFilesystem";
-
-const logger = log.scope("utils/codebase");
+import { AppChatContext } from "@shared/schemas";
+import { AsyncVirtualFileSystem } from "@/services/VirtualFilesystem";
 
 // File extensions to include in the extraction
 const ALLOWED_EXTENSIONS = [
@@ -115,10 +113,7 @@ const gitIgnoreMtimes = new Map<string, number>();
 /**
  * Check if a path should be ignored based on git ignore rules
  */
-async function isGitIgnored(
-  filePath: string,
-  baseDir: string,
-): Promise<boolean> {
+async function isGitIgnored(filePath: string, baseDir: string): Promise<boolean> {
   try {
     // Check if any relevant .gitignore has been modified
     // Git checks .gitignore files in the path from the repo root to the file
@@ -187,7 +182,7 @@ async function isGitIgnored(
  */
 export async function readFileWithCache(
   filePath: string,
-  virtualFileSystem?: AsyncVirtualFileSystem,
+  virtualFileSystem?: AsyncVirtualFileSystem
 ): Promise<string | undefined> {
   try {
     // Check virtual filesystem first if provided
@@ -319,16 +314,12 @@ function shouldReadFileContents({
   const fileName = path.basename(filePath);
 
   // OMITTED_FILES takes precedence - never read if omitted
-  if (
-    OMITTED_FILES.some((pattern) => normalizedRelativePath.includes(pattern))
-  ) {
+  if (OMITTED_FILES.some((pattern) => normalizedRelativePath.includes(pattern))) {
     return false;
   }
 
   // Check if file should be included based on extension or filename
-  return (
-    ALLOWED_EXTENSIONS.includes(ext) || ALWAYS_INCLUDE_FILES.includes(fileName)
-  );
+  return ALLOWED_EXTENSIONS.includes(ext) || ALWAYS_INCLUDE_FILES.includes(fileName);
 }
 
 function shouldReadFileContentsForSmartContext({
@@ -342,18 +333,12 @@ function shouldReadFileContentsForSmartContext({
   const fileName = path.basename(filePath);
 
   // ALWAYS__OMITTED_FILES takes precedence - never read if omitted
-  if (
-    ALWAYS_OMITTED_FILES.some((pattern) =>
-      normalizedRelativePath.includes(pattern),
-    )
-  ) {
+  if (ALWAYS_OMITTED_FILES.some((pattern) => normalizedRelativePath.includes(pattern))) {
     return false;
   }
 
   // Check if file should be included based on extension or filename
-  return (
-    ALLOWED_EXTENSIONS.includes(ext) || ALWAYS_INCLUDE_FILES.includes(fileName)
-  );
+  return ALLOWED_EXTENSIONS.includes(ext) || ALWAYS_INCLUDE_FILES.includes(fileName);
 }
 
 /**
@@ -450,7 +435,7 @@ export async function extractCodebase({
     const deletedFiles = new Set(
       virtualFileSystem
         .getDeletedFiles()
-        .map((relativePath) => path.resolve(appPath, relativePath)),
+        .map((relativePath) => path.resolve(appPath, relativePath))
     );
     files = files.filter((file) => !deletedFiles.has(file));
 
@@ -623,7 +608,7 @@ async function sortFilesByModificationTime(files: string[]): Promise<string[]> {
         logger.warn(`Error getting file stats for ${file}:`, error);
         return { file, mtime: Date.now() };
       }
-    }),
+    })
   );
 
   if (IS_TEST_BUILD) {

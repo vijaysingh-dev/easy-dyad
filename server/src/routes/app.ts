@@ -1,4 +1,4 @@
-import log from "@/logger";
+import logger from "@/logger";
 import db, { getDatabasePath } from "@/db";
 import { apps, chats, prompts, messages } from "@/db/schema";
 import { desc, eq, like } from "drizzle-orm";
@@ -58,7 +58,6 @@ import { getEeziAppPath, normalizePath, getUserDataPath } from "@/services/paths
 import { type AppSearchResult } from "@shared/schemas";
 import { AppUpgrade } from "@shared/eeziTypes";
 
-const logger = log.scope("app-route");
 const router = Router();
 
 // Needed, otherwise electron in MacOS/Linux will not be able

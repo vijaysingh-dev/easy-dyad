@@ -1,19 +1,17 @@
+import logger from "@/logger";
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "crypto";
 import { getUserDataPath } from "./paths";
+import { v4 as uuidv4 } from "uuid";
+import { DEFAULT_TEMPLATE_ID } from "@/services/llm/templates";
+import { IS_TEST_BUILD } from "@/ipc/utils/test_utils";
 import {
   UserSettingsSchema,
   type UserSettings,
   Secret,
   VertexProviderSetting,
-} from "../server/src/lib/schemas";
-import { safeStorage } from "electron";
-import { v4 as uuidv4 } from "uuid";
-import log from "electron-log";
-import { DEFAULT_TEMPLATE_ID } from "@/services/llm/templates";
-import { IS_TEST_BUILD } from "@/ipc/utils/test_utils";
-
-const logger = log.scope("settings");
+} from "@shared/schemas";
 
 // IF YOU NEED TO UPDATE THIS, YOU'RE PROBABLY DOING SOMETHING WRONG!
 // Need to maintain backwards compatibility!
@@ -120,9 +118,7 @@ export function readSettings(): UserSettings {
         };
       }
       // Decrypt Vertex service account key if present
-      const v = combinedSettings.providerSettings[
-        provider
-      ] as VertexProviderSetting;
+      const v = combinedSettings.providerSettings[provider] as VertexProviderSetting;
       if (provider === "vertex" && v?.serviceAccountKey) {
         const encryptionType = v.serviceAccountKey.encryptionType;
         v.serviceAccountKey = {
@@ -148,43 +144,35 @@ export function writeSettings(settings: Partial<UserSettings>): void {
     const currentSettings = readSettings();
     const newSettings = { ...currentSettings, ...settings };
     if (newSettings.githubAccessToken) {
-      newSettings.githubAccessToken = encrypt(
-        newSettings.githubAccessToken.value,
-      );
+      newSettings.githubAccessToken = encrypt(newSettings.githubAccessToken.value);
     }
     if (newSettings.vercelAccessToken) {
-      newSettings.vercelAccessToken = encrypt(
-        newSettings.vercelAccessToken.value,
-      );
+      newSettings.vercelAccessToken = encrypt(newSettings.vercelAccessToken.value);
     }
     if (newSettings.supabase) {
       if (newSettings.supabase.accessToken) {
         newSettings.supabase.accessToken = encrypt(
-          newSettings.supabase.accessToken.value,
+          newSettings.supabase.accessToken.value
         );
       }
       if (newSettings.supabase.refreshToken) {
         newSettings.supabase.refreshToken = encrypt(
-          newSettings.supabase.refreshToken.value,
+          newSettings.supabase.refreshToken.value
         );
       }
     }
     if (newSettings.neon) {
       if (newSettings.neon.accessToken) {
-        newSettings.neon.accessToken = encrypt(
-          newSettings.neon.accessToken.value,
-        );
+        newSettings.neon.accessToken = encrypt(newSettings.neon.accessToken.value);
       }
       if (newSettings.neon.refreshToken) {
-        newSettings.neon.refreshToken = encrypt(
-          newSettings.neon.refreshToken.value,
-        );
+        newSettings.neon.refreshToken = encrypt(newSettings.neon.refreshToken.value);
       }
     }
     for (const provider in newSettings.providerSettings) {
       if (newSettings.providerSettings[provider].apiKey) {
         newSettings.providerSettings[provider].apiKey = encrypt(
-          newSettings.providerSettings[provider].apiKey.value,
+          newSettings.providerSettings[provider].apiKey.value
         );
       }
       // Encrypt Vertex service account key if present
@@ -200,22 +188,49 @@ export function writeSettings(settings: Partial<UserSettings>): void {
   }
 }
 
+const ALGORITHM = "aes-256-gcm";
+const ENCRYPTION_KEY = crypto
+  .createHash("sha256")
+  .update(process.env.SECRET_KEY || "default_dev_key")
+  .digest();
+const IV_LENGTH = 16;
+
+// Encrypt data using AES-256-GCM
 export function encrypt(data: string): Secret {
-  if (safeStorage.isEncryptionAvailable() && !IS_TEST_BUILD) {
-    return {
-      value: safeStorage.encryptString(data).toString("base64"),
-      encryptionType: "electron-safe-storage",
-    };
+  if (IS_TEST_BUILD) {
+    return { value: data, encryptionType: "plaintext" };
   }
+
+  const iv = crypto.randomBytes(IV_LENGTH);
+  const cipher = crypto.createCipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
+
+  const encrypted = Buffer.concat([cipher.update(data, "utf8"), cipher.final()]);
+  const authTag = cipher.getAuthTag();
+
   return {
-    value: data,
-    encryptionType: "plaintext",
+    value: encrypted.toString("base64"),
+    iv: iv.toString("base64"),
+    authTag: authTag.toString("base64"),
+    encryptionType: "aes-256-gcm",
   };
 }
 
+// Decrypt AES-256-GCM data
 export function decrypt(data: Secret): string {
-  if (data.encryptionType === "electron-safe-storage") {
-    return safeStorage.decryptString(Buffer.from(data.value, "base64"));
-  }
-  return data.value;
+  if (data.encryptionType === "plaintext") return data.value;
+
+  const decipher = crypto.createDecipheriv(
+    ALGORITHM,
+    ENCRYPTION_KEY,
+    Buffer.from(data.iv!, "base64")
+  );
+
+  decipher.setAuthTag(Buffer.from(data.authTag!, "base64"));
+
+  const decrypted = Buffer.concat([
+    decipher.update(Buffer.from(data.value, "base64")),
+    decipher.final(),
+  ]);
+
+  return decrypted.toString("utf8");
 }

@@ -1,4 +1,4 @@
-import log from "@/logger";
+import logger from "@/logger";
 import db from "@/db";
 import { apps, messages, versions } from "@/db/schema";
 import { and, desc, gt } from "drizzle-orm";
@@ -24,7 +24,6 @@ import {
 } from "@/services/neon_admin/neon_management_client";
 import { Version } from "@shared/eeziTypes";
 
-const logger = log.scope("version-routes");
 const router = Router();
 
 router.get("/get-app-version", async (req, res) => {

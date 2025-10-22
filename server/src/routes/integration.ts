@@ -1,4 +1,4 @@
-import log from "@/logger";
+import logger from "@/logger";
 import db from "@/db";
 import { apps } from "@/db/schema";
 import { Router, Response } from "express";
@@ -31,7 +31,6 @@ import { safeSend } from "@/utils/safe_sender";
 import { getEeziAppPath } from "@/services/paths";
 import { NeonBranch } from "@shared/eeziTypes";
 
-const logger = log.scope("integration-route");
 const router = Router();
 
 const TEST_SERVER_BASE = "http://localhost:3500";
@@ -40,7 +39,7 @@ const TEST_SERVER_BASE = "http://localhost:3500";
 
 const activeClients = new Map<string, Response>();
 
-router.get("/integration/stream/fake-connect", async (req, res) => {
+router.get("/stream/fake-connect", async (req, res) => {
   // Set up SSE
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -60,7 +59,6 @@ router.get("/integration/stream/fake-connect", async (req, res) => {
   } catch (error) {
     logger.error("Error in fake-connect stream:", error);
     safeSend(res, "deep-link:error", { error: "Internal server error" });
-  } finally {
     res.end();
   }
 });

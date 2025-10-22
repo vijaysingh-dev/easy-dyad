@@ -1,5 +1,5 @@
-import { db } from "../db";
-import { mcpServers } from "../db/schema";
+import db from "@/db";
+import { mcpServers } from "@/db/schema";
 import { experimental_createMCPClient, experimental_MCPClient } from "ai";
 import { eq } from "drizzle-orm";
 
@@ -18,10 +18,7 @@ class McpManager {
   async getClient(serverId: number): Promise<experimental_MCPClient> {
     const existing = this.clients.get(serverId);
     if (existing) return existing;
-    const server = await db
-      .select()
-      .from(mcpServers)
-      .where(eq(mcpServers.id, serverId));
+    const server = await db.select().from(mcpServers).where(eq(mcpServers.id, serverId));
     const s = server.find((x) => x.id === serverId);
     if (!s) throw new Error(`MCP server not found: ${serverId}`);
     let transport: StdioClientTransport | StreamableHTTPClientTransport;

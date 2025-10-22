@@ -1,4 +1,4 @@
-import log from "@/logger";
+import logger from "@/logger";
 import db from "@/db";
 import { apps, chats, messages, prompts } from "@/db/schema";
 import { eq, and, isNull, desc, like, inArray } from "drizzle-orm";
@@ -76,11 +76,16 @@ import {
   getContextWindow,
   estimateMessagesTokens,
 } from "@/utils/token_utils";
-import type { CodeProposal, ActionProposal } from "@shared/schemas";
+import {
+  CodeProposal,
+  ActionProposal,
+  AppChatContextSchema,
+  ContextPathResults,
+} from "@shared/schemas";
 import { MAX_CHAT_TURNS_IN_CONTEXT } from "@shared/constants";
 import { ChatStreamParams, ChatResponseEnd } from "@shared/eeziTypes";
+import { ca } from "zod/v4/locales";
 
-const logger = log.scope("chat-router");
 const router = Router();
 
 router.get("/get-chat/:chatId", async (req, res) => {
@@ -133,7 +138,7 @@ router.get("/get-chats", async (req, res) => {
     const allChats = await query;
     res.json(allChats);
   } catch (error) {
-    logger.error("Error fetching chats:", error);
+    logger.error("Error fetching chats:", error.message);
     res.status(500).json({ error: "Failed to fetch chats" });
   }
 });
@@ -281,6 +286,105 @@ router.post("/search-chats/:appId", async (req, res) => {
   }
 });
 
+router.get("/get-context-paths", async (req, res) => {
+  try {
+    const appId = parseInt(req.query.appId as string);
+    z.object({ appId: z.number() }).parse({ appId });
+    const app = await db.query.apps.findFirst({
+      where: eq(apps.id, appId),
+    });
+
+    if (!app) {
+      throw new Error("App not found");
+    }
+
+    if (!app.path) {
+      throw new Error("App path not set");
+    }
+    const appPath = getEeziAppPath(app.path);
+
+    const results: ContextPathResults = {
+      contextPaths: [],
+      smartContextAutoIncludes: [],
+      excludePaths: [],
+    };
+    const { contextPaths, smartContextAutoIncludes, excludePaths } = validateChatContext(
+      app.chatContext
+    );
+    for (const contextPath of contextPaths) {
+      const { formattedOutput, files } = await extractCodebase({
+        appPath,
+        chatContext: {
+          contextPaths: [contextPath],
+          smartContextAutoIncludes: [],
+        },
+      });
+      const totalTokens = estimateTokens(formattedOutput);
+
+      results.contextPaths.push({
+        ...contextPath,
+        files: files.length,
+        tokens: totalTokens,
+      });
+    }
+
+    for (const contextPath of smartContextAutoIncludes) {
+      const { formattedOutput, files } = await extractCodebase({
+        appPath,
+        chatContext: {
+          contextPaths: [contextPath],
+          smartContextAutoIncludes: [],
+        },
+      });
+      const totalTokens = estimateTokens(formattedOutput);
+
+      results.smartContextAutoIncludes.push({
+        ...contextPath,
+        files: files.length,
+        tokens: totalTokens,
+      });
+    }
+
+    for (const excludePath of excludePaths || []) {
+      const { formattedOutput, files } = await extractCodebase({
+        appPath,
+        chatContext: {
+          contextPaths: [excludePath],
+          smartContextAutoIncludes: [],
+        },
+      });
+      const totalTokens = estimateTokens(formattedOutput);
+
+      results.excludePaths.push({
+        ...excludePath,
+        files: files.length,
+        tokens: totalTokens,
+      });
+    }
+    res.json(results);
+  } catch (error) {
+    logger.error("Error getting context paths:", error);
+    res.status(500).json({ error: "Failed to get context paths" });
+  }
+});
+
+router.post("/set-context-paths", async (req, res) => {
+  try {
+    const { appId, chatContext } = req.body;
+    const schema = z.object({
+      appId: z.number(),
+      chatContext: AppChatContextSchema,
+    });
+    schema.parse({ appId, chatContext });
+
+    await db.update(apps).set({ chatContext }).where(eq(apps.id, appId));
+    res.json({ success: true });
+  } catch (error) {
+    logger.error("Error setting context paths:", error);
+    res.status(500).json({ error: "Failed to set context paths" });
+  }
+});
+
 router.post("/add-dep", async (req, res) => {
   try {
     const { chatId, packages } = req.body as { chatId: number; packages: string[] };
@@ -366,7 +470,6 @@ router.post("/:chatId/start", async (req, res) => {
 });
 
 router.get("/:chatId/stream", async (req, res) => {
-  const logger = log.scope("chat-stream");
   const chatId = parseInt(req.params.chatId);
   try {
     // Set up SSE
@@ -1414,7 +1517,6 @@ router.post("/help/:sessionId/start", async (req, res) => {
 });
 
 router.get("/help/:sessionId/stream", async (req, res) => {
-  const logger = log.scope("help-stream");
   const sessionId = req.params.sessionId;
   try {
     // Set up SSE

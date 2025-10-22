@@ -1,6 +1,6 @@
-import { LargeLanguageModel } from "@/lib/schemas";
-import { readSettings } from "../../main/settings";
-import { Message } from "../ipc_types";
+import { LargeLanguageModel } from "@shared/schemas";
+import { readSettings } from "@/services/settings";
+import { Message } from "@shared/eeziTypes";
 
 import { findLanguageModel } from "./findLanguageModel";
 

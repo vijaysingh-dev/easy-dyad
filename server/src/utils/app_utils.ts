@@ -1,4 +1,4 @@
-import log from "@/logger";
+import logger from "@/logger";
 import db from "@/db";
 import { apps } from "@/db/schema";
 import { Response } from "express";
@@ -23,8 +23,6 @@ import { runShellCommand } from "@/utils/runShellCommand";
 import { safeSend } from "@/utils/safe_sender";
 import { Worker } from "worker_threads";
 import { LargeLanguageModel } from "@shared/schemas";
-
-const logger = log.scope("app_utils");
 
 export async function copyDir(
   source: string,

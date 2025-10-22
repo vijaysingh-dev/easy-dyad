@@ -1,4 +1,4 @@
-import log from "@/logger";
+import logger from "@/logger";
 import db from "@/db";
 import { apps } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -9,8 +9,6 @@ import { CreateProjectFramework } from "@vercel/sdk/models/createprojectop.js";
 import { readSettings, writeSettings } from "@/services/settings";
 import { IS_TEST_BUILD } from "./test_utils";
 import { GithubUser } from "@shared/schemas";
-
-const logger = log.scope("integration-utils");
 
 // Use test server URLs when in test mode
 const TEST_SERVER_BASE = "http://localhost:3500";

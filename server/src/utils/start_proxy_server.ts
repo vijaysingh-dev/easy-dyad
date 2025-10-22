@@ -1,11 +1,8 @@
 // startProxy.js – helper to launch proxy.js as a worker
-
+import logger from "@/logger";
 import { Worker } from "worker_threads";
 import path from "path";
 import { findAvailablePort } from "./port_utils";
-import log from "electron-log";
-
-const logger = log.scope("start_proxy_server");
 
 export async function startProxy(
   targetOrigin: string,
@@ -14,7 +11,7 @@ export async function startProxy(
     // port?: number;
     // env?: Record<string, string>;
     onStarted?: (proxyUrl: string) => void;
-  } = {},
+  } = {}
 ) {
   if (!/^https?:\/\//.test(targetOrigin))
     throw new Error("startProxy: targetOrigin must be absolute http/https URL");
@@ -33,7 +30,7 @@ export async function startProxy(
         targetOrigin,
         port,
       },
-    },
+    }
   );
 
   worker.on("message", (m) => {

@@ -1,16 +1,10 @@
+import logger from "@/logger";
 import { OpenAICompatibleChatLanguageModel } from "@ai-sdk/openai-compatible";
-import {
-  FetchFunction,
-  loadApiKey,
-  withoutTrailingSlash,
-} from "@ai-sdk/provider-utils";
-
-import log from "electron-log";
-import { getExtraProviderOptions } from "./thinking_utils";
-import type { UserSettings } from "../../lib/schemas";
 import { LanguageModelV2 } from "@ai-sdk/provider";
+import { FetchFunction, loadApiKey, withoutTrailingSlash } from "@ai-sdk/provider-utils";
 
-const logger = log.scope("llm_engine_provider");
+import { getExtraProviderOptions } from "./thinking_utils";
+import type { UserSettings } from "@shared/schemas";
 
 export type ExampleChatModelId = string & {};
 
@@ -54,23 +48,18 @@ export interface DyadEngineProvider {
   /**
 Creates a model for text generation.
 */
-  (
-    modelId: ExampleChatModelId,
-    settings?: ExampleChatSettings,
-  ): LanguageModelV2;
+  (modelId: ExampleChatModelId, settings?: ExampleChatSettings): LanguageModelV2;
 
   /**
 Creates a chat model for text generation.
 */
   chatModel(
     modelId: ExampleChatModelId,
-    settings?: ExampleChatSettings,
+    settings?: ExampleChatSettings
   ): LanguageModelV2;
 }
 
-export function createDyadEngine(
-  options: ExampleProviderSettings,
-): DyadEngineProvider {
+export function createDyadEngine(options: ExampleProviderSettings): DyadEngineProvider {
   const baseURL = withoutTrailingSlash(options.baseURL);
   logger.info("creating dyad engine with baseURL", baseURL);
 
@@ -108,7 +97,7 @@ export function createDyadEngine(
 
   const createChatModel = (
     modelId: ExampleChatModelId,
-    settings: ExampleChatSettings = {},
+    settings: ExampleChatSettings = {}
   ) => {
     // Extract files from settings to process them appropriately
     const { files } = settings;
@@ -129,10 +118,7 @@ export function createDyadEngine(
           // Parse the request body to manipulate it
           const parsedBody = {
             ...JSON.parse(init.body),
-            ...getExtraProviderOptions(
-              options.originalProviderId,
-              options.settings,
-            ),
+            ...getExtraProviderOptions(options.originalProviderId, options.settings),
           };
           const requestId = parsedBody.dyadRequestId;
           if ("dyadRequestId" in parsedBody) {
@@ -160,8 +146,7 @@ export function createDyadEngine(
             parsedBody.dyad_options = {
               files,
               enable_lazy_edits: options.dyadOptions.enableLazyEdits,
-              enable_smart_files_context:
-                options.dyadOptions.enableSmartFilesContext,
+              enable_smart_files_context: options.dyadOptions.enableSmartFilesContext,
               smart_context_mode: options.dyadOptions.smartContextMode,
               enable_web_search: options.dyadOptions.enableWebSearch,
             };
@@ -195,10 +180,8 @@ export function createDyadEngine(
     return new OpenAICompatibleChatLanguageModel(modelId, config);
   };
 
-  const provider = (
-    modelId: ExampleChatModelId,
-    settings?: ExampleChatSettings,
-  ) => createChatModel(modelId, settings);
+  const provider = (modelId: ExampleChatModelId, settings?: ExampleChatSettings) =>
+    createChatModel(modelId, settings);
 
   provider.chatModel = createChatModel;
 

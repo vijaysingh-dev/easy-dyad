@@ -7,14 +7,14 @@ import { showError } from "@/components/Toast";
 class SettingsApiService {
   // Method to get user budget information
   public async getUserBudget() {
-    const { data } = await Api.get("get-user-budget");
+    const { data } = await Api.get("/settings/get-user-budget");
     return data;
   }
 
   // Get user settings
   public async getUserSettings() {
     try {
-      const { data } = await Api.get("get-user-settings/");
+      const { data } = await Api.get("/settings/get-user-settings");
       return data as UserSettings;
     } catch (error) {
       showError(error);
@@ -24,7 +24,7 @@ class SettingsApiService {
   // Update user settings
   public async setUserSettings(settings: Partial<UserSettings>) {
     try {
-      const { data } = await Api.patch("set-user-settings/", settings);
+      const { data } = await Api.patch("/settings/set-user-settings", settings);
       return data as UserSettings;
     } catch (error) {
       showError(error);
@@ -35,7 +35,7 @@ class SettingsApiService {
   // Get allow-listed environment variables
   public async getEnvVars() {
     try {
-      const { data } = await Api.get("get-env-vars/");
+      const { data } = await Api.get("/settings/get-env-vars");
       return data as Record<string, string | undefined>;
     } catch (error) {
       showError(error);
@@ -48,7 +48,7 @@ class SettingsApiService {
   }
   // Check Node.js and npm status
   public async getNodejsStatus() {
-    const { data } = await Api.get("nodejs-status/");
+    const { data } = await Api.get("/settings/nodejs-status");
     return data as NodeSystemInfo;
   }
 }

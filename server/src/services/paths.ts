@@ -1,7 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import fs from "fs";
-import { IS_TEST_BUILD } from "../utils/test_utils";
+import { IS_TEST_BUILD } from "@/utils/test_utils";
 
 /**
  * Normalize the path to use forward slashes instead of backslashes.
@@ -135,11 +135,9 @@ export function getTypeScriptCachePath(): string {
  */
 
 export function getUserDataPath(): string {
-  // When running in Electron and app is ready
-  if (process.env.NODE_ENV !== "development") {
-    return getPath("userData");
+  if (IS_TEST_BUILD) {
+    // For development or when the Electron app object isn't available
+    return path.resolve("../../userData");
   }
-
-  // For development or when the Electron app object isn't available
-  return path.resolve("../../userData");
+  return getPath("userData");
 }

@@ -1,15 +1,13 @@
-import { db } from "../db";
-import { getDyadAppPath } from "../../paths/paths";
+import logger from "@/logger";
+import db from "@/db";
+import { getEeziAppPath } from "@/services/paths";
 import { CodebaseFile, extractCodebase } from "./codebase";
 import { validateChatContext } from "./context_paths_utils";
-import log from "electron-log";
-
-const logger = log.scope("mention_apps");
 
 // Helper function to extract codebases from mentioned apps
 export async function extractMentionedAppsCodebases(
   mentionedAppNames: string[],
-  excludeCurrentAppId?: number,
+  excludeCurrentAppId?: number
 ): Promise<{ appName: string; codebaseInfo: string; files: CodebaseFile[] }[]> {
   if (mentionedAppNames.length === 0) {
     return [];
@@ -21,8 +19,8 @@ export async function extractMentionedAppsCodebases(
   const mentionedApps = allApps.filter(
     (app) =>
       mentionedAppNames.some(
-        (mentionName) => app.name.toLowerCase() === mentionName.toLowerCase(),
-      ) && app.id !== excludeCurrentAppId,
+        (mentionName) => app.name.toLowerCase() === mentionName.toLowerCase()
+      ) && app.id !== excludeCurrentAppId
   );
 
   const results: {
@@ -33,7 +31,7 @@ export async function extractMentionedAppsCodebases(
 
   for (const app of mentionedApps) {
     try {
-      const appPath = getDyadAppPath(app.path);
+      const appPath = getEeziAppPath(app.path);
       const chatContext = validateChatContext(app.chatContext);
 
       const { formattedOutput, files } = await extractCodebase({

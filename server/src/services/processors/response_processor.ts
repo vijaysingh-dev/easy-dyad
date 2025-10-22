@@ -1,37 +1,36 @@
-import { db } from "../../db";
-import { chats, messages } from "../../db/schema";
+import logger from "@/logger";
+import db from "@/db";
+import { chats, messages } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import fs from "node:fs";
-import { getDyadAppPath } from "../../shared/paths";
+import { getEeziAppPath } from "@/services/paths";
 import path from "node:path";
 import git from "isomorphic-git";
-import { safeJoin } from "../path_utils";
+import { safeJoin } from "@/utils/path_utils";
 
-import log from "electron-log";
 import { executeAddDependency } from "./executeAddDependency";
 import {
   deleteSupabaseFunction,
   deploySupabaseFunctions,
   executeSupabaseSql,
-} from "../../supabase/supabase_management_client";
-import { isServerFunction } from "../../supabase/supabase_utils";
-import { UserSettings } from "../../lib/schemas";
-import { gitCommit } from "../git_utils";
+} from "@/services/supabase/supabase_management_client";
+import { isServerFunction } from "@/services/supabase/supabase_utils";
 import { readSettings } from "@/services/settings";
-import { writeMigrationFile } from "../file_utils";
+import { UserSettings } from "@shared/schemas";
+import { gitCommit } from "@/utils/git_utils";
+import { writeMigrationFile } from "@/utils/file_utils";
 import {
   getDyadWriteTags,
   getDyadRenameTags,
   getDyadDeleteTags,
   getDyadAddDependencyTags,
   getDyadExecuteSqlTags,
-} from "../dyad_tag_parser";
-import { storeDbTimestampAtCurrentVersion } from "../neon_timestamp_utils";
+} from "@/utils/dyad_tag_parser";
+import { storeDbTimestampAtCurrentVersion } from "@/utils/neon_timestamp_utils";
 
-import { FileUploadsState } from "../file_uploads_state";
+import { FileUploadsState } from "@/utils/file_uploads_state";
 
 const readFile = fs.promises.readFile;
-const logger = log.scope("response_processor");
 
 interface Output {
   message: string;
@@ -59,7 +58,7 @@ export async function processFullResponseActions(
   }: {
     chatSummary: string | undefined;
     messageId: number;
-  },
+  }
 ): Promise<{
   updatedFiles?: boolean;
   error?: string;
@@ -82,10 +81,7 @@ export async function processFullResponseActions(
     return {};
   }
 
-  if (
-    chatWithApp.app.neonProjectId &&
-    chatWithApp.app.neonDevelopmentBranchId
-  ) {
+  if (chatWithApp.app.neonProjectId && chatWithApp.app.neonDevelopmentBranchId) {
     try {
       await storeDbTimestampAtCurrentVersion({
         appId: chatWithApp.app.id,
@@ -94,13 +90,13 @@ export async function processFullResponseActions(
       logger.error("Error creating Neon branch at current version:", error);
       throw new Error(
         "Could not create Neon branch; database versioning functionality is not working: " +
-          error,
+          error
       );
     }
   }
 
   const settings: UserSettings = readSettings();
-  const appPath = getDyadAppPath(chatWithApp.app.path);
+  const appPath = getEeziAppPath(chatWithApp.app.path);
   const writtenFiles: string[] = [];
   const renamedFiles: string[] = [];
   const deletedFiles: string[] = [];
@@ -123,7 +119,7 @@ export async function processFullResponseActions(
       where: and(
         eq(messages.id, messageId),
         eq(messages.role, "assistant"),
-        eq(messages.chatId, chatId),
+        eq(messages.chatId, chatId)
       ),
     });
 
@@ -147,7 +143,7 @@ export async function processFullResponseActions(
               const migrationFilePath = await writeMigrationFile(
                 appPath,
                 query.content,
-                query.description,
+                query.description
               );
               writtenFiles.push(migrationFilePath);
             } catch (error) {
@@ -177,9 +173,7 @@ export async function processFullResponseActions(
         });
       } catch (error) {
         errors.push({
-          message: `Failed to add dependencies: ${dyadAddDependencyPackages.join(
-            ", ",
-          )}`,
+          message: `Failed to add dependencies: ${dyadAddDependencyPackages.join(", ")}`,
           error: error,
         });
       }
@@ -327,12 +321,12 @@ export async function processFullResponseActions(
             const fileContent = await readFile(fileInfo.filePath);
             content = fileContent;
             logger.log(
-              `Replaced file ID ${trimmedContent} with content from ${fileInfo.originalName}`,
+              `Replaced file ID ${trimmedContent} with content from ${fileInfo.originalName}`
             );
           } catch (error) {
             logger.error(
               `Failed to read uploaded file ${fileInfo.originalName}:`,
-              error,
+              error
             );
             errors.push({
               message: `Failed to read uploaded file: ${fileInfo.originalName}`,
@@ -388,16 +382,13 @@ export async function processFullResponseActions(
 
       // Create commit with details of all changes
       const changes = [];
-      if (writtenFiles.length > 0)
-        changes.push(`wrote ${writtenFiles.length} file(s)`);
+      if (writtenFiles.length > 0) changes.push(`wrote ${writtenFiles.length} file(s)`);
       if (renamedFiles.length > 0)
         changes.push(`renamed ${renamedFiles.length} file(s)`);
       if (deletedFiles.length > 0)
         changes.push(`deleted ${deletedFiles.length} file(s)`);
       if (dyadAddDependencyPackages.length > 0)
-        changes.push(
-          `added ${dyadAddDependencyPackages.join(", ")} package(s)`,
-        );
+        changes.push(`added ${dyadAddDependencyPackages.join(", ")} package(s)`);
       if (dyadExecuteSqlQueries.length > 0)
         changes.push(`executed ${dyadExecuteSqlQueries.length} SQL queries`);
 
@@ -431,15 +422,13 @@ export async function processFullResponseActions(
             amend: true,
           });
           logger.log(
-            `Amend commit with changes outside of dyad: ${uncommittedFiles.join(", ")}`,
+            `Amend commit with changes outside of dyad: ${uncommittedFiles.join(", ")}`
           );
         } catch (error) {
           // Just log, but don't throw an error because the user can still
           // commit these changes outside of Dyad if needed.
           logger.error(
-            `Failed to commit changes outside of dyad: ${uncommittedFiles.join(
-              ", ",
-            )}`,
+            `Failed to commit changes outside of dyad: ${uncommittedFiles.join(", ")}`
           );
           extraFilesError = (error as any).toString();
         }
@@ -475,13 +464,13 @@ export async function processFullResponseActions(
     ${warnings
       .map(
         (warning) =>
-          `<dyad-output type="warning" message="${warning.message}">${warning.error}</dyad-output>`,
+          `<dyad-output type="warning" message="${warning.message}">${warning.error}</dyad-output>`
       )
       .join("\n")}
     ${errors
       .map(
         (error) =>
-          `<dyad-output type="error" message="${error.message}">${error.error}</dyad-output>`,
+          `<dyad-output type="error" message="${error.message}">${error.error}</dyad-output>`
       )
       .join("\n")}
     `;

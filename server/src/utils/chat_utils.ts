@@ -1,10 +1,8 @@
-import log from "@/logger";
+import logger from "@/logger";
 import { getEeziAppPath } from "@/services/paths";
 import { estimateTokens } from "@/utils/token_utils";
 import { extractCodebase } from "@/utils/codebase";
 import { validateChatContext } from "@/utils/context_paths_utils";
-
-const logger = log.scope("chat-utils");
 
 // Cache for codebase token counts
 interface CodebaseTokenCache {

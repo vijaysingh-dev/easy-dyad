@@ -1,6 +1,4 @@
-import log from "@/logger";
-
-const logger = log.scope("file_uploads_state");
+import logger from "@/logger";
 
 export interface FileUploadInfo {
   filePath: string;
@@ -38,12 +36,12 @@ export class FileUploadsState {
    */
   public addFileUpload(
     { chatId, fileId }: { chatId: number; fileId: string },
-    fileInfo: FileUploadInfo,
+    fileInfo: FileUploadInfo
   ): void {
     const map = this.ensureChat(chatId);
     map.set(fileId, fileInfo);
     logger.log(
-      `Added file upload for chat ${chatId}: ${fileId} -> ${fileInfo.originalName}`,
+      `Added file upload for chat ${chatId}: ${fileId} -> ${fileInfo.originalName}`
     );
   }
 

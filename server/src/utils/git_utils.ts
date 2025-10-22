@@ -1,16 +1,16 @@
-import { getGitAuthor } from "./git_author";
 import git from "isomorphic-git";
 import fs from "node:fs";
 import { promises as fsPromises } from "node:fs";
 import pathModule from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
-import { readSettings } from "../../main/settings";
+import {getGithubUser} from "@/utils/integration_utils";
+import { readSettings } from "@/services/settings";
 
 const execAsync = promisify(exec);
 
 async function verboseExecAsync(
-  command: string,
+  command: string
 ): Promise<{ stdout: string; stderr: string }> {
   try {
     return await execAsync(command);
@@ -24,6 +24,20 @@ async function verboseExecAsync(
     }
     throw new Error(errorMessage);
   }
+}
+
+export async function getGitAuthor() {
+  const user = await getGithubUser();
+  const author = user
+    ? {
+        name: `[dyad]`,
+        email: user.email,
+      }
+    : {
+        name: "[dyad]",
+        email: "git@dyad.sh",
+      };
+  return author;
 }
 
 export async function gitCommit({
@@ -82,9 +96,7 @@ export async function gitStageToRevert({
   const settings = readSettings();
   if (settings.enableNativeGit) {
     // Get the current HEAD commit hash
-    const { stdout: currentHead } = await execAsync(
-      `git -C "${path}" rev-parse HEAD`,
-    );
+    const { stdout: currentHead } = await execAsync(`git -C "${path}" rev-parse HEAD`);
     const currentCommit = currentHead.trim();
 
     // If we're already at the target commit, nothing to do
@@ -93,9 +105,7 @@ export async function gitStageToRevert({
     }
 
     // Safety: refuse to run if the work-tree isn't clean.
-    const { stdout: wtStatus } = await execAsync(
-      `git -C "${path}" status --porcelain`,
-    );
+    const { stdout: wtStatus } = await execAsync(`git -C "${path}" status --porcelain`);
     if (wtStatus.trim() !== "") {
       throw new Error("Cannot revert: working tree has uncommitted changes.");
     }

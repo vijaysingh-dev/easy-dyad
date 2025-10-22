@@ -2,7 +2,9 @@ import { z } from "zod";
 
 export const SecretSchema = z.object({
   value: z.string(),
-  encryptionType: z.enum(["electron-safe-storage", "plaintext"]).optional(),
+  encryptionType: z.enum(["aes-256-gcm", "plaintext"]),
+  iv: z.string().optional(),
+  authTag: z.string().optional(),
 });
 export type Secret = z.infer<typeof SecretSchema>;
 
@@ -73,7 +75,7 @@ const providers = [
 ] as const;
 
 export const cloudProviders = providers.filter(
-  (provider) => provider !== "ollama" && provider !== "lmstudio",
+  (provider) => provider !== "ollama" && provider !== "lmstudio"
 );
 
 /**
@@ -130,9 +132,7 @@ export const ProviderSettingSchema = z.union([
  * Type derived from the ProviderSettingSchema
  */
 export type ProviderSetting = z.infer<typeof ProviderSettingSchema>;
-export type RegularProviderSetting = z.infer<
-  typeof RegularProviderSettingSchema
->;
+export type RegularProviderSetting = z.infer<typeof RegularProviderSettingSchema>;
 export type AzureProviderSetting = z.infer<typeof AzureProviderSettingSchema>;
 export type VertexProviderSetting = z.infer<typeof VertexProviderSettingSchema>;
 

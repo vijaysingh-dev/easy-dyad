@@ -1,13 +1,12 @@
-import log from "@/logger";
+import logger from "@/logger";
 import Database from "better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { type BetterSQLite3Database, drizzle } from "drizzle-orm/better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "url";
 import * as schema from "./schema";
-import { getDyadAppPath, getUserDataPath } from "@/shared/paths";
-
-const logger = log.scope("db");
+import { getEeziAppPath, getUserDataPath } from "@/services/paths";
 
 // Database connection factory
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -44,7 +43,7 @@ export function initializeDatabase(): BetterSQLite3Database<typeof schema> & {
   }
 
   fs.mkdirSync(getUserDataPath(), { recursive: true });
-  fs.mkdirSync(getDyadAppPath("."), { recursive: true });
+  fs.mkdirSync(getEeziAppPath("."), { recursive: true });
 
   const sqlite = new Database(dbPath, { timeout: 10000 });
   sqlite.pragma("foreign_keys = ON");
@@ -52,7 +51,8 @@ export function initializeDatabase(): BetterSQLite3Database<typeof schema> & {
   _db = drizzle(sqlite, { schema });
 
   try {
-    const migrationsFolder = path.join(__dirname, "..", "..", "drizzle");
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    const migrationsFolder = path.join(__dirname, "..", "..", "..", "drizzle");
     if (!fs.existsSync(migrationsFolder)) {
       logger.error("Migrations folder not found:", migrationsFolder);
     } else {
@@ -60,7 +60,8 @@ export function initializeDatabase(): BetterSQLite3Database<typeof schema> & {
       migrate(_db, { migrationsFolder });
     }
   } catch (error) {
-    logger.error("Migration error:", error);
+    logger.info(error.message);
+    logger.error("Migration error:", error.message);
   }
 
   return _db as any;

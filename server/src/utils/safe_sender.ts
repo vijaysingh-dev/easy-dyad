@@ -1,4 +1,4 @@
-import log from "@/logger";
+import logger from "@/logger";
 import { Response } from "express";
 
 export function safeSend(res: Response, eventType: string, payload: any): void {

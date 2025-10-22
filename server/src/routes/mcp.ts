@@ -1,4 +1,4 @@
-import log from "@/logger";
+import logger from "@/logger";
 import db from "@/db";
 import { mcpServers, mcpToolConsents } from "@/db/schema";
 import { Router } from "express";
@@ -6,7 +6,6 @@ import { and, eq } from "drizzle-orm";
 import { getStoredConsent, resolveConsent } from "@/utils/mcp_consent";
 import { mcpManager } from "@/utils/mcp_manager";
 
-const logger = log.scope("mcp-route");
 const router = Router();
 
 type ConsentDecision = "accept-once" | "accept-always" | "decline";
