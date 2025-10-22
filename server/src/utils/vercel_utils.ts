@@ -1,6 +1,6 @@
 import logger from "@/logger";
 import { readSettings } from "@/services/settings";
-import { IS_TEST_BUILD } from "./test_utils";
+import { IS_TEST_BUILD } from "@/config";
 
 // Use test server URLs when in test mode
 const TEST_SERVER_BASE = "http://localhost:3500";

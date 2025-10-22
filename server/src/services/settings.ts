@@ -5,7 +5,6 @@ import crypto from "crypto";
 import { getUserDataPath } from "./paths";
 import { v4 as uuidv4 } from "uuid";
 import { DEFAULT_TEMPLATE_ID } from "@/services/llm/templates";
-import { IS_TEST_BUILD } from "@/ipc/utils/test_utils";
 import {
   UserSettingsSchema,
   type UserSettings,

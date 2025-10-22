@@ -50,17 +50,6 @@ class EeziClient {
     deeplink?: EventSource;
   } = {};
 
-  // Retry management
-  private retryCounts: Record<string, number> = {
-    chat: 0,
-    app: 0,
-    help: 0,
-    mcp: 0,
-    github: 0,
-    deeplink: 0,
-  };
-  private maxRetryDelay = 30000;
-
   constructor() {}
 
   // ----------------------------
@@ -73,10 +62,10 @@ class EeziClient {
   ) {
     if (this.eventSources[key]) return; // already connected
     const es = new EventSource(url);
+    this.eventSources[key] = es;
 
     es.onopen = () => {
       console.info(`[${key}] SSE connected`);
-      this.retryCounts[key] = 0;
     };
 
     es.onmessage = (event) => {
@@ -92,24 +81,9 @@ class EeziClient {
       console.error(`[${key}] SSE error:`, err);
       es.close();
       this.eventSources[key] = undefined;
-      this.retryConnection(key, url, onData);
     };
 
     this.eventSources[key] = es;
-  }
-
-  private retryConnection(
-    key: keyof typeof this.eventSources,
-    url: string,
-    onData: (data: any) => void
-  ) {
-    this.retryCounts[key]++;
-    const delay = Math.min(1000 * 2 ** (this.retryCounts[key] - 1), this.maxRetryDelay);
-    console.warn(`[${key}] Retrying connection in ${delay / 1000}s...`);
-
-    setTimeout(() => {
-      this.initEventSource(key, url, onData);
-    }, delay);
   }
 
   // Chat Stream
@@ -226,7 +200,6 @@ class EeziClient {
   // ----------------------------
   public reconnectNow(type: keyof typeof this.eventSources, url: string) {
     this.eventSources[type]?.close();
-    this.retryCounts[type] = 0;
     this.eventSources[type] = undefined;
     switch (type) {
       case "chat":

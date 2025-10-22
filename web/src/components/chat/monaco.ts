@@ -106,7 +106,7 @@ export const customLight: editor.IStandaloneThemeData = {
   },
 };
 
-editor.defineTheme("dyad-light", customLight);
+editor.defineTheme("eezi-light", customLight);
 
 export const customDark: editor.IStandaloneThemeData = {
   base: "vs-dark",
@@ -178,7 +178,7 @@ export const customDark: editor.IStandaloneThemeData = {
   },
 };
 
-editor.defineTheme("dyad-dark", customDark);
+editor.defineTheme("eezi-dark", customDark);
 
 monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
   jsx: monaco.languages.typescript.JsxEmit.React, // Enable JSX

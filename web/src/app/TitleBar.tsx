@@ -10,15 +10,11 @@ import { providerSettingsRoute } from "@/routes/settings/providers/$provider";
 import { cn } from "@shared/utils";
 import { useDeepLink } from "@/contexts/DeepLinkContext";
 import { useEffect, useState } from "react";
-import { DyadProSuccessDialog } from "@/components/DyadProSuccessDialog";
+import { EeziProSuccessDialog } from "@/components/EeziProSuccessDialog";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useUserBudgetInfo } from "@/hooks/useUserBudgetInfo";
 import { UserBudgetInfo } from "@shared/eeziTypes";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ActionHeader } from "@/components/preview_panel/ActionHeader";
 import api from "@/api";
 
@@ -45,16 +41,16 @@ export const TitleBar = () => {
     checkPlatform();
   }, []);
 
-  const showDyadProSuccessDialog = () => {
+  const showEeziProSuccessDialog = () => {
     setIsSuccessDialogOpen(true);
   };
 
   const { lastDeepLink } = useDeepLink();
   useEffect(() => {
     const handleDeepLink = async () => {
-      if (lastDeepLink?.type === "dyad-pro-return") {
+      if (lastDeepLink?.type === "eezi-pro-return") {
         await refreshSettings();
-        showDyadProSuccessDialog();
+        showEeziProSuccessDialog();
       }
     };
     handleDeepLink();
@@ -62,9 +58,7 @@ export const TitleBar = () => {
 
   // Get selected app name
   const selectedApp = apps.find((app) => app.id === selectedAppId);
-  const displayText = selectedApp
-    ? `App: ${selectedApp.name}`
-    : "(no app selected)";
+  const displayText = selectedApp ? `App: ${selectedApp.name}` : "(no app selected)";
 
   const handleAppClick = () => {
     if (selectedApp) {
@@ -72,15 +66,15 @@ export const TitleBar = () => {
     }
   };
 
-  const isDyadPro = !!settings?.providerSettings?.auto?.apiKey?.value;
-  const isDyadProEnabled = Boolean(settings?.enableDyadPro);
+  const isEeziPro = !!settings?.providerSettings?.auto?.apiKey?.value;
+  const isEeziProEnabled = Boolean(settings?.enableEeziPro);
 
   return (
     <>
       <div className="@container z-11 w-full h-11 bg-(--sidebar) absolute top-0 left-0 app-region-drag flex items-center">
         <div className={`${showWindowControls ? "pl-2" : "pl-18"}`}></div>
 
-        <img src={logo} alt="Dyad Logo" className="w-6 h-6 mr-0.5" />
+        <img src={logo} alt="Eezi Logo" className="w-6 h-6 mr-0.5" />
         <Button
           data-testid="title-bar-app-name-button"
           variant="outline"
@@ -92,7 +86,7 @@ export const TitleBar = () => {
         >
           {displayText}
         </Button>
-        {isDyadPro && <DyadProButton isDyadProEnabled={isDyadProEnabled} />}
+        {isEeziPro && <EeziProButton isEeziProEnabled={isEeziProEnabled} />}
 
         {/* Preview Header */}
         {location.pathname === "/chat" && (
@@ -104,7 +98,7 @@ export const TitleBar = () => {
         {showWindowControls && <WindowsControls />}
       </div>
 
-      <DyadProSuccessDialog
+      <EeziProSuccessDialog
         isOpen={isSuccessDialogOpen}
         onClose={() => setIsSuccessDialogOpen(false)}
       />
@@ -141,11 +135,7 @@ function WindowsControls() {
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <rect
-            width="12"
-            height="1"
-            fill={isDarkMode ? "#ffffff" : "#000000"}
-          />
+          <rect width="12" height="1" fill={isDarkMode ? "#ffffff" : "#000000"} />
         </svg>
       </button>
       <button
@@ -192,16 +182,12 @@ function WindowsControls() {
   );
 }
 
-export function DyadProButton({
-  isDyadProEnabled,
-}: {
-  isDyadProEnabled: boolean;
-}) {
+export function EeziProButton({ isEeziProEnabled }: { isEeziProEnabled: boolean }) {
   const { navigate } = useRouter();
   const { userBudget } = useUserBudgetInfo();
   return (
     <Button
-      data-testid="title-bar-dyad-pro-button"
+      data-testid="title-bar-eezi-pro-button"
       onClick={() => {
         navigate({
           to: providerSettingsRoute.id,
@@ -211,22 +197,18 @@ export function DyadProButton({
       variant="outline"
       className={cn(
         "hidden @2xl:block ml-1 no-app-region-drag h-7 bg-indigo-600 text-white dark:bg-indigo-600 dark:text-white text-xs px-2 pt-1 pb-1",
-        !isDyadProEnabled && "bg-zinc-600 dark:bg-zinc-600",
+        !isEeziProEnabled && "bg-zinc-600 dark:bg-zinc-600"
       )}
       size="sm"
     >
-      {isDyadProEnabled ? "Pro" : "Pro (off)"}
-      {userBudget && isDyadProEnabled && (
-        <AICreditStatus userBudget={userBudget} />
-      )}
+      {isEeziProEnabled ? "Pro" : "Pro (off)"}
+      {userBudget && isEeziProEnabled && <AICreditStatus userBudget={userBudget} />}
     </Button>
   );
 }
 
 export function AICreditStatus({ userBudget }: { userBudget: UserBudgetInfo }) {
-  const remaining = Math.round(
-    userBudget.totalCredits - userBudget.usedCredits,
-  );
+  const remaining = Math.round(userBudget.totalCredits - userBudget.usedCredits);
   return (
     <Tooltip>
       <TooltipTrigger>

@@ -4,7 +4,7 @@ import { execSync } from "child_process";
 import { platform, arch } from "os";
 import fixPath from "fix-path";
 import { getEnvVar } from "@/utils/read_env";
-import { IS_TEST_BUILD } from "@/utils/test_utils";
+import { IS_TEST_BUILD } from "@/config";
 import { runShellCommand } from "@/utils/runShellCommand";
 import { getLanguageModelProviders } from "@/services/llm/language_model_helpers";
 import { readSettings, writeSettings } from "@/services/settings";
@@ -30,7 +30,7 @@ router.get("/get-user-budget", async (req, res) => {
   const apiKey = settings.providerSettings?.auto?.apiKey?.value;
 
   if (!apiKey) {
-    logger.error("LLM Gateway API key (Dyad Pro) is not configured.");
+    logger.error("LLM Gateway API key (Eezi Pro) is not configured.");
     res.send(null);
     return;
   }

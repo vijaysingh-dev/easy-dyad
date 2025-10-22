@@ -42,14 +42,10 @@ export function SetupBanner() {
   const posthog = usePostHog();
   const navigate = useNavigate();
   const [isOnboardingVisible, setIsOnboardingVisible] = useState(true);
-  const { isAnyProviderSetup, isLoading: loading } =
-    useLanguageModelProviders();
-  const [nodeSystemInfo, setNodeSystemInfo] = useState<NodeSystemInfo | null>(
-    null,
-  );
+  const { isAnyProviderSetup, isLoading: loading } = useLanguageModelProviders();
+  const [nodeSystemInfo, setNodeSystemInfo] = useState<NodeSystemInfo | null>(null);
   const [nodeCheckError, setNodeCheckError] = useState<boolean>(false);
-  const [nodeInstallStep, setNodeInstallStep] =
-    useState<NodeInstallStep>("install");
+  const [nodeInstallStep, setNodeInstallStep] = useState<NodeInstallStep>("install");
   const checkNode = useCallback(async () => {
     try {
       setNodeCheckError(false);
@@ -86,10 +82,10 @@ export function SetupBanner() {
       params: { provider: "openrouter" },
     });
   };
-  const handleDyadProSetupClick = () => {
-    posthog.capture("setup-flow:ai-provider-setup:dyad:click");
+  const handleEeziProSetupClick = () => {
+    posthog.capture("setup-flow:ai-provider-setup:eezi:click");
     api.app.openExternalUrl(
-      "https://www.dyad.sh/pro?utm_source=dyad-app&utm_medium=app&utm_campaign=setup-banner",
+      "https://www.dyad.sh/pro?utm_source=eezi-app&utm_medium=app&utm_campaign=setup-banner"
     );
   };
 
@@ -133,7 +129,7 @@ export function SetupBanner() {
 
   const bannerClasses = cn(
     "w-full mb-6 border rounded-xl shadow-sm overflow-hidden",
-    "border-zinc-200 dark:border-zinc-700",
+    "border-zinc-200 dark:border-zinc-700"
   );
 
   const getStatusIcon = (isComplete: boolean, hasError: boolean = false) => {
@@ -150,18 +146,14 @@ export function SetupBanner() {
   return (
     <>
       <p className="text-xl font-medium text-zinc-700 dark:text-zinc-300 p-4">
-        Setup Dyad
+        Setup Eezi
       </p>
       <OnboardingBanner
         isVisible={isOnboardingVisible}
         setIsVisible={setIsOnboardingVisible}
       />
       <div className={bannerClasses}>
-        <Accordion
-          type="multiple"
-          className="w-full"
-          defaultValue={itemsNeedAction}
-        >
+        <Accordion type="multiple" className="w-full" defaultValue={itemsNeedAction}>
           <AccordionItem
             value="node-setup"
             className={cn(
@@ -169,7 +161,7 @@ export function SetupBanner() {
                 ? "bg-red-50 dark:bg-red-900/30"
                 : isNodeSetupComplete
                   ? "bg-green-50 dark:bg-green-900/30"
-                  : "bg-yellow-50 dark:bg-yellow-900/30",
+                  : "bg-yellow-50 dark:bg-yellow-900/30"
             )}
           >
             <AccordionTrigger className="px-4 py-3 transition-colors w-full hover:no-underline">
@@ -208,9 +200,7 @@ export function SetupBanner() {
                       <a
                         className="text-blue-500 dark:text-blue-400 hover:underline"
                         onClick={() => {
-                          api.app.openExternalUrl(
-                            "https://nodejs.org/en/download",
-                          );
+                          api.app.openExternalUrl("https://nodejs.org/en/download");
                         }}
                       >
                         more download options
@@ -234,20 +224,16 @@ export function SetupBanner() {
             className={cn(
               isAnyProviderSetup()
                 ? "bg-green-50 dark:bg-green-900/30"
-                : "bg-yellow-50 dark:bg-yellow-900/30",
+                : "bg-yellow-50 dark:bg-yellow-900/30"
             )}
           >
             <AccordionTrigger
-              className={cn(
-                "px-4 py-3 transition-colors w-full hover:no-underline",
-              )}
+              className={cn("px-4 py-3 transition-colors w-full hover:no-underline")}
             >
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(isAnyProviderSetup())}
-                  <span className="font-medium text-sm">
-                    2. Setup AI Model Access
-                  </span>
+                  <span className="font-medium text-sm">2. Setup AI Model Access</span>
                 </div>
               </div>
             </AccordionTrigger>
@@ -290,13 +276,13 @@ export function SetupBanner() {
 
               <SetupProviderCard
                 className="mt-2"
-                variant="dyad"
-                onClick={handleDyadProSetupClick}
+                variant="eezi"
+                onClick={handleEeziProSetupClick}
                 tabIndex={isNodeSetupComplete ? 0 : -1}
                 leadingIcon={
-                  <img src={logo} alt="Dyad Logo" className="w-6 h-6 mr-0.5" />
+                  <img src={logo} alt="Eezi Logo" className="w-6 h-6 mr-0.5" />
                 }
-                title="Setup Dyad Pro"
+                title="Setup Eezi Pro"
                 subtitle={
                   <>
                     <GlobeIcon className="w-3 h-3" />
@@ -343,9 +329,7 @@ function NodeJsHelpCallout() {
         If you run into issues, read our{" "}
         <a
           onClick={() => {
-            api.app.openExternalUrl(
-              "https://www.dyad.sh/docs/help/nodejs",
-            );
+            api.app.openExternalUrl("https://www.dyad.sh/docs/help/nodejs");
           }}
           className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
         >
@@ -354,8 +338,8 @@ function NodeJsHelpCallout() {
         .{" "}
       </p>
       <p className="mt-2">
-        Still stuck? Click the <b>Help</b> button in the bottom-left corner and
-        then <b>Report a Bug</b>.
+        Still stuck? Click the <b>Help</b> button in the bottom-left corner and then{" "}
+        <b>Report a Bug</b>.
       </p>
     </div>
   );
@@ -389,15 +373,13 @@ function NodeInstallButton({
     case "waiting-for-continue":
       return (
         <Button className="mt-3" onClick={finishNodeInstall}>
-          <div className="flex items-center gap-2">
-            Continue | I installed Node.js
-          </div>
+          <div className="flex items-center gap-2">Continue | I installed Node.js</div>
         </Button>
       );
     case "finished-checking":
       return (
         <div className="mt-3 text-sm text-red-600 dark:text-red-400">
-          Node.js not detected. Closing and re-opening Dyad usually fixes this.
+          Node.js not detected. Closing and re-opening Eezi usually fixes this.
         </div>
       );
     default:
@@ -405,11 +387,7 @@ function NodeInstallButton({
   }
 }
 
-export const OpenRouterSetupBanner = ({
-  className,
-}: {
-  className?: string;
-}) => {
+export const OpenRouterSetupBanner = ({ className }: { className?: string }) => {
   const posthog = usePostHog();
   const navigate = useNavigate();
   return (
@@ -424,9 +402,7 @@ export const OpenRouterSetupBanner = ({
         });
       }}
       tabIndex={0}
-      leadingIcon={
-        <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-      }
+      leadingIcon={<Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
       title="Setup OpenRouter API Key"
       subtitle={
         <>

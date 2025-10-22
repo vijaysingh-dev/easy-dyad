@@ -18,19 +18,19 @@ interface ProviderSettingsHeaderProps {
   isLoading: boolean;
   hasFreeTier?: boolean;
   providerWebsiteUrl?: string;
-  isDyad: boolean;
+  isEezi: boolean;
   onBackClick: () => void;
 }
 
 function getKeyButtonText({
   isConfigured,
-  isDyad,
+  isEezi,
 }: {
   isConfigured: boolean;
-  isDyad: boolean;
+  isEezi: boolean;
 }) {
-  if (isDyad) {
-    return isConfigured ? "Manage Dyad Pro Subscription" : "Setup Dyad Pro Subscription";
+  if (isEezi) {
+    return isConfigured ? "Manage Eezi Pro Subscription" : "Setup Eezi Pro Subscription";
   }
   return isConfigured ? "Manage API Keys" : "Setup API Key";
 }
@@ -41,7 +41,7 @@ export function ProviderSettingsHeader({
   isLoading,
   hasFreeTier,
   providerWebsiteUrl,
-  isDyad,
+  isEezi,
   onBackClick,
 }: ProviderSettingsHeaderProps) {
   const handleGetApiKeyClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -57,7 +57,7 @@ export function ProviderSettingsHeader({
       className="mb-4 cursor-pointer py-5 w-full ring-4 ring-primary/60 shadow-lg shadow-primary/30 border-primary/60"
     >
       <KeyRound className="mr-2 h-4 w-4" />
-      {getKeyButtonText({ isConfigured, isDyad })}
+      {getKeyButtonText({ isConfigured, isEezi })}
       <ExternalLink className="ml-2 h-4 w-4" />
     </Button>
   );

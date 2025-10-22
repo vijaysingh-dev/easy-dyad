@@ -9,17 +9,13 @@ import {
 import { useAtomValue } from "jotai";
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { useStreamChat } from "@/hooks/useStreamChat";
-interface DyadOutputProps {
+interface EeziOutputProps {
   type: "error" | "warning";
   message?: string;
   children?: React.ReactNode;
 }
 
-export const DyadOutput: React.FC<DyadOutputProps> = ({
-  type,
-  message,
-  children,
-}) => {
+export const EeziOutput: React.FC<EeziOutputProps> = ({ type, message, children }) => {
   const [isContentVisible, setIsContentVisible] = useState(false);
   const selectedChatId = useAtomValue(selectedChatIdAtom);
   const { streamMessage } = useStreamChat();

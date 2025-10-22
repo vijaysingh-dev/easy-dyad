@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ChevronUp, ChevronDown, Code2, FileText } from "lucide-react";
 import { CustomTagState } from "./stateTypes";
 
-interface DyadCodebaseContextProps {
+interface EeziCodebaseContextProps {
   children: React.ReactNode;
   node?: {
     properties?: {
@@ -12,9 +12,7 @@ interface DyadCodebaseContextProps {
   };
 }
 
-export const DyadCodebaseContext: React.FC<DyadCodebaseContextProps> = ({
-  node,
-}) => {
+export const EeziCodebaseContext: React.FC<EeziCodebaseContextProps> = ({ node }) => {
   const state = node?.properties?.state as CustomTagState;
   const inProgress = state === "pending";
   const [isExpanded, setIsExpanded] = useState(inProgress);
@@ -83,8 +81,7 @@ export const DyadCodebaseContext: React.FC<DyadCodebaseContextProps> = ({
                 const filePath = file.trim();
                 const fileName = filePath.split("/").pop() || filePath;
                 const pathPart =
-                  filePath.substring(0, filePath.length - fileName.length) ||
-                  "";
+                  filePath.substring(0, filePath.length - fileName.length) || "";
 
                 return (
                   <div

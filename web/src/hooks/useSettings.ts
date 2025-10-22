@@ -6,8 +6,8 @@ import { usePostHog } from "posthog-js/react";
 import { useAppVersion } from "./useAppVersion";
 import api from "@/api";
 
-const TELEMETRY_CONSENT_KEY = "dyadTelemetryConsent";
-const TELEMETRY_USER_ID_KEY = "dyadTelemetryUserId";
+const TELEMETRY_CONSENT_KEY = "eeziTelemetryConsent";
+const TELEMETRY_USER_ID_KEY = "eeziTelemetryUserId";
 
 export function isTelemetryOptedIn() {
   return localStorage.getItem(TELEMETRY_CONSENT_KEY) === "opted_in";

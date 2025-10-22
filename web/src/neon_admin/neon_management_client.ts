@@ -49,7 +49,7 @@ export async function refreshNeonToken(): Promise<void> {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ refreshToken }),
-      },
+      }
     );
 
     if (!response.ok) {
@@ -219,10 +219,7 @@ export async function getNeonOrganizationId(): Promise<string> {
   try {
     const response = await neonClient.getCurrentUserOrganizations();
 
-    if (
-      !response.data?.organizations ||
-      response.data.organizations.length === 0
-    ) {
+    if (!response.data?.organizations || response.data.organizations.length === 0) {
       throw new Error("No organizations found for this Neon account");
     }
 

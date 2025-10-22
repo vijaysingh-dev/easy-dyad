@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Sparkles, Info } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
-import { hasDyadProKey, type UserSettings } from "@shared/schemas";
+import { hasEeziProKey, type UserSettings } from "@shared/schemas";
 import api from "@/api";
 
 export function ProModeSelector() {
@@ -44,12 +44,12 @@ export function ProModeSelector() {
 
   const toggleProEnabled = () => {
     updateSettings({
-      enableDyadPro: !settings?.enableDyadPro,
+      enableEeziPro: !settings?.enableEeziPro,
     });
   };
 
-  const hasProKey = settings ? hasDyadProKey(settings) : false;
-  const proModeTogglable = hasProKey && Boolean(settings?.enableDyadPro);
+  const hasProKey = settings ? hasEeziProKey(settings) : false;
+  const proModeTogglable = hasProKey && Boolean(settings?.enableEeziPro);
 
   return (
     <Popover>
@@ -66,14 +66,14 @@ export function ProModeSelector() {
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>
-        <TooltipContent>Configure Dyad Pro settings</TooltipContent>
+        <TooltipContent>Configure Eezi Pro settings</TooltipContent>
       </Tooltip>
       <PopoverContent className="w-80 border-primary/20">
         <div className="space-y-4">
           <div className="space-y-1">
             <h4 className="font-medium flex items-center gap-1.5">
               <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-primary font-medium">Dyad Pro</span>
+              <span className="text-primary font-medium">Eezi Pro</span>
             </h4>
             <div className="h-px bg-gradient-to-r from-primary/50 via-primary/20 to-transparent" />
           </div>
@@ -92,11 +92,11 @@ export function ProModeSelector() {
           <div className="flex flex-col gap-5">
             <SelectorRow
               id="pro-enabled"
-              label="Enable Dyad Pro"
-              description="Use Dyad Pro AI credits"
-              tooltip="Uses Dyad Pro AI credits for the main AI model and Pro modes."
+              label="Enable Eezi Pro"
+              description="Use Eezi Pro AI credits"
+              tooltip="Uses Eezi Pro AI credits for the main AI model and Pro modes."
               isTogglable={hasProKey}
-              settingEnabled={Boolean(settings?.enableDyadPro)}
+              settingEnabled={Boolean(settings?.enableEeziPro)}
               toggle={toggleProEnabled}
             />
             <SelectorRow

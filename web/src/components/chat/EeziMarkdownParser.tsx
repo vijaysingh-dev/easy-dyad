@@ -1,31 +1,31 @@
 import React, { useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 
-import { DyadWrite } from "./DyadWrite";
-import { DyadRename } from "./DyadRename";
-import { DyadDelete } from "./DyadDelete";
-import { DyadAddDependency } from "./DyadAddDependency";
-import { DyadExecuteSql } from "./DyadExecuteSql";
-import { DyadAddIntegration } from "./DyadAddIntegration";
-import { DyadEdit } from "./DyadEdit";
-import { DyadCodebaseContext } from "./DyadCodebaseContext";
-import { DyadThink } from "./DyadThink";
+import { EeziWrite } from "./EeziWrite";
+import { EeziRename } from "./EeziRename";
+import { EeziDelete } from "./EeziDelete";
+import { EeziAddDependency } from "./EeziAddDependency";
+import { EeziExecuteSql } from "./EeziExecuteSql";
+import { EeziAddIntegration } from "./EeziAddIntegration";
+import { EeziEdit } from "./EeziEdit";
+import { EeziCodebaseContext } from "./EeziCodebaseContext";
+import { EeziThink } from "./EeziThink";
 import { CodeHighlight } from "./CodeHighlight";
 import { useAtomValue } from "jotai";
 import { isStreamingByIdAtom, selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { CustomTagState } from "./stateTypes";
-import { DyadOutput } from "./DyadOutput";
-import { DyadProblemSummary } from "./DyadProblemSummary";
-import { DyadMcpToolCall } from "./DyadMcpToolCall";
-import { DyadMcpToolResult } from "./DyadMcpToolResult";
-import { DyadWebSearchResult } from "./DyadWebSearchResult";
-import { DyadWebSearch } from "./DyadWebSearch";
-import { DyadRead } from "./DyadRead";
+import { EeziOutput } from "./EeziOutput";
+import { EeziProblemSummary } from "./EeziProblemSummary";
+import { EeziMcpToolCall } from "./EeziMcpToolCall";
+import { EeziMcpToolResult } from "./EeziMcpToolResult";
+import { EeziWebSearchResult } from "./EeziWebSearchResult";
+import { EeziWebSearch } from "./EeziWebSearch";
+import { EeziRead } from "./EeziRead";
 import { mapActionToButton } from "./ChatInput";
 import { SuggestedAction } from "@shared/schemas";
 import api from "@/api";
 
-interface DyadMarkdownParserProps {
+interface EeziMarkdownParserProps {
   content: string;
 }
 
@@ -68,9 +68,9 @@ export const VanillaMarkdownParser = ({ content }: { content: string }) => {
 };
 
 /**
- * Custom component to parse markdown content with Dyad-specific tags
+ * Custom component to parse markdown content with Eezi-specific tags
  */
-export const DyadMarkdownParser: React.FC<DyadMarkdownParserProps> = ({ content }) => {
+export const EeziMarkdownParser: React.FC<EeziMarkdownParserProps> = ({ content }) => {
   const chatId = useAtomValue(selectedChatIdAtom);
   const isStreaming = useAtomValue(isStreamingByIdAtom).get(chatId!) ?? false;
   // Extract content pieces (markdown and custom tags)
@@ -111,24 +111,24 @@ function preprocessUnclosedTags(content: string): {
   inProgressTags: Map<string, Set<number>>;
 } {
   const customTagNames = [
-    "dyad-write",
-    "dyad-rename",
-    "dyad-delete",
-    "dyad-add-dependency",
-    "dyad-execute-sql",
-    "dyad-add-integration",
-    "dyad-output",
-    "dyad-problem-report",
-    "dyad-chat-summary",
-    "dyad-edit",
-    "dyad-codebase-context",
-    "dyad-web-search-result",
-    "dyad-web-search",
-    "dyad-read",
+    "eezi-write",
+    "eezi-rename",
+    "eezi-delete",
+    "eezi-add-dependency",
+    "eezi-execute-sql",
+    "eezi-add-integration",
+    "eezi-output",
+    "eezi-problem-report",
+    "eezi-chat-summary",
+    "eezi-edit",
+    "eezi-codebase-context",
+    "eezi-web-search-result",
+    "eezi-web-search",
+    "eezi-read",
     "think",
-    "dyad-command",
-    "dyad-mcp-tool-call",
-    "dyad-mcp-tool-result",
+    "eezi-command",
+    "eezi-mcp-tool-call",
+    "eezi-mcp-tool-result",
   ];
 
   let processedContent = content;
@@ -181,24 +181,24 @@ function parseCustomTags(content: string): ContentPiece[] {
   const { processedContent, inProgressTags } = preprocessUnclosedTags(content);
 
   const customTagNames = [
-    "dyad-write",
-    "dyad-rename",
-    "dyad-delete",
-    "dyad-add-dependency",
-    "dyad-execute-sql",
-    "dyad-add-integration",
-    "dyad-output",
-    "dyad-problem-report",
-    "dyad-chat-summary",
-    "dyad-edit",
-    "dyad-codebase-context",
-    "dyad-web-search-result",
-    "dyad-web-search",
-    "dyad-read",
+    "eezi-write",
+    "eezi-rename",
+    "eezi-delete",
+    "eezi-add-dependency",
+    "eezi-execute-sql",
+    "eezi-add-integration",
+    "eezi-output",
+    "eezi-problem-report",
+    "eezi-chat-summary",
+    "eezi-edit",
+    "eezi-codebase-context",
+    "eezi-web-search-result",
+    "eezi-web-search",
+    "eezi-read",
     "think",
-    "dyad-command",
-    "dyad-mcp-tool-call",
-    "dyad-mcp-tool-result",
+    "eezi-command",
+    "eezi-mcp-tool-call",
+    "eezi-mcp-tool-result",
   ];
 
   const tagPattern = new RegExp(
@@ -284,9 +284,9 @@ function renderCustomTag(
   const { tag, attributes, content, inProgress } = tagInfo;
 
   switch (tag) {
-    case "dyad-read":
+    case "eezi-read":
       return (
-        <DyadRead
+        <EeziRead
           node={{
             properties: {
               path: attributes.path || "",
@@ -294,21 +294,21 @@ function renderCustomTag(
           }}
         >
           {content}
-        </DyadRead>
+        </EeziRead>
       );
-    case "dyad-web-search":
+    case "eezi-web-search":
       return (
-        <DyadWebSearch
+        <EeziWebSearch
           node={{
             properties: {},
           }}
         >
           {content}
-        </DyadWebSearch>
+        </EeziWebSearch>
       );
-    case "dyad-web-search-result":
+    case "eezi-web-search-result":
       return (
-        <DyadWebSearchResult
+        <EeziWebSearchResult
           node={{
             properties: {
               state: getState({ isStreaming, inProgress }),
@@ -316,11 +316,11 @@ function renderCustomTag(
           }}
         >
           {content}
-        </DyadWebSearchResult>
+        </EeziWebSearchResult>
       );
     case "think":
       return (
-        <DyadThink
+        <EeziThink
           node={{
             properties: {
               state: getState({ isStreaming, inProgress }),
@@ -328,11 +328,11 @@ function renderCustomTag(
           }}
         >
           {content}
-        </DyadThink>
+        </EeziThink>
       );
-    case "dyad-write":
+    case "eezi-write":
       return (
-        <DyadWrite
+        <EeziWrite
           node={{
             properties: {
               path: attributes.path || "",
@@ -342,12 +342,12 @@ function renderCustomTag(
           }}
         >
           {content}
-        </DyadWrite>
+        </EeziWrite>
       );
 
-    case "dyad-rename":
+    case "eezi-rename":
       return (
-        <DyadRename
+        <EeziRename
           node={{
             properties: {
               from: attributes.from || "",
@@ -356,12 +356,12 @@ function renderCustomTag(
           }}
         >
           {content}
-        </DyadRename>
+        </EeziRename>
       );
 
-    case "dyad-delete":
+    case "eezi-delete":
       return (
-        <DyadDelete
+        <EeziDelete
           node={{
             properties: {
               path: attributes.path || "",
@@ -369,12 +369,12 @@ function renderCustomTag(
           }}
         >
           {content}
-        </DyadDelete>
+        </EeziDelete>
       );
 
-    case "dyad-add-dependency":
+    case "eezi-add-dependency":
       return (
-        <DyadAddDependency
+        <EeziAddDependency
           node={{
             properties: {
               packages: attributes.packages || "",
@@ -382,12 +382,12 @@ function renderCustomTag(
           }}
         >
           {content}
-        </DyadAddDependency>
+        </EeziAddDependency>
       );
 
-    case "dyad-execute-sql":
+    case "eezi-execute-sql":
       return (
-        <DyadExecuteSql
+        <EeziExecuteSql
           node={{
             properties: {
               state: getState({ isStreaming, inProgress }),
@@ -396,12 +396,12 @@ function renderCustomTag(
           }}
         >
           {content}
-        </DyadExecuteSql>
+        </EeziExecuteSql>
       );
 
-    case "dyad-add-integration":
+    case "eezi-add-integration":
       return (
-        <DyadAddIntegration
+        <EeziAddIntegration
           node={{
             properties: {
               provider: attributes.provider || "",
@@ -409,12 +409,12 @@ function renderCustomTag(
           }}
         >
           {content}
-        </DyadAddIntegration>
+        </EeziAddIntegration>
       );
 
-    case "dyad-edit":
+    case "eezi-edit":
       return (
-        <DyadEdit
+        <EeziEdit
           node={{
             properties: {
               path: attributes.path || "",
@@ -424,12 +424,12 @@ function renderCustomTag(
           }}
         >
           {content}
-        </DyadEdit>
+        </EeziEdit>
       );
 
-    case "dyad-codebase-context":
+    case "eezi-codebase-context":
       return (
-        <DyadCodebaseContext
+        <EeziCodebaseContext
           node={{
             properties: {
               files: attributes.files || "",
@@ -438,12 +438,12 @@ function renderCustomTag(
           }}
         >
           {content}
-        </DyadCodebaseContext>
+        </EeziCodebaseContext>
       );
 
-    case "dyad-mcp-tool-call":
+    case "eezi-mcp-tool-call":
       return (
-        <DyadMcpToolCall
+        <EeziMcpToolCall
           node={{
             properties: {
               serverName: attributes.server || "",
@@ -452,12 +452,12 @@ function renderCustomTag(
           }}
         >
           {content}
-        </DyadMcpToolCall>
+        </EeziMcpToolCall>
       );
 
-    case "dyad-mcp-tool-result":
+    case "eezi-mcp-tool-result":
       return (
-        <DyadMcpToolResult
+        <EeziMcpToolResult
           node={{
             properties: {
               serverName: attributes.server || "",
@@ -466,29 +466,29 @@ function renderCustomTag(
           }}
         >
           {content}
-        </DyadMcpToolResult>
+        </EeziMcpToolResult>
       );
 
-    case "dyad-output":
+    case "eezi-output":
       return (
-        <DyadOutput
+        <EeziOutput
           type={attributes.type as "warning" | "error"}
           message={attributes.message}
         >
           {content}
-        </DyadOutput>
+        </EeziOutput>
       );
 
-    case "dyad-problem-report":
+    case "eezi-problem-report":
       return (
-        <DyadProblemSummary summary={attributes.summary}>{content}</DyadProblemSummary>
+        <EeziProblemSummary summary={attributes.summary}>{content}</EeziProblemSummary>
       );
 
-    case "dyad-chat-summary":
-      // Don't render anything for dyad-chat-summary
+    case "eezi-chat-summary":
+      // Don't render anything for eezi-chat-summary
       return null;
 
-    case "dyad-command":
+    case "eezi-command":
       if (attributes.type) {
         const action = {
           id: attributes.type,

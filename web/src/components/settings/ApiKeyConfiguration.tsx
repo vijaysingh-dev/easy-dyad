@@ -33,7 +33,7 @@ interface ApiKeyConfigurationProps {
   onApiKeyInputChange: (value: string) => void;
   onSaveKey: (value: string) => Promise<void>;
   onDeleteKey: () => Promise<void>;
-  isDyad: boolean;
+  isEezi: boolean;
   updateSettings: (settings: Partial<UserSettings>) => Promise<UserSettings>;
 }
 
@@ -49,7 +49,7 @@ export function ApiKeyConfiguration({
   onApiKeyInputChange,
   onSaveKey,
   onDeleteKey,
-  isDyad,
+  isEezi,
   updateSettings,
 }: ApiKeyConfigurationProps) {
   // Special handling for Azure OpenAI which requires environment variables
@@ -71,22 +71,16 @@ export function ApiKeyConfiguration({
   const userApiKey = settings?.providerSettings?.[provider]?.apiKey?.value;
 
   const isValidUserKey =
-    !!userApiKey &&
-    !userApiKey.startsWith("Invalid Key") &&
-    userApiKey !== "Not Set";
+    !!userApiKey && !userApiKey.startsWith("Invalid Key") && userApiKey !== "Not Set";
   const hasEnvKey = !!envApiKey;
 
-  const activeKeySource = isValidUserKey
-    ? "settings"
-    : hasEnvKey
-      ? "env"
-      : "none";
+  const activeKeySource = isValidUserKey ? "settings" : hasEnvKey ? "env" : "none";
 
   const defaultAccordionValue = [];
   if (isValidUserKey || !hasEnvKey) {
     defaultAccordionValue.push("settings-key");
   }
-  if (!isDyad && hasEnvKey) {
+  if (!isEezi && hasEnvKey) {
     defaultAccordionValue.push("env-key");
   }
 
@@ -181,14 +175,13 @@ export function ApiKeyConfiguration({
             </div>
             {saveError && <p className="text-xs text-red-600">{saveError}</p>}
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Setting a key here will override the environment variable (if
-              set).
+              Setting a key here will override the environment variable (if set).
             </p>
           </div>
         </AccordionContent>
       </AccordionItem>
 
-      {!isDyad && envVarName && (
+      {!isEezi && envVarName && (
         <AccordionItem
           value="env-key"
           className="border rounded-lg px-4 bg-(--background-lightest)"
@@ -202,9 +195,7 @@ export function ApiKeyConfiguration({
                 <KeyRound className="h-4 w-4" />
                 <AlertTitle>Environment Variable Key ({envVarName})</AlertTitle>
                 <AlertDescription>
-                  <p className="font-mono text-sm">
-                    {maskEnvApiKey(envApiKey)}
-                  </p>
+                  <p className="font-mono text-sm">{maskEnvApiKey(envApiKey)}</p>
                   {activeKeySource === "env" && (
                     <p className="text-xs text-green-600 dark:text-green-400 mt-1">
                       This key is currently active (no settings key set).
@@ -212,8 +203,7 @@ export function ApiKeyConfiguration({
                   )}
                   {activeKeySource === "settings" && (
                     <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
-                      This key is currently being overridden by the key set in
-                      Settings.
+                      This key is currently being overridden by the key set in Settings.
                     </p>
                   )}
                 </AlertDescription>
@@ -232,9 +222,9 @@ export function ApiKeyConfiguration({
               </Alert>
             )}
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
-              This key is set outside the application. If present, it will be
-              used only if no key is configured in the Settings section above.
-              Requires app restart to detect changes.
+              This key is set outside the application. If present, it will be used only
+              if no key is configured in the Settings section above. Requires app restart
+              to detect changes.
             </p>
           </AccordionContent>
         </AccordionItem>

@@ -6,7 +6,7 @@ import { useAtom } from "jotai";
 import { useStreamChat } from "@/hooks/useStreamChat";
 import { useAttachments } from "@/hooks/useAttachments";
 import { AttachmentsList } from "./AttachmentsList";
-import { DragDropOverlay } from "./DragDropOverlay";
+import { DragDropOverlay } from "./EeziDropOverlay";
 import { FileAttachmentDropdown } from "./FileAttachmentDropdown";
 import { usePostHog } from "posthog-js/react";
 import { HomeSubmitOptions } from "@/pages/home";
@@ -69,10 +69,7 @@ export function HomeChatInput({
           onDrop={handleDrop}
         >
           {/* Attachments list */}
-          <AttachmentsList
-            attachments={attachments}
-            onRemove={removeAttachment}
-          />
+          <AttachmentsList attachments={attachments} onRemove={removeAttachment} />
 
           {/* Drag and drop overlay */}
           <DragDropOverlay isDraggingOver={isDraggingOver} />
@@ -83,7 +80,7 @@ export function HomeChatInput({
               onChange={setInputValue}
               onSubmit={handleCustomSubmit}
               onPaste={handlePaste}
-              placeholder="Ask Dyad to build..."
+              placeholder="Ask Eezi to build..."
               disabled={isStreaming}
               excludeCurrentApp={false}
             />

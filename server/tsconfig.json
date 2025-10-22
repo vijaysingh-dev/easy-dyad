@@ -8,8 +8,9 @@
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"],
-      "@shared/*": ["../../shared/*"]
+      "@shared/*": ["../../shared/*"],
+      "@eezi-sh/*": ["../../packages/@eezi-sh/*"]
     }
   },
-  "include": ["src", "../shared"]
+  "include": ["src", "drizzle", "../shared"]
 }

@@ -1,7 +1,7 @@
 import logger from "@/logger";
 import { Api, createApiClient } from "@neondatabase/api-client";
 import { withLock } from "@/utils/lock_utils";
-import { IS_TEST_BUILD } from "@/utils/test_utils";
+import { IS_TEST_BUILD } from "@/config";
 import { readSettings, writeSettings } from "@/services/settings";
 
 /**

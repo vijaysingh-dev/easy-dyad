@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
-  getDyadWriteTags,
-  getDyadRenameTags,
-  getDyadAddDependencyTags,
-  getDyadDeleteTags,
-} from "../../../server/src/utils/dyad_tag_parser";
+  getEeziWriteTags,
+  getEeziRenameTags,
+  getEeziAddDependencyTags,
+  getEeziDeleteTags,
+} from "../../../server/src/utils/eezi_tag_parser";
 
 import { processFullResponseActions } from "../../../server/src/utils/processors/response_processor";
 import {
-  removeDyadTags,
-  hasUnclosedDyadWrite,
+  removeEeziTags,
+  hasUnclosedEeziWrite,
 } from "../../../server/src/handlers/chat_stream_handlers";
 import fs from "node:fs";
 import git from "isomorphic-git";
@@ -53,9 +53,9 @@ vi.mock("isomorphic-git", () => ({
   },
 }));
 
-// Mock paths module to control getDyadAppPath
+// Mock paths module to control getEeziAppPath
 vi.mock("../paths/paths", () => ({
-  getDyadAppPath: vi.fn().mockImplementation((appPath) => {
+  getEeziAppPath: vi.fn().mockImplementation((appPath) => {
     return `/mock/user/data/path/${appPath}`;
   }),
   getUserDataPath: vi.fn().mockReturnValue("/mock/user/data/path"),
@@ -80,52 +80,52 @@ vi.mock("../db", () => ({
   },
 }));
 
-describe("getDyadAddDependencyTags", () => {
-  it("should return an empty array when no dyad-add-dependency tags are found", () => {
-    const result = getDyadAddDependencyTags("No dyad-add-dependency tags here");
+describe("getEeziAddDependencyTags", () => {
+  it("should return an empty array when no eezi-add-dependency tags are found", () => {
+    const result = getEeziAddDependencyTags("No eezi-add-dependency tags here");
     expect(result).toEqual([]);
   });
 
-  it("should return an array of dyad-add-dependency tags", () => {
-    const result = getDyadAddDependencyTags(
-      `<dyad-add-dependency packages="uuid"></dyad-add-dependency>`,
+  it("should return an array of eezi-add-dependency tags", () => {
+    const result = getEeziAddDependencyTags(
+      `<eezi-add-dependency packages="uuid"></eezi-add-dependency>`
     );
     expect(result).toEqual(["uuid"]);
   });
 
-  it("should return all the packages in the dyad-add-dependency tags", () => {
-    const result = getDyadAddDependencyTags(
-      `<dyad-add-dependency packages="pkg1 pkg2"></dyad-add-dependency>`,
+  it("should return all the packages in the eezi-add-dependency tags", () => {
+    const result = getEeziAddDependencyTags(
+      `<eezi-add-dependency packages="pkg1 pkg2"></eezi-add-dependency>`
     );
     expect(result).toEqual(["pkg1", "pkg2"]);
   });
 
-  it("should return all the packages in the dyad-add-dependency tags", () => {
-    const result = getDyadAddDependencyTags(
-      `txt before<dyad-add-dependency packages="pkg1 pkg2"></dyad-add-dependency>text after`,
+  it("should return all the packages in the eezi-add-dependency tags", () => {
+    const result = getEeziAddDependencyTags(
+      `txt before<eezi-add-dependency packages="pkg1 pkg2"></eezi-add-dependency>text after`
     );
     expect(result).toEqual(["pkg1", "pkg2"]);
   });
 
-  it("should return all the packages in multiple dyad-add-dependency tags", () => {
-    const result = getDyadAddDependencyTags(
-      `txt before<dyad-add-dependency packages="pkg1 pkg2"></dyad-add-dependency>txt between<dyad-add-dependency packages="pkg3"></dyad-add-dependency>text after`,
+  it("should return all the packages in multiple eezi-add-dependency tags", () => {
+    const result = getEeziAddDependencyTags(
+      `txt before<eezi-add-dependency packages="pkg1 pkg2"></eezi-add-dependency>txt between<eezi-add-dependency packages="pkg3"></eezi-add-dependency>text after`
     );
     expect(result).toEqual(["pkg1", "pkg2", "pkg3"]);
   });
 });
-describe("getDyadWriteTags", () => {
-  it("should return an empty array when no dyad-write tags are found", () => {
-    const result = getDyadWriteTags("No dyad-write tags here");
+describe("getEeziWriteTags", () => {
+  it("should return an empty array when no eezi-write tags are found", () => {
+    const result = getEeziWriteTags("No eezi-write tags here");
     expect(result).toEqual([]);
   });
 
-  it("should return a dyad-write tag", () => {
+  it("should return a eezi-write tag", () => {
     const result =
-      getDyadWriteTags(`<dyad-write path="src/components/TodoItem.tsx" description="Creating a component for individual todo items">
+      getEeziWriteTags(`<eezi-write path="src/components/TodoItem.tsx" description="Creating a component for individual todo items">
 import React from "react";
 console.log("TodoItem");
-</dyad-write>`);
+</eezi-write>`);
     expect(result).toEqual([
       {
         path: "src/components/TodoItem.tsx",
@@ -136,14 +136,14 @@ console.log("TodoItem");`,
     ]);
   });
 
-  it("should strip out code fence (if needed) from a dyad-write tag", () => {
+  it("should strip out code fence (if needed) from a eezi-write tag", () => {
     const result =
-      getDyadWriteTags(`<dyad-write path="src/components/TodoItem.tsx" description="Creating a component for individual todo items">
+      getEeziWriteTags(`<eezi-write path="src/components/TodoItem.tsx" description="Creating a component for individual todo items">
 \`\`\`tsx
 import React from "react";
 console.log("TodoItem");
 \`\`\`
-</dyad-write>
+</eezi-write>
 `);
     expect(result).toEqual([
       {
@@ -156,10 +156,10 @@ console.log("TodoItem");`,
   });
 
   it("should handle missing description", () => {
-    const result = getDyadWriteTags(`
-      <dyad-write path="src/pages/locations/neighborhoods/louisville/Highlands.tsx">
+    const result = getEeziWriteTags(`
+      <eezi-write path="src/pages/locations/neighborhoods/louisville/Highlands.tsx">
 import React from 'react';
-</dyad-write>
+</eezi-write>
     `);
     expect(result).toEqual([
       {
@@ -171,12 +171,12 @@ import React from 'react';
   });
 
   it("should handle extra space", () => {
-    const result = getDyadWriteTags(
+    const result = getEeziWriteTags(
       cleanFullResponse(`
-      <dyad-write path="src/pages/locations/neighborhoods/louisville/Highlands.tsx" description="Updating Highlands neighborhood page to use <a> tags." >
+      <eezi-write path="src/pages/locations/neighborhoods/louisville/Highlands.tsx" description="Updating Highlands neighborhood page to use <a> tags." >
 import React from 'react';
-</dyad-write>
-    `),
+</eezi-write>
+    `)
     );
     expect(result).toEqual([
       {
@@ -188,14 +188,14 @@ import React from 'react';
   });
 
   it("should handle nested tags", () => {
-    const result = getDyadWriteTags(
+    const result = getEeziWriteTags(
       cleanFullResponse(`
       BEFORE TAG
-  <dyad-write path="src/pages/locations/neighborhoods/louisville/Highlands.tsx" description="Updating Highlands neighborhood page to use <a> tags.">
+  <eezi-write path="src/pages/locations/neighborhoods/louisville/Highlands.tsx" description="Updating Highlands neighborhood page to use <a> tags.">
 import React from 'react';
-</dyad-write>
+</eezi-write>
 AFTER TAG
-    `),
+    `)
     );
     expect(result).toEqual([
       {
@@ -210,15 +210,15 @@ AFTER TAG
     // Simulate the preprocessing step that cleanFullResponse would do
     const inputWithNestedTags = `
       BEFORE TAG
-  <dyad-write path="src/pages/locations/neighborhoods/louisville/Highlands.tsx" description="Updating Highlands neighborhood page to use <a> tags.">
+  <eezi-write path="src/pages/locations/neighborhoods/louisville/Highlands.tsx" description="Updating Highlands neighborhood page to use <a> tags.">
 import React from 'react';
-</dyad-write>
+</eezi-write>
 AFTER TAG
     `;
 
     const cleanedInput = cleanFullResponse(inputWithNestedTags);
 
-    const result = getDyadWriteTags(cleanedInput);
+    const result = getEeziWriteTags(cleanedInput);
     expect(result).toEqual([
       {
         path: "src/pages/locations/neighborhoods/louisville/Highlands.tsx",
@@ -229,11 +229,11 @@ AFTER TAG
   });
 
   it("should handle multiple nested tags after preprocessing", () => {
-    const inputWithMultipleNestedTags = `<dyad-write path="src/file.tsx" description="Testing <div> and <span> and <a> tags.">content</dyad-write>`;
+    const inputWithMultipleNestedTags = `<eezi-write path="src/file.tsx" description="Testing <div> and <span> and <a> tags.">content</eezi-write>`;
 
     // This simulates what cleanFullResponse should do
     const cleanedInput = cleanFullResponse(inputWithMultipleNestedTags);
-    const result = getDyadWriteTags(cleanedInput);
+    const result = getEeziWriteTags(cleanedInput);
     expect(result).toEqual([
       {
         path: "src/file.tsx",
@@ -244,12 +244,12 @@ AFTER TAG
   });
 
   it("should handle nested tags in multiple attributes", () => {
-    const inputWithNestedInMultipleAttrs = `<dyad-write path="src/<component>.tsx" description="Testing <div> tags.">content</dyad-write>`;
+    const inputWithNestedInMultipleAttrs = `<eezi-write path="src/<component>.tsx" description="Testing <div> tags.">content</eezi-write>`;
 
     // This simulates what cleanFullResponse should do
     const cleanedInput = cleanFullResponse(inputWithNestedInMultipleAttrs);
 
-    const result = getDyadWriteTags(cleanedInput);
+    const result = getEeziWriteTags(cleanedInput);
     expect(result).toEqual([
       {
         path: "src/＜component＞.tsx",
@@ -259,22 +259,22 @@ AFTER TAG
     ]);
   });
 
-  it("should return an array of dyad-write tags", () => {
-    const result = getDyadWriteTags(
+  it("should return an array of eezi-write tags", () => {
+    const result = getEeziWriteTags(
       `I'll create a simple todo list app using React, TypeScript, and shadcn/ui components. Let's get started!
 
 First, I'll create the necessary files for our todo list application:
 
-<dyad-write path="src/types/todo.ts" description="Creating types for our todo items">
+<eezi-write path="src/types/todo.ts" description="Creating types for our todo items">
 export interface Todo {
   id: string;
   text: string;
   completed: boolean;
   createdAt: Date;
 }
-</dyad-write>
+</eezi-write>
 
-<dyad-write path="src/components/TodoItem.tsx" description="Creating a component for individual todo items">
+<eezi-write path="src/components/TodoItem.tsx" description="Creating a component for individual todo items">
 import React from "react";
 import { Trash2, Check, X } from "lucide-react";
 import { Todo } from "../types/todo";
@@ -328,9 +328,9 @@ const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete }) => {
 };
 
 export default TodoItem;
-</dyad-write>
+</eezi-write>
 
-<dyad-write path="src/components/TodoForm.tsx" description="Creating a form component for adding new todos">
+<eezi-write path="src/components/TodoForm.tsx" description="Creating a form component for adding new todos">
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -369,9 +369,9 @@ const TodoForm: React.FC<TodoFormProps> = ({ onAddTodo }) => {
 };
 
 export default TodoForm;
-</dyad-write>
+</eezi-write>
 
-<dyad-write path="src/components/TodoList.tsx" description="Creating the main todo list component">
+<eezi-write path="src/components/TodoList.tsx" description="Creating the main todo list component">
 import React from "react";
 import { Todo } from "../types/todo";
 import TodoItem from "./TodoItem";
@@ -409,9 +409,9 @@ const TodoList: React.FC<TodoListProps> = ({ todos, onToggle, onDelete }) => {
 };
 
 export default TodoList;
-</dyad-write>
+</eezi-write>
 
-<dyad-write path="src/components/TodoStats.tsx" description="Creating a component to show todo statistics">
+<eezi-write path="src/components/TodoStats.tsx" description="Creating a component to show todo statistics">
 import React from "react";
 import { Todo } from "../types/todo";
 import { Card, CardContent } from "@/components/ui/card";
@@ -475,9 +475,9 @@ const TodoStats: React.FC<TodoStatsProps> = ({ todos }) => {
 };
 
 export default TodoStats;
-</dyad-write>
+</eezi-write>
 
-<dyad-write path="src/pages/Index.tsx" description="Creating the main page for our todo app">
+<eezi-write path="src/pages/Index.tsx" description="Creating the main page for our todo app">
 import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Todo } from "../types/todo";
@@ -576,32 +576,32 @@ const Index: React.FC = () => {
 };
 
 export default Index;
-</dyad-write>
+</eezi-write>
 
-<dyad-add-dependency packages="uuid"></dyad-add-dependency>
+<eezi-add-dependency packages="uuid"></eezi-add-dependency>
 
-<dyad-write path="src/types/uuid.d.ts" description="Adding type definitions for uuid">
+<eezi-write path="src/types/uuid.d.ts" description="Adding type definitions for uuid">
 declare module 'uuid' {
   export function v4(): string;
 }
-</dyad-write>
+</eezi-write>
 
-I've created a complete todo list application with the ability to add, complete, and delete tasks. The app includes statistics and uses local storage to persist data.`,
+I've created a complete todo list application with the ability to add, complete, and delete tasks. The app includes statistics and uses local storage to persist data.`
     );
     expect(result.length).toEqual(7);
   });
 });
 
-describe("getDyadRenameTags", () => {
-  it("should return an empty array when no dyad-rename tags are found", () => {
-    const result = getDyadRenameTags("No dyad-rename tags here");
+describe("getEeziRenameTags", () => {
+  it("should return an empty array when no eezi-rename tags are found", () => {
+    const result = getEeziRenameTags("No eezi-rename tags here");
     expect(result).toEqual([]);
   });
 
-  it("should return an array of dyad-rename tags", () => {
-    const result = getDyadRenameTags(
-      `<dyad-rename from="src/components/UserProfile.jsx" to="src/components/ProfileCard.jsx"></dyad-rename>
-      <dyad-rename from="src/utils/helpers.js" to="src/utils/utils.js"></dyad-rename>`,
+  it("should return an array of eezi-rename tags", () => {
+    const result = getEeziRenameTags(
+      `<eezi-rename from="src/components/UserProfile.jsx" to="src/components/ProfileCard.jsx"></eezi-rename>
+      <eezi-rename from="src/utils/helpers.js" to="src/utils/utils.js"></eezi-rename>`
     );
     expect(result).toEqual([
       {
@@ -613,21 +613,18 @@ describe("getDyadRenameTags", () => {
   });
 });
 
-describe("getDyadDeleteTags", () => {
-  it("should return an empty array when no dyad-delete tags are found", () => {
-    const result = getDyadDeleteTags("No dyad-delete tags here");
+describe("getEeziDeleteTags", () => {
+  it("should return an empty array when no eezi-delete tags are found", () => {
+    const result = getEeziDeleteTags("No eezi-delete tags here");
     expect(result).toEqual([]);
   });
 
-  it("should return an array of dyad-delete paths", () => {
-    const result = getDyadDeleteTags(
-      `<dyad-delete path="src/components/Analytics.jsx"></dyad-delete>
-      <dyad-delete path="src/utils/unused.js"></dyad-delete>`,
+  it("should return an array of eezi-delete paths", () => {
+    const result = getEeziDeleteTags(
+      `<eezi-delete path="src/components/Analytics.jsx"></eezi-delete>
+      <eezi-delete path="src/utils/unused.js"></eezi-delete>`
     );
-    expect(result).toEqual([
-      "src/components/Analytics.jsx",
-      "src/utils/unused.js",
-    ]);
+    expect(result).toEqual(["src/components/Analytics.jsx", "src/utils/unused.js"]);
   });
 });
 
@@ -665,15 +662,11 @@ describe("processFullResponse", () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
   });
 
-  it("should return empty object when no dyad-write tags are found", async () => {
-    const result = await processFullResponseActions(
-      "No dyad-write tags here",
-      1,
-      {
-        chatSummary: undefined,
-        messageId: 1,
-      },
-    );
+  it("should return empty object when no eezi-write tags are found", async () => {
+    const result = await processFullResponseActions("No eezi-write tags here", 1, {
+      chatSummary: undefined,
+      messageId: 1,
+    });
     expect(result).toEqual({
       updatedFiles: false,
       extraFiles: undefined,
@@ -683,30 +676,29 @@ describe("processFullResponse", () => {
     expect(fs.writeFileSync).not.toHaveBeenCalled();
   });
 
-  it("should process dyad-write tags and create files", async () => {
+  it("should process eezi-write tags and create files", async () => {
     // Set up fs mocks to succeed
     vi.mocked(fs.mkdirSync).mockImplementation(() => undefined);
     vi.mocked(fs.writeFileSync).mockImplementation(() => undefined);
 
-    const response = `<dyad-write path="src/file1.js">console.log('Hello');</dyad-write>`;
+    const response = `<eezi-write path="src/file1.js">console.log('Hello');</eezi-write>`;
 
     const result = await processFullResponseActions(response, 1, {
       chatSummary: undefined,
       messageId: 1,
     });
 
-    expect(fs.mkdirSync).toHaveBeenCalledWith(
-      "/mock/user/data/path/mock-app-path/src",
-      { recursive: true },
-    );
+    expect(fs.mkdirSync).toHaveBeenCalledWith("/mock/user/data/path/mock-app-path/src", {
+      recursive: true,
+    });
     expect(fs.writeFileSync).toHaveBeenCalledWith(
       "/mock/user/data/path/mock-app-path/src/file1.js",
-      "console.log('Hello');",
+      "console.log('Hello');"
     );
     expect(git.add).toHaveBeenCalledWith(
       expect.objectContaining({
         filepath: "src/file1.js",
-      }),
+      })
     );
     expect(git.commit).toHaveBeenCalled();
     expect(result).toEqual({ updatedFiles: true });
@@ -718,7 +710,7 @@ describe("processFullResponse", () => {
       throw new Error("Mock filesystem error");
     });
 
-    const response = `<dyad-write path="src/error-file.js">This will fail</dyad-write>`;
+    const response = `<eezi-write path="src/error-file.js">This will fail</eezi-write>`;
 
     const result = await processFullResponseActions(response, 1, {
       chatSummary: undefined,
@@ -729,7 +721,7 @@ describe("processFullResponse", () => {
     expect(result.error).toContain("Mock filesystem error");
   });
 
-  it("should process multiple dyad-write tags and commit all files", async () => {
+  it("should process multiple eezi-write tags and commit all files", async () => {
     // Clear previous mock calls
     vi.clearAllMocks();
 
@@ -738,12 +730,12 @@ describe("processFullResponse", () => {
     vi.mocked(fs.writeFileSync).mockImplementation(() => undefined);
 
     const response = `
-    <dyad-write path="src/file1.js">console.log('First file');</dyad-write>
-    <dyad-write path="src/utils/file2.js">export const add = (a, b) => a + b;</dyad-write>
-    <dyad-write path="src/components/Button.tsx">
+    <eezi-write path="src/file1.js">console.log('First file');</eezi-write>
+    <eezi-write path="src/utils/file2.js">export const add = (a, b) => a + b;</eezi-write>
+    <eezi-write path="src/components/Button.tsx">
     import React from 'react';
     export const Button = ({ children }) => <button>{children}</button>;
-    </dyad-write>
+    </eezi-write>
     `;
 
     const result = await processFullResponseActions(response, 1, {
@@ -752,51 +744,50 @@ describe("processFullResponse", () => {
     });
 
     // Check that directories were created for each file path
-    expect(fs.mkdirSync).toHaveBeenCalledWith(
-      "/mock/user/data/path/mock-app-path/src",
-      { recursive: true },
-    );
+    expect(fs.mkdirSync).toHaveBeenCalledWith("/mock/user/data/path/mock-app-path/src", {
+      recursive: true,
+    });
     expect(fs.mkdirSync).toHaveBeenCalledWith(
       "/mock/user/data/path/mock-app-path/src/utils",
-      { recursive: true },
+      { recursive: true }
     );
     expect(fs.mkdirSync).toHaveBeenCalledWith(
       "/mock/user/data/path/mock-app-path/src/components",
-      { recursive: true },
+      { recursive: true }
     );
 
     // Using toHaveBeenNthCalledWith to check each specific call
     expect(fs.writeFileSync).toHaveBeenNthCalledWith(
       1,
       "/mock/user/data/path/mock-app-path/src/file1.js",
-      "console.log('First file');",
+      "console.log('First file');"
     );
     expect(fs.writeFileSync).toHaveBeenNthCalledWith(
       2,
       "/mock/user/data/path/mock-app-path/src/utils/file2.js",
-      "export const add = (a, b) => a + b;",
+      "export const add = (a, b) => a + b;"
     );
     expect(fs.writeFileSync).toHaveBeenNthCalledWith(
       3,
       "/mock/user/data/path/mock-app-path/src/components/Button.tsx",
-      "import React from 'react';\n    export const Button = ({ children }) => <button>{children}</button>;",
+      "import React from 'react';\n    export const Button = ({ children }) => <button>{children}</button>;"
     );
 
     // Verify git operations were called for each file
     expect(git.add).toHaveBeenCalledWith(
       expect.objectContaining({
         filepath: "src/file1.js",
-      }),
+      })
     );
     expect(git.add).toHaveBeenCalledWith(
       expect.objectContaining({
         filepath: "src/utils/file2.js",
-      }),
+      })
     );
     expect(git.add).toHaveBeenCalledWith(
       expect.objectContaining({
         filepath: "src/components/Button.tsx",
-      }),
+      })
     );
 
     // Verify commit was called once after all files were added
@@ -804,13 +795,13 @@ describe("processFullResponse", () => {
     expect(result).toEqual({ updatedFiles: true });
   });
 
-  it("should process dyad-rename tags and rename files", async () => {
+  it("should process eezi-rename tags and rename files", async () => {
     // Set up fs mocks to succeed
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(fs.mkdirSync).mockImplementation(() => undefined);
     vi.mocked(fs.renameSync).mockImplementation(() => undefined);
 
-    const response = `<dyad-rename from="src/components/OldComponent.jsx" to="src/components/NewComponent.jsx"></dyad-rename>`;
+    const response = `<eezi-rename from="src/components/OldComponent.jsx" to="src/components/NewComponent.jsx"></eezi-rename>`;
 
     const result = await processFullResponseActions(response, 1, {
       chatSummary: undefined,
@@ -819,21 +810,21 @@ describe("processFullResponse", () => {
 
     expect(fs.mkdirSync).toHaveBeenCalledWith(
       "/mock/user/data/path/mock-app-path/src/components",
-      { recursive: true },
+      { recursive: true }
     );
     expect(fs.renameSync).toHaveBeenCalledWith(
       "/mock/user/data/path/mock-app-path/src/components/OldComponent.jsx",
-      "/mock/user/data/path/mock-app-path/src/components/NewComponent.jsx",
+      "/mock/user/data/path/mock-app-path/src/components/NewComponent.jsx"
     );
     expect(git.add).toHaveBeenCalledWith(
       expect.objectContaining({
         filepath: "src/components/NewComponent.jsx",
-      }),
+      })
     );
     expect(git.remove).toHaveBeenCalledWith(
       expect.objectContaining({
         filepath: "src/components/OldComponent.jsx",
-      }),
+      })
     );
     expect(git.commit).toHaveBeenCalled();
     expect(result).toEqual({ updatedFiles: true });
@@ -843,7 +834,7 @@ describe("processFullResponse", () => {
     // Set up the mock to return false for existsSync
     vi.mocked(fs.existsSync).mockReturnValue(false);
 
-    const response = `<dyad-rename from="src/components/NonExistent.jsx" to="src/components/NewFile.jsx"></dyad-rename>`;
+    const response = `<eezi-rename from="src/components/NonExistent.jsx" to="src/components/NewFile.jsx"></eezi-rename>`;
 
     const result = await processFullResponseActions(response, 1, {
       chatSummary: undefined,
@@ -860,12 +851,12 @@ describe("processFullResponse", () => {
     });
   });
 
-  it("should process dyad-delete tags and delete files", async () => {
+  it("should process eezi-delete tags and delete files", async () => {
     // Set up fs mocks to succeed
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(fs.unlinkSync).mockImplementation(() => undefined);
 
-    const response = `<dyad-delete path="src/components/Unused.jsx"></dyad-delete>`;
+    const response = `<eezi-delete path="src/components/Unused.jsx"></eezi-delete>`;
 
     const result = await processFullResponseActions(response, 1, {
       chatSummary: undefined,
@@ -873,12 +864,12 @@ describe("processFullResponse", () => {
     });
 
     expect(fs.unlinkSync).toHaveBeenCalledWith(
-      "/mock/user/data/path/mock-app-path/src/components/Unused.jsx",
+      "/mock/user/data/path/mock-app-path/src/components/Unused.jsx"
     );
     expect(git.remove).toHaveBeenCalledWith(
       expect.objectContaining({
         filepath: "src/components/Unused.jsx",
-      }),
+      })
     );
     expect(git.commit).toHaveBeenCalled();
     expect(result).toEqual({ updatedFiles: true });
@@ -888,7 +879,7 @@ describe("processFullResponse", () => {
     // Set up the mock to return false for existsSync
     vi.mocked(fs.existsSync).mockReturnValue(false);
 
-    const response = `<dyad-delete path="src/components/NonExistent.jsx"></dyad-delete>`;
+    const response = `<eezi-delete path="src/components/NonExistent.jsx"></eezi-delete>`;
 
     const result = await processFullResponseActions(response, 1, {
       chatSummary: undefined,
@@ -914,9 +905,9 @@ describe("processFullResponse", () => {
     vi.mocked(fs.unlinkSync).mockImplementation(() => undefined);
 
     const response = `
-    <dyad-write path="src/components/NewComponent.jsx">import React from 'react'; export default () => <div>New</div>;</dyad-write>
-    <dyad-rename from="src/components/OldComponent.jsx" to="src/components/RenamedComponent.jsx"></dyad-rename>
-    <dyad-delete path="src/components/Unused.jsx"></dyad-delete>
+    <eezi-write path="src/components/NewComponent.jsx">import React from 'react'; export default () => <div>New</div>;</eezi-write>
+    <eezi-rename from="src/components/OldComponent.jsx" to="src/components/RenamedComponent.jsx"></eezi-rename>
+    <eezi-delete path="src/components/Unused.jsx"></eezi-delete>
     `;
 
     const result = await processFullResponseActions(response, 1, {
@@ -927,18 +918,18 @@ describe("processFullResponse", () => {
     // Check write operation happened
     expect(fs.writeFileSync).toHaveBeenCalledWith(
       "/mock/user/data/path/mock-app-path/src/components/NewComponent.jsx",
-      "import React from 'react'; export default () => <div>New</div>;",
+      "import React from 'react'; export default () => <div>New</div>;"
     );
 
     // Check rename operation happened
     expect(fs.renameSync).toHaveBeenCalledWith(
       "/mock/user/data/path/mock-app-path/src/components/OldComponent.jsx",
-      "/mock/user/data/path/mock-app-path/src/components/RenamedComponent.jsx",
+      "/mock/user/data/path/mock-app-path/src/components/RenamedComponent.jsx"
     );
 
     // Check delete operation happened
     expect(fs.unlinkSync).toHaveBeenCalledWith(
-      "/mock/user/data/path/mock-app-path/src/components/Unused.jsx",
+      "/mock/user/data/path/mock-app-path/src/components/Unused.jsx"
     );
 
     // Check git operations
@@ -949,54 +940,54 @@ describe("processFullResponse", () => {
     expect(git.commit).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(
-          "wrote 1 file(s), renamed 1 file(s), deleted 1 file(s)",
+          "wrote 1 file(s), renamed 1 file(s), deleted 1 file(s)"
         ),
-      }),
+      })
     );
 
     expect(result).toEqual({ updatedFiles: true });
   });
 });
 
-describe("removeDyadTags", () => {
+describe("removeEeziTags", () => {
   it("should return empty string when input is empty", () => {
-    const result = removeDyadTags("");
+    const result = removeEeziTags("");
     expect(result).toBe("");
   });
 
-  it("should return the same text when no dyad tags are present", () => {
-    const text = "This is a regular text without any dyad tags.";
-    const result = removeDyadTags(text);
+  it("should return the same text when no eezi tags are present", () => {
+    const text = "This is a regular text without any eezi tags.";
+    const result = removeEeziTags(text);
     expect(result).toBe(text);
   });
 
-  it("should remove a single dyad-write tag", () => {
-    const text = `Before text <dyad-write path="src/file.js">console.log('hello');</dyad-write> After text`;
-    const result = removeDyadTags(text);
+  it("should remove a single eezi-write tag", () => {
+    const text = `Before text <eezi-write path="src/file.js">console.log('hello');</eezi-write> After text`;
+    const result = removeEeziTags(text);
     expect(result).toBe("Before text  After text");
   });
 
-  it("should remove a single dyad-delete tag", () => {
-    const text = `Before text <dyad-delete path="src/file.js"></dyad-delete> After text`;
-    const result = removeDyadTags(text);
+  it("should remove a single eezi-delete tag", () => {
+    const text = `Before text <eezi-delete path="src/file.js"></eezi-delete> After text`;
+    const result = removeEeziTags(text);
     expect(result).toBe("Before text  After text");
   });
 
-  it("should remove a single dyad-rename tag", () => {
-    const text = `Before text <dyad-rename from="old.js" to="new.js"></dyad-rename> After text`;
-    const result = removeDyadTags(text);
+  it("should remove a single eezi-rename tag", () => {
+    const text = `Before text <eezi-rename from="old.js" to="new.js"></eezi-rename> After text`;
+    const result = removeEeziTags(text);
     expect(result).toBe("Before text  After text");
   });
 
-  it("should remove multiple different dyad tags", () => {
-    const text = `Start <dyad-write path="file1.js">code here</dyad-write> middle <dyad-delete path="file2.js"></dyad-delete> end <dyad-rename from="old.js" to="new.js"></dyad-rename> finish`;
-    const result = removeDyadTags(text);
+  it("should remove multiple different eezi tags", () => {
+    const text = `Start <eezi-write path="file1.js">code here</eezi-write> middle <eezi-delete path="file2.js"></eezi-delete> end <eezi-rename from="old.js" to="new.js"></eezi-rename> finish`;
+    const result = removeEeziTags(text);
     expect(result).toBe("Start  middle  end  finish");
   });
 
-  it("should remove dyad tags with multiline content", () => {
+  it("should remove eezi tags with multiline content", () => {
     const text = `Before
-<dyad-write path="src/component.tsx" description="A React component">
+<eezi-write path="src/component.tsx" description="A React component">
 import React from 'react';
 
 const Component = () => {
@@ -1004,124 +995,124 @@ const Component = () => {
 };
 
 export default Component;
-</dyad-write>
+</eezi-write>
 After`;
-    const result = removeDyadTags(text);
+    const result = removeEeziTags(text);
     expect(result).toBe("Before\n\nAfter");
   });
 
-  it("should handle dyad tags with complex attributes", () => {
-    const text = `Text <dyad-write path="src/file.js" description="Complex component with quotes" version="1.0">const x = "hello world";</dyad-write> more text`;
-    const result = removeDyadTags(text);
+  it("should handle eezi tags with complex attributes", () => {
+    const text = `Text <eezi-write path="src/file.js" description="Complex component with quotes" version="1.0">const x = "hello world";</eezi-write> more text`;
+    const result = removeEeziTags(text);
     expect(result).toBe("Text  more text");
   });
 
-  it("should remove dyad tags and trim whitespace", () => {
-    const text = `  <dyad-write path="file.js">code</dyad-write>  `;
-    const result = removeDyadTags(text);
+  it("should remove eezi tags and trim whitespace", () => {
+    const text = `  <eezi-write path="file.js">code</eezi-write>  `;
+    const result = removeEeziTags(text);
     expect(result).toBe("");
   });
 
   it("should handle nested content that looks like tags", () => {
-    const text = `<dyad-write path="file.js">
+    const text = `<eezi-write path="file.js">
 const html = '<div>Hello</div>';
 const component = <Component />;
-</dyad-write>`;
-    const result = removeDyadTags(text);
+</eezi-write>`;
+    const result = removeEeziTags(text);
     expect(result).toBe("");
   });
 
-  it("should handle self-closing dyad tags", () => {
-    const text = `Before <dyad-delete path="file.js" /> After`;
-    const result = removeDyadTags(text);
-    expect(result).toBe('Before <dyad-delete path="file.js" /> After');
+  it("should handle self-closing eezi tags", () => {
+    const text = `Before <eezi-delete path="file.js" /> After`;
+    const result = removeEeziTags(text);
+    expect(result).toBe('Before <eezi-delete path="file.js" /> After');
   });
 
-  it("should handle malformed dyad tags gracefully", () => {
-    const text = `Before <dyad-write path="file.js">unclosed tag After`;
-    const result = removeDyadTags(text);
-    expect(result).toBe('Before <dyad-write path="file.js">unclosed tag After');
+  it("should handle malformed eezi tags gracefully", () => {
+    const text = `Before <eezi-write path="file.js">unclosed tag After`;
+    const result = removeEeziTags(text);
+    expect(result).toBe('Before <eezi-write path="file.js">unclosed tag After');
   });
 
-  it("should handle dyad tags with special characters in content", () => {
-    const text = `<dyad-write path="file.js">
+  it("should handle eezi tags with special characters in content", () => {
+    const text = `<eezi-write path="file.js">
 const regex = /<div[^>]*>.*?</div>/g;
 const special = "Special chars: @#$%^&*()[]{}|\\";
-</dyad-write>`;
-    const result = removeDyadTags(text);
+</eezi-write>`;
+    const result = removeEeziTags(text);
     expect(result).toBe("");
   });
 
-  it("should handle multiple dyad tags of the same type", () => {
-    const text = `<dyad-write path="file1.js">code1</dyad-write> between <dyad-write path="file2.js">code2</dyad-write>`;
-    const result = removeDyadTags(text);
+  it("should handle multiple eezi tags of the same type", () => {
+    const text = `<eezi-write path="file1.js">code1</eezi-write> between <eezi-write path="file2.js">code2</eezi-write>`;
+    const result = removeEeziTags(text);
     expect(result).toBe("between");
   });
 
-  it("should handle dyad tags with custom tag names", () => {
-    const text = `Before <dyad-custom-action param="value">content</dyad-custom-action> After`;
-    const result = removeDyadTags(text);
+  it("should handle eezi tags with custom tag names", () => {
+    const text = `Before <eezi-custom-action param="value">content</eezi-custom-action> After`;
+    const result = removeEeziTags(text);
     expect(result).toBe("Before  After");
   });
 });
 
-describe("hasUnclosedDyadWrite", () => {
-  it("should return false when there are no dyad-write tags", () => {
-    const text = "This is just regular text without any dyad tags.";
-    const result = hasUnclosedDyadWrite(text);
+describe("hasUnclosedEeziWrite", () => {
+  it("should return false when there are no eezi-write tags", () => {
+    const text = "This is just regular text without any eezi tags.";
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(false);
   });
 
-  it("should return false when dyad-write tag is properly closed", () => {
-    const text = `<dyad-write path="src/file.js">console.log('hello');</dyad-write>`;
-    const result = hasUnclosedDyadWrite(text);
+  it("should return false when eezi-write tag is properly closed", () => {
+    const text = `<eezi-write path="src/file.js">console.log('hello');</eezi-write>`;
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(false);
   });
 
-  it("should return true when dyad-write tag is not closed", () => {
-    const text = `<dyad-write path="src/file.js">console.log('hello');`;
-    const result = hasUnclosedDyadWrite(text);
+  it("should return true when eezi-write tag is not closed", () => {
+    const text = `<eezi-write path="src/file.js">console.log('hello');`;
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(true);
   });
 
-  it("should return false when dyad-write tag with attributes is properly closed", () => {
-    const text = `<dyad-write path="src/file.js" description="A test file">console.log('hello');</dyad-write>`;
-    const result = hasUnclosedDyadWrite(text);
+  it("should return false when eezi-write tag with attributes is properly closed", () => {
+    const text = `<eezi-write path="src/file.js" description="A test file">console.log('hello');</eezi-write>`;
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(false);
   });
 
-  it("should return true when dyad-write tag with attributes is not closed", () => {
-    const text = `<dyad-write path="src/file.js" description="A test file">console.log('hello');`;
-    const result = hasUnclosedDyadWrite(text);
+  it("should return true when eezi-write tag with attributes is not closed", () => {
+    const text = `<eezi-write path="src/file.js" description="A test file">console.log('hello');`;
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(true);
   });
 
-  it("should return false when there are multiple closed dyad-write tags", () => {
-    const text = `<dyad-write path="src/file1.js">code1</dyad-write>
+  it("should return false when there are multiple closed eezi-write tags", () => {
+    const text = `<eezi-write path="src/file1.js">code1</eezi-write>
     Some text in between
-    <dyad-write path="src/file2.js">code2</dyad-write>`;
-    const result = hasUnclosedDyadWrite(text);
+    <eezi-write path="src/file2.js">code2</eezi-write>`;
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(false);
   });
 
-  it("should return true when the last dyad-write tag is unclosed", () => {
-    const text = `<dyad-write path="src/file1.js">code1</dyad-write>
+  it("should return true when the last eezi-write tag is unclosed", () => {
+    const text = `<eezi-write path="src/file1.js">code1</eezi-write>
     Some text in between
-    <dyad-write path="src/file2.js">code2`;
-    const result = hasUnclosedDyadWrite(text);
+    <eezi-write path="src/file2.js">code2`;
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(true);
   });
 
   it("should return false when first tag is unclosed but last tag is closed", () => {
-    const text = `<dyad-write path="src/file1.js">code1
+    const text = `<eezi-write path="src/file1.js">code1
     Some text in between
-    <dyad-write path="src/file2.js">code2</dyad-write>`;
-    const result = hasUnclosedDyadWrite(text);
+    <eezi-write path="src/file2.js">code2</eezi-write>`;
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(false);
   });
 
   it("should handle multiline content correctly", () => {
-    const text = `<dyad-write path="src/component.tsx" description="React component">
+    const text = `<eezi-write path="src/component.tsx" description="React component">
 import React from 'react';
 
 const Component = () => {
@@ -1133,13 +1124,13 @@ const Component = () => {
 };
 
 export default Component;
-</dyad-write>`;
-    const result = hasUnclosedDyadWrite(text);
+</eezi-write>`;
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(false);
   });
 
   it("should handle multiline unclosed content correctly", () => {
-    const text = `<dyad-write path="src/component.tsx" description="React component">
+    const text = `<eezi-write path="src/component.tsx" description="React component">
 import React from 'react';
 
 const Component = () => {
@@ -1151,58 +1142,58 @@ const Component = () => {
 };
 
 export default Component;`;
-    const result = hasUnclosedDyadWrite(text);
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(true);
   });
 
   it("should handle complex attributes correctly", () => {
-    const text = `<dyad-write path="src/file.js" description="File with quotes and special chars" version="1.0" author="test">
+    const text = `<eezi-write path="src/file.js" description="File with quotes and special chars" version="1.0" author="test">
 const message = "Hello 'world'";
 const regex = /<div[^>]*>/g;
-</dyad-write>`;
-    const result = hasUnclosedDyadWrite(text);
+</eezi-write>`;
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(false);
   });
 
-  it("should handle text before and after dyad-write tags", () => {
+  it("should handle text before and after eezi-write tags", () => {
     const text = `Some text before the tag
-<dyad-write path="src/file.js">console.log('hello');</dyad-write>
+<eezi-write path="src/file.js">console.log('hello');</eezi-write>
 Some text after the tag`;
-    const result = hasUnclosedDyadWrite(text);
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(false);
   });
 
   it("should handle unclosed tag with text after", () => {
     const text = `Some text before the tag
-<dyad-write path="src/file.js">console.log('hello');
+<eezi-write path="src/file.js">console.log('hello');
 Some text after the unclosed tag`;
-    const result = hasUnclosedDyadWrite(text);
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(true);
   });
 
-  it("should handle empty dyad-write tags", () => {
-    const text = `<dyad-write path="src/file.js"></dyad-write>`;
-    const result = hasUnclosedDyadWrite(text);
+  it("should handle empty eezi-write tags", () => {
+    const text = `<eezi-write path="src/file.js"></eezi-write>`;
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(false);
   });
 
-  it("should handle unclosed empty dyad-write tags", () => {
-    const text = `<dyad-write path="src/file.js">`;
-    const result = hasUnclosedDyadWrite(text);
+  it("should handle unclosed empty eezi-write tags", () => {
+    const text = `<eezi-write path="src/file.js">`;
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(true);
   });
 
   it("should focus on the last opening tag when there are mixed states", () => {
-    const text = `<dyad-write path="src/file1.js">completed content</dyad-write>
-    <dyad-write path="src/file2.js">unclosed content
-    <dyad-write path="src/file3.js">final content</dyad-write>`;
-    const result = hasUnclosedDyadWrite(text);
+    const text = `<eezi-write path="src/file1.js">completed content</eezi-write>
+    <eezi-write path="src/file2.js">unclosed content
+    <eezi-write path="src/file3.js">final content</eezi-write>`;
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(false);
   });
 
   it("should handle tags with special characters in attributes", () => {
-    const text = `<dyad-write path="src/file-name_with.special@chars.js" description="File with special chars in path">content</dyad-write>`;
-    const result = hasUnclosedDyadWrite(text);
+    const text = `<eezi-write path="src/file-name_with.special@chars.js" description="File with special chars in path">content</eezi-write>`;
+    const result = hasUnclosedEeziWrite(text);
     expect(result).toBe(false);
   });
 });

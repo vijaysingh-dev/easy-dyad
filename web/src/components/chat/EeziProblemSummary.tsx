@@ -1,15 +1,10 @@
 import React, { useState } from "react";
-import {
-  ChevronsDownUp,
-  ChevronsUpDown,
-  AlertTriangle,
-  FileText,
-} from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, AlertTriangle, FileText } from "lucide-react";
 import type { Problem } from "@shared/eeziTypes";
 
 type ProblemWithoutSnippet = Omit<Problem, "snippet">;
 
-interface DyadProblemSummaryProps {
+interface EeziProblemSummaryProps {
   summary?: string;
   children?: React.ReactNode;
 }
@@ -49,7 +44,7 @@ const ProblemItem: React.FC<ProblemItemProps> = ({ problem, index }) => {
   );
 };
 
-export const DyadProblemSummary: React.FC<DyadProblemSummaryProps> = ({
+export const EeziProblemSummary: React.FC<EeziProblemSummaryProps> = ({
   summary,
   children,
 }) => {
@@ -102,10 +97,7 @@ export const DyadProblemSummary: React.FC<DyadProblemSummaryProps> = ({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <AlertTriangle
-            size={16}
-            className="text-amber-600 dark:text-amber-500"
-          />
+          <AlertTriangle size={16} className="text-amber-600 dark:text-amber-500" />
           <span className="text-gray-700 dark:text-gray-300 font-medium text-sm">
             <span className="font-bold mr-2 outline-2 outline-amber-200 dark:outline-amber-700 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 rounded-md px-1">
               Auto-fix

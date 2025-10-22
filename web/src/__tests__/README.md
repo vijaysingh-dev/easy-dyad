@@ -1,6 +1,6 @@
 # Test Documentation
 
-This directory contains unit tests for the Dyad application.
+This directory contains unit tests for the Eezi application.
 
 ## Testing Setup
 

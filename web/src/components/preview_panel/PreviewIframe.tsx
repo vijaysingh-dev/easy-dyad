@@ -44,7 +44,7 @@ import { cn } from "@shared/utils";
 import api from "@/api";
 
 interface ErrorBannerProps {
-  error: { message: string; source: "preview-app" | "dyad-app" } | undefined;
+  error: { message: string; source: "preview-app" | "eezi-app" } | undefined;
   onDismiss: () => void;
   onAIFix: () => void;
 }
@@ -77,15 +77,15 @@ const ErrorBanner = ({ error, onDismiss, onAIFix }: ErrorBannerProps) => {
         <X size={14} className="text-red-500 dark:text-red-400" />
       </button>
 
-      {/* Add a little chip that says "Internal error" if source is "dyad-app" */}
-      {error.source === "dyad-app" && (
+      {/* Add a little chip that says "Internal error" if source is "eezi-app" */}
+      {error.source === "eezi-app" && (
         <div className="absolute top-1 right-1 p-1 bg-red-100 dark:bg-red-900 rounded-md text-xs font-medium text-red-700 dark:text-red-300">
-          Internal Dyad error
+          Internal Eezi error
         </div>
       )}
 
       {/* Error message in the middle */}
-      <div className={cn("px-6 py-1 text-sm", error.source === "dyad-app" && "pt-6")}>
+      <div className={cn("px-6 py-1 text-sm", error.source === "eezi-app" && "pt-6")}>
         <div
           className="text-red-700 dark:text-red-300 text-wrap font-mono whitespace-pre-wrap break-words text-xs cursor-pointer flex gap-1 items-start"
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -110,8 +110,8 @@ const ErrorBanner = ({ error, onDismiss, onAIFix }: ErrorBannerProps) => {
             <span className="font-medium">Tip: </span>
             {isDockerError
               ? "Make sure Docker Desktop is running and try restarting the app."
-              : error.source === "dyad-app"
-                ? "Try restarting the Dyad app or restarting your computer to see if that fixes the error."
+              : error.source === "eezi-app"
+                ? "Try restarting the Eezi app or restarting your computer to see if that fixes the error."
                 : "Check if restarting the app fixes the error."}
           </span>
         </div>
@@ -168,7 +168,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
     if (!selectedComponentPreview) {
       if (iframeRef.current?.contentWindow) {
         iframeRef.current.contentWindow.postMessage(
-          { type: "deactivate-dyad-component-selector" },
+          { type: "deactivate-eezi-component-selector" },
           "*"
         );
       }
@@ -184,12 +184,12 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
         return;
       }
 
-      if (event.data?.type === "dyad-component-selector-initialized") {
+      if (event.data?.type === "eezi-component-selector-initialized") {
         setIsComponentSelectorInitialized(true);
         return;
       }
 
-      if (event.data?.type === "dyad-component-selected") {
+      if (event.data?.type === "eezi-component-selected") {
         console.log("Component picked:", event.data);
         setSelectedComponentPreview(parseComponentSelection(event.data));
         setIsPicking(false);
@@ -307,8 +307,8 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
       iframeRef.current.contentWindow.postMessage(
         {
           type: newIsPicking
-            ? "activate-dyad-component-selector"
-            : "deactivate-dyad-component-selector",
+            ? "activate-eezi-component-selector"
+            : "deactivate-eezi-component-selector",
         },
         "*"
       );
@@ -578,7 +578,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
 function parseComponentSelection(data: any): ComponentSelection | null {
   if (
     !data ||
-    data.type !== "dyad-component-selected" ||
+    data.type !== "eezi-component-selected" ||
     typeof data.id !== "string" ||
     typeof data.name !== "string"
   ) {

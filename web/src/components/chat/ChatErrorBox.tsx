@@ -6,18 +6,18 @@ import api from "@/api";
 export function ChatErrorBox({
   onDismiss,
   error,
-  isDyadProEnabled,
+  isEeziProEnabled,
 }: {
   onDismiss: () => void;
   error: string;
-  isDyadProEnabled: boolean;
+  isEeziProEnabled: boolean;
 }) {
   if (error.includes("doesn't have a free quota tier")) {
     return (
       <ChatErrorContainer onDismiss={onDismiss}>
         {error}
         <span className="ml-1">
-          <ExternalLink href="https://dyad.sh/pro">Access with Dyad Pro</ExternalLink>
+          <ExternalLink href="https://dyad.sh/pro">Access with Eezi Pro</ExternalLink>
         </span>{" "}
         or switch to another model.
       </ChatErrorContainer>
@@ -34,7 +34,7 @@ export function ChatErrorBox({
       <ChatErrorContainer onDismiss={onDismiss}>
         {error}
         <span className="ml-1">
-          <ExternalLink href="https://dyad.sh/pro">Upgrade to Dyad Pro</ExternalLink>
+          <ExternalLink href="https://dyad.sh/pro">Upgrade to Eezi Pro</ExternalLink>
         </span>{" "}
         or read the
         <span className="ml-1">
@@ -50,20 +50,20 @@ export function ChatErrorBox({
     return (
       <ChatInfoContainer onDismiss={onDismiss}>
         <span>
-          Looks like you don't have a valid Dyad Pro key.{" "}
-          <ExternalLink href="https://dyad.sh/pro">Upgrade to Dyad Pro</ExternalLink>{" "}
+          Looks like you don't have a valid Eezi Pro key.{" "}
+          <ExternalLink href="https://dyad.sh/pro">Upgrade to Eezi Pro</ExternalLink>{" "}
           today.
         </span>
       </ChatInfoContainer>
     );
   }
-  if (isDyadProEnabled && error.includes("ExceededBudget:")) {
+  if (isEeziProEnabled && error.includes("ExceededBudget:")) {
     return (
       <ChatInfoContainer onDismiss={onDismiss}>
         <span>
-          You have used all of your Dyad AI credits this month.{" "}
+          You have used all of your Eezi AI credits this month.{" "}
           <ExternalLink href="https://academy.dyad.sh/subscription">
-            Upgrade to Dyad Max
+            Upgrade to Eezi Max
           </ExternalLink>{" "}
           and get more AI credits
         </span>

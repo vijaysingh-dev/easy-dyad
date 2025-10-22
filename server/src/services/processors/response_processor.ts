@@ -20,12 +20,12 @@ import { UserSettings } from "@shared/schemas";
 import { gitCommit } from "@/utils/git_utils";
 import { writeMigrationFile } from "@/utils/file_utils";
 import {
-  getDyadWriteTags,
-  getDyadRenameTags,
-  getDyadDeleteTags,
-  getDyadAddDependencyTags,
-  getDyadExecuteSqlTags,
-} from "@/utils/dyad_tag_parser";
+  getEeziWriteTags,
+  getEeziRenameTags,
+  getEeziDeleteTags,
+  getEeziAddDependencyTags,
+  getEeziExecuteSqlTags,
+} from "@/utils/eezi_tag_parser";
 import { storeDbTimestampAtCurrentVersion } from "@/utils/neon_timestamp_utils";
 
 import { FileUploadsState } from "@/utils/file_uploads_state";
@@ -107,12 +107,12 @@ export async function processFullResponseActions(
 
   try {
     // Extract all tags
-    const dyadWriteTags = getDyadWriteTags(fullResponse);
-    const dyadRenameTags = getDyadRenameTags(fullResponse);
-    const dyadDeletePaths = getDyadDeleteTags(fullResponse);
-    const dyadAddDependencyPackages = getDyadAddDependencyTags(fullResponse);
-    const dyadExecuteSqlQueries = chatWithApp.app.supabaseProjectId
-      ? getDyadExecuteSqlTags(fullResponse)
+    const eeziWriteTags = getEeziWriteTags(fullResponse);
+    const eeziRenameTags = getEeziRenameTags(fullResponse);
+    const eeziDeletePaths = getEeziDeleteTags(fullResponse);
+    const eeziAddDependencyPackages = getEeziAddDependencyTags(fullResponse);
+    const eeziExecuteSqlQueries = chatWithApp.app.supabaseProjectId
+      ? getEeziExecuteSqlTags(fullResponse)
       : [];
 
     const message = await db.query.messages.findFirst({
@@ -129,8 +129,8 @@ export async function processFullResponseActions(
     }
 
     // Handle SQL execution tags
-    if (dyadExecuteSqlQueries.length > 0) {
-      for (const query of dyadExecuteSqlQueries) {
+    if (eeziExecuteSqlQueries.length > 0) {
+      for (const query of eeziExecuteSqlQueries) {
         try {
           await executeSupabaseSql({
             supabaseProjectId: chatWithApp.app.supabaseProjectId!,
@@ -160,20 +160,20 @@ export async function processFullResponseActions(
           });
         }
       }
-      logger.log(`Executed ${dyadExecuteSqlQueries.length} SQL queries`);
+      logger.log(`Executed ${eeziExecuteSqlQueries.length} SQL queries`);
     }
 
     // TODO: Handle add dependency tags
-    if (dyadAddDependencyPackages.length > 0) {
+    if (eeziAddDependencyPackages.length > 0) {
       try {
         await executeAddDependency({
-          packages: dyadAddDependencyPackages,
+          packages: eeziAddDependencyPackages,
           message: message,
           appPath,
         });
       } catch (error) {
         errors.push({
-          message: `Failed to add dependencies: ${dyadAddDependencyPackages.join(", ")}`,
+          message: `Failed to add dependencies: ${eeziAddDependencyPackages.join(", ")}`,
           error: error,
         });
       }
@@ -201,7 +201,7 @@ export async function processFullResponseActions(
     //////////////////////
 
     // Process all file deletions
-    for (const filePath of dyadDeletePaths) {
+    for (const filePath of eeziDeletePaths) {
       const fullFilePath = safeJoin(appPath, filePath);
 
       // Delete the file if it exists
@@ -244,7 +244,7 @@ export async function processFullResponseActions(
     }
 
     // Process all file renames
-    for (const tag of dyadRenameTags) {
+    for (const tag of eeziRenameTags) {
       const fromPath = safeJoin(appPath, tag.from);
       const toPath = safeJoin(appPath, tag.to);
 
@@ -307,7 +307,7 @@ export async function processFullResponseActions(
     }
 
     // Process all file writes
-    for (const tag of dyadWriteTags) {
+    for (const tag of eeziWriteTags) {
       const filePath = tag.path;
       let content: string | Buffer = tag.content;
       const fullFilePath = safeJoin(appPath, filePath);
@@ -365,7 +365,7 @@ export async function processFullResponseActions(
       writtenFiles.length > 0 ||
       renamedFiles.length > 0 ||
       deletedFiles.length > 0 ||
-      dyadAddDependencyPackages.length > 0;
+      eeziAddDependencyPackages.length > 0;
 
     let uncommittedFiles: string[] = [];
     let extraFilesError: string | undefined;
@@ -387,14 +387,14 @@ export async function processFullResponseActions(
         changes.push(`renamed ${renamedFiles.length} file(s)`);
       if (deletedFiles.length > 0)
         changes.push(`deleted ${deletedFiles.length} file(s)`);
-      if (dyadAddDependencyPackages.length > 0)
-        changes.push(`added ${dyadAddDependencyPackages.join(", ")} package(s)`);
-      if (dyadExecuteSqlQueries.length > 0)
-        changes.push(`executed ${dyadExecuteSqlQueries.length} SQL queries`);
+      if (eeziAddDependencyPackages.length > 0)
+        changes.push(`added ${eeziAddDependencyPackages.join(", ")} package(s)`);
+      if (eeziExecuteSqlQueries.length > 0)
+        changes.push(`executed ${eeziExecuteSqlQueries.length} SQL queries`);
 
       let message = chatSummary
-        ? `[dyad] ${chatSummary} - ${changes.join(", ")}`
-        : `[dyad] ${changes.join(", ")}`;
+        ? `[eezi] ${chatSummary} - ${changes.join(", ")}`
+        : `[eezi] ${changes.join(", ")}`;
       // Use chat summary, if provided, or default for commit message
       let commitHash = await gitCommit({
         path: appPath,
@@ -418,17 +418,17 @@ export async function processFullResponseActions(
         try {
           commitHash = await gitCommit({
             path: appPath,
-            message: message + " + extra files edited outside of Dyad",
+            message: message + " + extra files edited outside of Eezi",
             amend: true,
           });
           logger.log(
-            `Amend commit with changes outside of dyad: ${uncommittedFiles.join(", ")}`
+            `Amend commit with changes outside of eezi: ${uncommittedFiles.join(", ")}`
           );
         } catch (error) {
           // Just log, but don't throw an error because the user can still
-          // commit these changes outside of Dyad if needed.
+          // commit these changes outside of Eezi if needed.
           logger.error(
-            `Failed to commit changes outside of dyad: ${uncommittedFiles.join(", ")}`
+            `Failed to commit changes outside of eezi: ${uncommittedFiles.join(", ")}`
           );
           extraFilesError = (error as any).toString();
         }
@@ -464,13 +464,13 @@ export async function processFullResponseActions(
     ${warnings
       .map(
         (warning) =>
-          `<dyad-output type="warning" message="${warning.message}">${warning.error}</dyad-output>`
+          `<eezi-output type="warning" message="${warning.message}">${warning.error}</eezi-output>`
       )
       .join("\n")}
     ${errors
       .map(
         (error) =>
-          `<dyad-output type="error" message="${error.message}">${error.error}</dyad-output>`
+          `<eezi-output type="error" message="${error.message}">${error.error}</eezi-output>`
       )
       .join("\n")}
     `;

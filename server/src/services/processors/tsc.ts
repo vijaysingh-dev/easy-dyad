@@ -3,10 +3,10 @@ import * as path from "node:path";
 import { Worker } from "node:worker_threads";
 
 import {
-  getDyadDeleteTags,
-  getDyadRenameTags,
-  getDyadWriteTags,
-} from "@/utils/dyad_tag_parser";
+  getEeziDeleteTags,
+  getEeziRenameTags,
+  getEeziWriteTags,
+} from "@/utils/eezi_tag_parser";
 import { getTypeScriptCachePath } from "@/services/paths";
 import { WorkerInput, WorkerOutput } from "@shared/tscTypes";
 import { ProblemReport } from "@shared/eeziTypes";
@@ -55,9 +55,9 @@ export async function generateProblemReport({
       }
     });
 
-    const writeTags = getDyadWriteTags(fullResponse);
-    const renameTags = getDyadRenameTags(fullResponse);
-    const deletePaths = getDyadDeleteTags(fullResponse);
+    const writeTags = getEeziWriteTags(fullResponse);
+    const renameTags = getEeziRenameTags(fullResponse);
+    const deletePaths = getEeziDeleteTags(fullResponse);
     const virtualChanges = {
       deletePaths,
       renameTags,

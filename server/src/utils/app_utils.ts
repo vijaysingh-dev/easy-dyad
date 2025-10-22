@@ -107,12 +107,12 @@ export async function getSystemDebugInfo({
     console.error("Failed to get node path:", err);
   }
 
-  // Get Dyad version from package.json
+  // Get Eezi version from package.json
   const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
-  let dyadVersion = "unknown";
+  let eeziVersion = "unknown";
   try {
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
-    dyadVersion = packageJson.version;
+    eeziVersion = packageJson.version;
   } catch (err) {
     console.error("Failed to read package.json:", err);
   }
@@ -166,7 +166,7 @@ export async function getSystemDebugInfo({
     selectedLanguageModel: serializeModelForDebug(settings.selectedModel) || "unknown",
     telemetryConsent: settings.telemetryConsent || "unknown",
     telemetryUrl: "https://us.i.posthog.com", // Hardcoded from renderer.tsx
-    dyadVersion,
+    eeziVersion,
     platform: process.platform,
     architecture: arch(),
     logs,
@@ -324,7 +324,7 @@ function listenToProcess({
     // This is a hacky heuristic to pick up when drizzle is asking for user
     // to select from one of a few choices. We automatically pick the first
     // option because it's usually a good default choice. We guard this with
-    // isNeon because: 1) only Neon apps (for the official Dyad templates) should
+    // isNeon because: 1) only Neon apps (for the official Eezi templates) should
     // get this template and 2) it's safer to do this with Neon apps because
     // their databases have point in time restore built-in.
     if (isNeon && message.includes("created or renamed from another")) {
@@ -358,7 +358,7 @@ function listenToProcess({
           onStarted: (proxyUrl) => {
             safeSend(res, "app:output", {
               type: "stdout",
-              message: `[dyad-proxy-server]started=[${proxyUrl}] original=[${urlMatch[1]}]`,
+              message: `[eezi-proxy-server]started=[${proxyUrl}] original=[${urlMatch[1]}]`,
               appId,
             });
           },
@@ -411,7 +411,7 @@ async function executeAppInDocker({
   installCommand?: string | null;
   startCommand?: string | null;
 }): Promise<void> {
-  const containerName = `dyad-app-${appId}`;
+  const containerName = `eezi-app-${appId}`;
 
   // First, check if Docker is available
   try {
@@ -454,7 +454,7 @@ async function executeAppInDocker({
   }
 
   // Create a Dockerfile in the app directory if it doesn't exist
-  const dockerfilePath = path.join(appPath, "Dockerfile.dyad");
+  const dockerfilePath = path.join(appPath, "Dockerfile.eezi");
   if (!fs.existsSync(dockerfilePath)) {
     const dockerfileContent = `FROM node:22-alpine
 
@@ -473,7 +473,7 @@ RUN npm install -g pnpm
   // Build the Docker image
   const buildProcess = spawn(
     "docker",
-    ["build", "-f", "Dockerfile.dyad", "-t", `dyad-app-${appId}`, "."],
+    ["build", "-f", "Dockerfile.eezi", "-t", `eezi-app-${appId}`, "."],
     {
       cwd: appPath,
       stdio: "pipe",
@@ -511,12 +511,12 @@ RUN npm install -g pnpm
       "-v",
       `${appPath}:/app`,
       "-v",
-      `dyad-pnpm-${appId}:/app/.pnpm-store`,
+      `eezi-pnpm-${appId}:/app/.pnpm-store`,
       "-e",
       "PNPM_STORE_PATH=/app/.pnpm-store",
       "-w",
       "/app",
-      `dyad-app-${appId}`,
+      `eezi-app-${appId}`,
       "sh",
       "-c",
       getCommand({ installCommand, startCommand }),
@@ -668,7 +668,7 @@ export function isComponentTaggerUpgradeNeeded(appPath: string): boolean {
 
   try {
     const viteConfigContent = fs.readFileSync(viteConfigPath, "utf-8");
-    return !viteConfigContent.includes("@dyad-sh/react-vite-component-tagger");
+    return !viteConfigContent.includes("@eezi-sh/react-vite-component-tagger");
   } catch (e) {
     logger.error("Error reading vite config", e);
     return false;
@@ -716,7 +716,7 @@ export async function applyComponentTagger(appPath: string) {
   // Add import statement if not present
   if (
     !content.includes(
-      "import dyadComponentTagger from '@dyad-sh/react-vite-component-tagger';"
+      "import eeziComponentTagger from '@eezi-sh/react-vite-component-tagger';"
     )
   ) {
     // Add it after the last import statement
@@ -731,15 +731,15 @@ export async function applyComponentTagger(appPath: string) {
     lines.splice(
       lastImportIndex + 1,
       0,
-      "import dyadComponentTagger from '@dyad-sh/react-vite-component-tagger';"
+      "import eeziComponentTagger from '@eezi-sh/react-vite-component-tagger';"
     );
     content = lines.join("\n");
   }
 
   // Add plugin to plugins array
   if (content.includes("plugins: [")) {
-    if (!content.includes("dyadComponentTagger()")) {
-      content = content.replace("plugins: [", "plugins: [dyadComponentTagger(), ");
+    if (!content.includes("eeziComponentTagger()")) {
+      content = content.replace("plugins: [", "plugins: [eeziComponentTagger(), ");
     }
   } else {
     throw new Error(
@@ -753,7 +753,7 @@ export async function applyComponentTagger(appPath: string) {
   await new Promise<void>((resolve, reject) => {
     logger.info("Installing component-tagger dependency");
     const process = spawn(
-      "pnpm add -D @dyad-sh/react-vite-component-tagger || npm install --save-dev --legacy-peer-deps @dyad-sh/react-vite-component-tagger",
+      "pnpm add -D @eezi-sh/react-vite-component-tagger || npm install --save-dev --legacy-peer-deps @eezi-sh/react-vite-component-tagger",
       {
         cwd: appPath,
         shell: true,
@@ -786,7 +786,7 @@ export async function applyComponentTagger(appPath: string) {
     await gitAddAll({ path: appPath });
     await gitCommit({
       path: appPath,
-      message: "[dyad] add Dyad component tagger",
+      message: "[eezi] add Eezi component tagger",
     });
     logger.info("Successfully committed changes");
   } catch (err) {
@@ -835,7 +835,7 @@ export async function applyCapacitor({
     await gitAddAll({ path: appPath });
     await gitCommit({
       path: appPath,
-      message: "[dyad] add Capacitor for mobile app support",
+      message: "[eezi] add Capacitor for mobile app support",
     });
     logger.info("Successfully committed Capacitor changes");
   } catch (err) {

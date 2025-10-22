@@ -44,9 +44,9 @@ const ALLOWED_EXTENSIONS = [
   ".gradle",
   ".swift",
   // Edge cases
-  // https://github.com/dyad-sh/dyad/issues/880
+  // https://github.com/eezi-sh/eezi/issues/880
   ".py",
-  // https://github.com/dyad-sh/dyad/issues/1221
+  // https://github.com/eezi-sh/eezi/issues/1221
   ".php",
 ];
 
@@ -55,7 +55,7 @@ const ALLOWED_EXTENSIONS = [
 // people don't have their gitignore setup correctly so we want to
 // be conservative and never include these directories.
 //
-// ex: https://github.com/dyad-sh/dyad/issues/727
+// ex: https://github.com/eezi-sh/eezi/issues/727
 const EXCLUDED_DIRS = ["node_modules", ".git", "dist", "build", ".next"];
 
 // Files to always exclude
@@ -115,10 +115,7 @@ const gitIgnoreMtimes = new Map<string, number>();
 /**
  * Check if a path should be ignored based on git ignore rules
  */
-async function isGitIgnored(
-  filePath: string,
-  baseDir: string,
-): Promise<boolean> {
+async function isGitIgnored(filePath: string, baseDir: string): Promise<boolean> {
   try {
     // Check if any relevant .gitignore has been modified
     // Git checks .gitignore files in the path from the repo root to the file
@@ -187,7 +184,7 @@ async function isGitIgnored(
  */
 export async function readFileWithCache(
   filePath: string,
-  virtualFileSystem?: AsyncVirtualFileSystem,
+  virtualFileSystem?: AsyncVirtualFileSystem
 ): Promise<string | undefined> {
   try {
     // Check virtual filesystem first if provided
@@ -319,16 +316,12 @@ function shouldReadFileContents({
   const fileName = path.basename(filePath);
 
   // OMITTED_FILES takes precedence - never read if omitted
-  if (
-    OMITTED_FILES.some((pattern) => normalizedRelativePath.includes(pattern))
-  ) {
+  if (OMITTED_FILES.some((pattern) => normalizedRelativePath.includes(pattern))) {
     return false;
   }
 
   // Check if file should be included based on extension or filename
-  return (
-    ALLOWED_EXTENSIONS.includes(ext) || ALWAYS_INCLUDE_FILES.includes(fileName)
-  );
+  return ALLOWED_EXTENSIONS.includes(ext) || ALWAYS_INCLUDE_FILES.includes(fileName);
 }
 
 function shouldReadFileContentsForSmartContext({
@@ -342,18 +335,12 @@ function shouldReadFileContentsForSmartContext({
   const fileName = path.basename(filePath);
 
   // ALWAYS__OMITTED_FILES takes precedence - never read if omitted
-  if (
-    ALWAYS_OMITTED_FILES.some((pattern) =>
-      normalizedRelativePath.includes(pattern),
-    )
-  ) {
+  if (ALWAYS_OMITTED_FILES.some((pattern) => normalizedRelativePath.includes(pattern))) {
     return false;
   }
 
   // Check if file should be included based on extension or filename
-  return (
-    ALLOWED_EXTENSIONS.includes(ext) || ALWAYS_INCLUDE_FILES.includes(fileName)
-  );
+  return ALLOWED_EXTENSIONS.includes(ext) || ALWAYS_INCLUDE_FILES.includes(fileName);
 }
 
 /**
@@ -371,9 +358,9 @@ async function formatFile({
   try {
     // Check if we should read file contents
     if (!shouldReadFileContents({ filePath, normalizedRelativePath })) {
-      return `<dyad-file path="${normalizedRelativePath}">
+      return `<eezi-file path="${normalizedRelativePath}">
 ${OMITTED_FILE_CONTENT}
-</dyad-file>
+</eezi-file>
 
 `;
     }
@@ -381,23 +368,23 @@ ${OMITTED_FILE_CONTENT}
     const content = await readFileWithCache(filePath, virtualFileSystem);
 
     if (content == null) {
-      return `<dyad-file path="${normalizedRelativePath}">
+      return `<eezi-file path="${normalizedRelativePath}">
 // Error reading file
-</dyad-file>
+</eezi-file>
 
 `;
     }
 
-    return `<dyad-file path="${normalizedRelativePath}">
+    return `<eezi-file path="${normalizedRelativePath}">
 ${content}
-</dyad-file>
+</eezi-file>
 
 `;
   } catch (error) {
     logger.error(`Error reading file: ${filePath}`, error);
-    return `<dyad-file path="${normalizedRelativePath}">
+    return `<eezi-file path="${normalizedRelativePath}">
 // Error reading file: ${error}
-</dyad-file>
+</eezi-file>
 
 `;
   }
@@ -429,7 +416,7 @@ export async function extractCodebase({
 }> {
   const settings = readSettings();
   const isSmartContextEnabled =
-    settings?.enableDyadPro && settings?.enableProSmartFilesContextMode;
+    settings?.enableEeziPro && settings?.enableProSmartFilesContextMode;
 
   try {
     await fsAsync.access(appPath);
@@ -450,7 +437,7 @@ export async function extractCodebase({
     const deletedFiles = new Set(
       virtualFileSystem
         .getDeletedFiles()
-        .map((relativePath) => path.resolve(appPath, relativePath)),
+        .map((relativePath) => path.resolve(appPath, relativePath))
     );
     files = files.filter((file) => !deletedFiles.has(file));
 
@@ -623,7 +610,7 @@ async function sortFilesByModificationTime(files: string[]): Promise<string[]> {
         logger.warn(`Error getting file stats for ${file}:`, error);
         return { file, mtime: Date.now() };
       }
-    }),
+    })
   );
 
   if (IS_TEST_BUILD) {

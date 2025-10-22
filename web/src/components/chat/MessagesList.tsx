@@ -231,7 +231,7 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
         )}
 
         {isStreaming &&
-          !settings?.enableDyadPro &&
+          !settings?.enableEeziPro &&
           !userBudget &&
           messages.length > 0 && (
             <PromoMessage

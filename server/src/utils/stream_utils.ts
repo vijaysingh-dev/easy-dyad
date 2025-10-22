@@ -90,15 +90,15 @@ export async function processStreamChunks({
         inThinkingBlock = true;
       }
 
-      chunk += escapeDyadTags(part.text);
+      chunk += escapeEeziTags(part.text);
     } else if (part.type === "tool-call") {
       const { serverName, toolName } = parseMcpToolKey(part.toolName);
-      const content = escapeDyadTags(JSON.stringify(part.input));
-      chunk = `<dyad-mcp-tool-call server="${serverName}" tool="${toolName}">\n${content}\n</dyad-mcp-tool-call>\n`;
+      const content = escapeEeziTags(JSON.stringify(part.input));
+      chunk = `<eezi-mcp-tool-call server="${serverName}" tool="${toolName}">\n${content}\n</eezi-mcp-tool-call>\n`;
     } else if (part.type === "tool-result") {
       const { serverName, toolName } = parseMcpToolKey(part.toolName);
-      const content = escapeDyadTags(part.output);
-      chunk = `<dyad-mcp-tool-result server="${serverName}" tool="${toolName}">\n${content}\n</dyad-mcp-tool-result>\n`;
+      const content = escapeEeziTags(part.output);
+      chunk = `<eezi-mcp-tool-result server="${serverName}" tool="${toolName}">\n${content}\n</eezi-mcp-tool-result>\n`;
     }
 
     if (!chunk) {
@@ -165,7 +165,7 @@ export async function replaceTextAttachmentWithContent(
       // Replace the placeholder tag with the full content
       const escapedPath = filePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const tagPattern = new RegExp(
-        `<dyad-text-attachment filename="[^"]*" type="[^"]*" path="${escapedPath}">\\s*<\\/dyad-text-attachment>`,
+        `<eezi-text-attachment filename="[^"]*" type="[^"]*" path="${escapedPath}">\\s*<\\/eezi-text-attachment>`,
         "g"
       );
 
@@ -258,18 +258,18 @@ export function removeThinkingTags(text: string): string {
 
 export function removeProblemReportTags(text: string): string {
   const problemReportRegex =
-    /<dyad-problem-report[^>]*>[\s\S]*?<\/dyad-problem-report>/g;
+    /<eezi-problem-report[^>]*>[\s\S]*?<\/eezi-problem-report>/g;
   return text.replace(problemReportRegex, "").trim();
 }
 
-export function removeDyadTags(text: string): string {
-  const dyadRegex = /<dyad-[^>]*>[\s\S]*?<\/dyad-[^>]*>/g;
-  return text.replace(dyadRegex, "").trim();
+export function removeEeziTags(text: string): string {
+  const eeziRegex = /<eezi-[^>]*>[\s\S]*?<\/eezi-[^>]*>/g;
+  return text.replace(eeziRegex, "").trim();
 }
 
-export function hasUnclosedDyadWrite(text: string): boolean {
-  // Find the last opening dyad-write tag
-  const openRegex = /<dyad-write[^>]*>/g;
+export function hasUnclosedEeziWrite(text: string): boolean {
+  // Find the last opening eezi-write tag
+  const openRegex = /<eezi-write[^>]*>/g;
   let lastOpenIndex = -1;
   let match;
 
@@ -284,19 +284,19 @@ export function hasUnclosedDyadWrite(text: string): boolean {
 
   // Look for a closing tag after the last opening tag
   const textAfterLastOpen = text.substring(lastOpenIndex);
-  const hasClosingTag = /<\/dyad-write>/.test(textAfterLastOpen);
+  const hasClosingTag = /<\/eezi-write>/.test(textAfterLastOpen);
 
   return !hasClosingTag;
 }
 
-export function escapeDyadTags(text: string): string {
-  // Escape dyad tags in reasoning content
+export function escapeEeziTags(text: string): string {
+  // Escape eezi tags in reasoning content
   // We are replacing the opening tag with a look-alike character
-  // to avoid issues where thinking content includes dyad tags
+  // to avoid issues where thinking content includes eezi tags
   // and are mishandled by:
   // 1. FE markdown parser
   // 2. Main process response processor
-  return text.replace(/<dyad/g, "＜dyad").replace(/<\/dyad/g, "＜/dyad");
+  return text.replace(/<eezi/g, "＜eezi").replace(/<\/eezi/g, "＜/eezi");
 }
 
 export function createOtherAppsCodebasePrompt(otherAppsCodebaseInfo: string): string {
@@ -357,43 +357,43 @@ export async function getMcpTools(
   return mcpToolSet;
 }
 
-// e.g. [dyad-qa=add-dep]
+// e.g. [eezi-qa=add-dep]
 // Canned responses for test prompts
 const TEST_RESPONSES: Record<string, string> = {
   "ts-error": `This will get a TypeScript error.
 
-  <dyad-write path="src/bad-file.ts" description="This will get a TypeScript error.">
+  <eezi-write path="src/bad-file.ts" description="This will get a TypeScript error.">
   import NonExistentClass from 'non-existent-class';
 
   const x = new Object();
   x.nonExistentMethod();
-  </dyad-write>
+  </eezi-write>
 
   EOM`,
   "add-dep": `I'll add that dependency for you.
 
-  <dyad-add-dependency packages="deno"></dyad-add-dependency>
+  <eezi-add-dependency packages="deno"></eezi-add-dependency>
 
   EOM`,
   "add-non-existing-dep": `I'll add that dependency for you.
 
-  <dyad-add-dependency packages="@angular/does-not-exist"></dyad-add-dependency>
+  <eezi-add-dependency packages="@angular/does-not-exist"></eezi-add-dependency>
 
   EOM`,
   "add-multiple-deps": `I'll add that dependency for you.
 
-  <dyad-add-dependency packages="react-router-dom react-query"></dyad-add-dependency>
+  <eezi-add-dependency packages="react-router-dom react-query"></eezi-add-dependency>
 
   EOM`,
   write: `Hello world
-  <dyad-write path="src/hello.ts" content="Hello world">
+  <eezi-write path="src/hello.ts" content="Hello world">
   console.log("Hello world");
-  </dyad-write>
+  </eezi-write>
   EOM`,
   "string-literal-leak": `BEFORE TAG
-  <dyad-write path="src/pages/locations/neighborhoods/louisville/Highlands.tsx" description="Updating Highlands neighborhood page to use <a> tags.">
+  <eezi-write path="src/pages/locations/neighborhoods/louisville/Highlands.tsx" description="Updating Highlands neighborhood page to use <a> tags.">
 import React from 'react';
-</dyad-write>
+</eezi-write>
 AFTER TAG
 `,
 };
@@ -404,7 +404,7 @@ AFTER TAG
  * @returns The canned response if it's a test prompt, null otherwise
  */
 export function getTestResponse(prompt: string): string | null {
-  const match = prompt.match(/\[dyad-qa=([^\]]+)\]/);
+  const match = prompt.match(/\[eezi-qa=([^\]]+)\]/);
   if (match) {
     const testKey = match[1];
     return TEST_RESPONSES[testKey] || null;

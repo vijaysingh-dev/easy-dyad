@@ -42,7 +42,7 @@ export function HelpDialog({ isOpen, onClose }: HelpDialogProps) {
   const selectedChatId = useAtomValue(selectedChatIdAtom);
   const { settings } = useSettings();
 
-  const isDyadProUser = settings?.providerSettings?.["auto"]?.apiKey?.value;
+  const isEeziProUser = settings?.providerSettings?.["auto"]?.apiKey?.value;
 
   // Function to reset all dialog state
   const resetDialogState = () => {
@@ -92,7 +92,7 @@ Issues that do not meet these requirements will be closed and may need to be res
 <!-- What actually happened? -->
 
 ## System Information
-- Dyad Version: ${debugInfo.dyadVersion}
+- Eezi Version: ${debugInfo.eeziVersion}
 - Platform: ${debugInfo.platform}
 - Architecture: ${debugInfo.architecture}
 - Node Version: ${debugInfo.nodeVersion || "n/a"}
@@ -111,17 +111,17 @@ ${debugInfo.logs.slice(-3_500) || "No logs available"}
       const encodedBody = encodeURIComponent(issueBody);
       const encodedTitle = encodeURIComponent("[bug] <WRITE TITLE HERE>");
       const labels = ["bug"];
-      if (isDyadProUser) {
+      if (isEeziProUser) {
         labels.push("pro");
       }
-      const githubIssueUrl = `https://github.com/dyad-sh/dyad/issues/new?title=${encodedTitle}&labels=${labels}&body=${encodedBody}`;
+      const githubIssueUrl = `https://github.com/eezi-sh/eezi/issues/new?title=${encodedTitle}&labels=${labels}&body=${encodedBody}`;
 
       // Open the pre-filled GitHub issue page
       api.app.openExternalUrl(githubIssueUrl);
     } catch (error) {
       console.error("Failed to prepare bug report:", error);
       // Fallback to opening the regular GitHub issue page
-      api.app.openExternalUrl("https://github.com/dyad-sh/dyad/issues/new");
+      api.app.openExternalUrl("https://github.com/eezi-sh/eezi/issues/new");
     } finally {
       setIsLoading(false);
     }
@@ -223,10 +223,10 @@ Session ID: ${sessionId}
     const encodedBody = encodeURIComponent(issueBody);
     const encodedTitle = encodeURIComponent("[session report] <add title>");
     const labels = ["support"];
-    if (isDyadProUser) {
+    if (isEeziProUser) {
       labels.push("pro");
     }
-    const githubIssueUrl = `https://github.com/dyad-sh/dyad/issues/new?title=${encodedTitle}&labels=${labels}&body=${encodedBody}`;
+    const githubIssueUrl = `https://github.com/eezi-sh/eezi/issues/new?title=${encodedTitle}&labels=${labels}&body=${encodedBody}`;
 
     api.app.openExternalUrl(githubIssueUrl);
     handleClose();
@@ -325,7 +325,7 @@ Session ID: ${sessionId}
             <div className="border rounded-md p-3">
               <h3 className="font-medium mb-2">System Information</h3>
               <div className="text-sm bg-slate-50 dark:bg-slate-900 rounded p-2 max-h-32 overflow-y-auto">
-                <p>Dyad Version: {chatLogsData.debugInfo.dyadVersion}</p>
+                <p>Eezi Version: {chatLogsData.debugInfo.eeziVersion}</p>
                 <p>Platform: {chatLogsData.debugInfo.platform}</p>
                 <p>Architecture: {chatLogsData.debugInfo.architecture}</p>
                 <p>
@@ -366,13 +366,13 @@ Session ID: ${sessionId}
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Need help with Dyad?</DialogTitle>
+          <DialogTitle>Need help with Eezi?</DialogTitle>
         </DialogHeader>
         <DialogDescription className="">
           If you need help or want to report an issue, here are some options:
         </DialogDescription>
         <div className="flex flex-col space-y-4 w-full">
-          {isDyadProUser ? (
+          {isEeziProUser ? (
             <div className="flex flex-col space-y-2">
               <Button
                 variant="default"
@@ -381,10 +381,10 @@ Session ID: ${sessionId}
                 }}
                 className="w-full py-6 border-primary/50 shadow-sm shadow-primary/10 transition-all hover:shadow-md hover:shadow-primary/15"
               >
-                <SparklesIcon className="mr-2 h-5 w-5" /> Chat with Dyad help bot (Pro)
+                <SparklesIcon className="mr-2 h-5 w-5" /> Chat with Eezi help bot (Pro)
               </Button>
               <p className="text-sm text-muted-foreground px-2">
-                Opens an in-app help chat assistant that searches through Dyad's docs.
+                Opens an in-app help chat assistant that searches through Eezi's docs.
               </p>
             </div>
           ) : (

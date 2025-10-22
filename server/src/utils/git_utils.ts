@@ -4,7 +4,7 @@ import { promises as fsPromises } from "node:fs";
 import pathModule from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
-import {getGithubUser} from "@/utils/integration_utils";
+import { getGithubUser } from "@/utils/integration_utils";
 import { readSettings } from "@/services/settings";
 
 const execAsync = promisify(exec);
@@ -30,11 +30,11 @@ export async function getGitAuthor() {
   const user = await getGithubUser();
   const author = user
     ? {
-        name: `[dyad]`,
+        name: `[eezi]`,
         email: user.email,
       }
     : {
-        name: "[dyad]",
+        name: "[eezi]",
         email: "git@dyad.sh",
       };
   return author;

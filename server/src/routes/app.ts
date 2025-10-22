@@ -41,7 +41,7 @@ import { gitCommit } from "@/utils/git_utils";
 import { getVercelTeamSlug } from "@/utils/vercel_utils";
 import { getAllTemplates } from "@/utils/template_utils";
 import { simpleSpawn } from "@/utils/simpleSpawn";
-import { IS_TEST_BUILD } from "@/utils/test_utils";
+import { IS_TEST_BUILD } from "@/config";
 import { safeSend } from "@/utils/safe_sender";
 import { extractCodebase } from "@/utils/codebase";
 import { validateChatContext } from "@/utils/context_paths_utils";
@@ -122,7 +122,7 @@ router.post("/create-app", async (req, res) => {
     // Create initial commit
     const commitHash = await gitCommit({
       path: fullAppPath,
-      message: "Init Dyad app",
+      message: "Init Eezi app",
     });
 
     // Update chat with initial commit hash
@@ -196,7 +196,7 @@ router.post("/copy-app", async (req, res) => {
       // Create initial commit
       await gitCommit({
         path: newAppPath,
-        message: "Init Dyad app",
+        message: "Init Eezi app",
       });
     }
 
@@ -327,12 +327,15 @@ router.get("/run-app/:appId", async (req, res) => {
   const appId = parseInt(req.params.appId, 10);
   try {
     // Set up SSE
+    const origin = req.headers.origin ?? "*";
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    return withLock(appId, async () => {
+    await withLock(appId, async () => {
       // Check if app is already running
       if (runningApps.has(appId)) {
         logger.debug(`App ${appId} is already running.`);
@@ -378,7 +381,6 @@ router.get("/run-app/:appId", async (req, res) => {
   } catch (error: any) {
     logger.error(`Error running app ${appId}:`, error);
     safeSend(res, "app:error", { appId, error: error.message });
-  } finally {
     res.end();
   }
 });
@@ -442,13 +444,16 @@ router.get("/restart-app/:appId", async (req, res) => {
   const removeNodeModules = req.query.removeNodeModules === "true";
   try {
     // Set up SSE
+    const origin = req.headers.origin ?? "*";
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
     logger.log(`Restarting app ${appId}`);
-    return withLock(appId, async () => {
+    await withLock(appId, async () => {
       try {
         // First stop the app if it's running
         const appInfo = runningApps.get(appId);
@@ -494,12 +499,12 @@ router.get("/restart-app/:appId", async (req, res) => {
           // If running in Docker mode, also remove container volumes so deps reinstall freshly
           if (runtimeMode === "docker") {
             logger.log(
-              `Docker mode detected for app ${appId}. Removing Docker volumes dyad-pnpm-${appId}...`
+              `Docker mode detected for app ${appId}. Removing Docker volumes eezi-pnpm-${appId}...`
             );
             try {
               await removeDockerVolumesForApp(appId);
               logger.log(
-                `Removed Docker volumes for app ${appId} (dyad-pnpm-${appId}).`
+                `Removed Docker volumes for app ${appId} (eezi-pnpm-${appId}).`
               );
             } catch (e) {
               // Best-effort cleanup; log and continue
@@ -530,7 +535,6 @@ router.get("/restart-app/:appId", async (req, res) => {
   } catch (error: any) {
     logger.error(`Error restarting app ${appId}:`, error);
     safeSend(res, "app:error", { appId, error: error.message });
-  } finally {
     res.end();
   }
 });
@@ -937,11 +941,11 @@ router.get("reset-all", async (req, res) => {
     // Doing this last because it's the most time-consuming and the least important
     // in terms of resetting the app state.
     logger.log("removing all app files...");
-    const dyadAppPath = getEeziAppPath(".");
-    if (fs.existsSync(dyadAppPath)) {
-      await fsPromises.rm(dyadAppPath, { recursive: true, force: true });
+    const eeziAppPath = getEeziAppPath(".");
+    if (fs.existsSync(eeziAppPath)) {
+      await fsPromises.rm(eeziAppPath, { recursive: true, force: true });
       // Recreate the base directory
-      await fsPromises.mkdir(dyadAppPath, { recursive: true });
+      await fsPromises.mkdir(eeziAppPath, { recursive: true });
     }
     logger.log("all app files removed.");
     logger.log("reset all complete.");
@@ -1145,7 +1149,7 @@ router.post("/import-app", async (req, res) => {
         throw error;
       }
     }
-    // Copy the app folder to the Dyad apps directory.
+    // Copy the app folder to the Eezi apps directory.
     // Why not use fs.cp? Because we want stable ordering for
     // tests.
     await copyDirectoryRecursive(sourcePath, destPath);
@@ -1172,7 +1176,7 @@ router.post("/import-app", async (req, res) => {
       // Create initial commit
       await gitCommit({
         path: destPath,
-        message: "Init Dyad app",
+        message: "Init Eezi app",
       });
     }
 
@@ -1206,7 +1210,7 @@ const availableUpgrades: Omit<AppUpgrade, "isNeeded">[] = [
   {
     id: "component-tagger",
     title: "Enable select component to edit",
-    description: "Installs the Dyad component tagger Vite plugin and its dependencies.",
+    description: "Installs the Eezi component tagger Vite plugin and its dependencies.",
     manualUpgradeUrl: "https://dyad.sh/docs/upgrades/select-component",
   },
   {
@@ -1702,7 +1706,7 @@ router.post("/portal/migrate-create", async (req, res) => {
 
       const commitHash = await gitCommit({
         path: appPath,
-        message: "[dyad] Generate database migration file",
+        message: "[eezi] Generate database migration file",
       });
 
       logger.info(`Successfully committed migration changes: ${commitHash}`);

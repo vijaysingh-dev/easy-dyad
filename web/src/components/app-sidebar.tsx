@@ -1,11 +1,4 @@
-import {
-  Home,
-  Inbox,
-  Settings,
-  HelpCircle,
-  Store,
-  BookOpen,
-} from "lucide-react";
+import { Home, Inbox, Settings, HelpCircle, Store, BookOpen } from "lucide-react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useSidebar } from "@/components/ui/sidebar"; // import useSidebar hook
 import { useEffect, useState, useRef } from "react";
@@ -171,18 +164,14 @@ export function AppSidebar() {
   );
 }
 
-function AppIcons({
-  onHoverChange,
-}: {
-  onHoverChange: (state: HoverState) => void;
-}) {
+function AppIcons({ onHoverChange }: { onHoverChange: (state: HoverState) => void }) {
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
 
   return (
     // When collapsed: only show the main menu
     <SidebarGroup className="pr-0">
-      {/* <SidebarGroupLabel>Dyad</SidebarGroupLabel> */}
+      {/* <SidebarGroupLabel>Eezi</SidebarGroupLabel> */}
 
       <SidebarGroupContent>
         <SidebarMenu>
@@ -193,11 +182,7 @@ function AppIcons({
 
             return (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  asChild
-                  size="sm"
-                  className="font-medium w-14"
-                >
+                <SidebarMenuButton asChild size="sm" className="font-medium w-14">
                   <Link
                     to={item.to}
                     className={`flex flex-col items-center gap-1 h-14 mb-2 rounded-2xl ${

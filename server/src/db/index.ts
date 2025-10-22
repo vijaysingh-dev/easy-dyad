@@ -52,7 +52,7 @@ export function initializeDatabase(): BetterSQLite3Database<typeof schema> & {
 
   try {
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const migrationsFolder = path.join(__dirname, "..", "..", "..", "drizzle");
+    const migrationsFolder = path.join(__dirname, "..", "..", "drizzle");
     if (!fs.existsSync(migrationsFolder)) {
       logger.error("Migrations folder not found:", migrationsFolder);
     } else {

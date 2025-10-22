@@ -1,4 +1,4 @@
-import { isDyadProEnabled, type LargeLanguageModel } from "@shared/schemas";
+import { isEeziProEnabled, type LargeLanguageModel } from "@shared/schemas";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -105,12 +105,12 @@ export function ModelPicker() {
       ? modelsByProviders["auto"].filter((model) => {
           if (
             settings &&
-            !isDyadProEnabled(settings) &&
+            !isEeziProEnabled(settings) &&
             ["turbo", "value"].includes(model.apiName)
           ) {
             return false;
           }
-          if (settings && isDyadProEnabled(settings) && model.apiName === "free") {
+          if (settings && isEeziProEnabled(settings) && model.apiName === "free") {
             return false;
           }
           return true;
@@ -127,7 +127,7 @@ export function ModelPicker() {
   }
   const selectedModel = settings?.selectedModel;
   const isSmartAutoEnabled =
-    settings.enableProSmartFilesContextMode && isDyadProEnabled(settings);
+    settings.enableProSmartFilesContextMode && isEeziProEnabled(settings);
   const modelDisplayName = getModelDisplayName();
   // Split providers into primary and secondary groups (excluding auto)
   const providerEntries =
@@ -139,7 +139,7 @@ export function ModelPicker() {
     const provider = providers?.find((p) => p.id === providerId);
     return !(provider && provider.secondary);
   });
-  if (settings && isDyadProEnabled(settings)) {
+  if (settings && isEeziProEnabled(settings)) {
     primaryProviders.unshift(["auto", TURBO_MODELS]);
   }
   const secondaryProviders = providerEntries.filter(([providerId, models]) => {
@@ -261,17 +261,17 @@ export function ModelPicker() {
             {/* Primary providers as submenus */}
             {primaryProviders.map(([providerId, models]) => {
               models = models.filter((model) => {
-                // Don't show free models if Dyad Pro is enabled because
-                // we will use the paid models (in Dyad Pro backend) which
+                // Don't show free models if Eezi Pro is enabled because
+                // we will use the paid models (in Eezi Pro backend) which
                 // don't have the free limitations.
-                if (isDyadProEnabled(settings) && model.apiName.endsWith(":free")) {
+                if (isEeziProEnabled(settings) && model.apiName.endsWith(":free")) {
                   return false;
                 }
                 return true;
               });
               const provider = providers?.find((p) => p.id === providerId);
               const providerDisplayName =
-                provider?.id === "auto" ? "Dyad Turbo" : (provider?.name ?? providerId);
+                provider?.id === "auto" ? "Eezi Turbo" : (provider?.name ?? providerId);
               return (
                 <DropdownMenuSub key={providerId}>
                   <DropdownMenuSubTrigger className="w-full font-normal">
@@ -280,7 +280,7 @@ export function ModelPicker() {
                         <span>{providerDisplayName}</span>
                         {provider?.type === "cloud" &&
                           !provider?.secondary &&
-                          isDyadProEnabled(settings) && (
+                          isEeziProEnabled(settings) && (
                             <span className="text-[10px] bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 bg-[length:200%_100%] animate-[shimmer_5s_ease-in-out_infinite] text-white px-1.5 py-0.5 rounded-full font-medium">
                               Pro
                             </span>

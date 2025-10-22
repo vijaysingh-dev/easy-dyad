@@ -45,7 +45,7 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
   const providerData = allProviders?.find((p) => p.id === provider);
   useEffect(() => {
     const layoutMainContentContainer = document.getElementById(
-      "layout-main-content-container",
+      "layout-main-content-container"
     );
     if (layoutMainContentContainer) {
       layoutMainContentContainer.scrollTo(0, 0);
@@ -55,45 +55,41 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
   const supportsCustomModels =
     providerData?.type === "custom" || providerData?.type === "cloud";
 
-  const isDyad = provider === "auto";
+  const isEezi = provider === "auto";
 
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Use fetched data (or defaults for Dyad)
-  const providerDisplayName = isDyad
-    ? "Dyad"
+  // Use fetched data (or defaults for Eezi)
+  const providerDisplayName = isEezi
+    ? "Eezi"
     : (providerData?.name ?? "Unknown Provider");
-  const providerWebsiteUrl = isDyad
+  const providerWebsiteUrl = isEezi
     ? "https://academy.dyad.sh/settings"
     : providerData?.websiteUrl;
-  const hasFreeTier = isDyad ? false : providerData?.hasFreeTier;
-  const envVarName = isDyad ? undefined : providerData?.envVarName;
+  const hasFreeTier = isEezi ? false : providerData?.hasFreeTier;
+  const envVarName = isEezi ? undefined : providerData?.envVarName;
 
   // Use provider ID (which is the 'provider' prop)
   const userApiKey = settings?.providerSettings?.[provider]?.apiKey?.value;
 
   // --- Configuration Logic --- Updated Priority ---
   const isValidUserKey =
-    !!userApiKey &&
-    !userApiKey.startsWith("Invalid Key") &&
-    userApiKey !== "Not Set";
+    !!userApiKey && !userApiKey.startsWith("Invalid Key") && userApiKey !== "Not Set";
   const hasEnvKey = !!(envVarName && envVars[envVarName]);
 
   const azureSettings = settings?.providerSettings?.azure as
     | AzureProviderSetting
     | undefined;
   const azureApiKeyFromSettings = (azureSettings?.apiKey?.value ?? "").trim();
-  const azureResourceNameFromSettings = (
-    azureSettings?.resourceName ?? ""
-  ).trim();
+  const azureResourceNameFromSettings = (azureSettings?.resourceName ?? "").trim();
   const azureHasSavedSettings = Boolean(
-    azureApiKeyFromSettings && azureResourceNameFromSettings,
+    azureApiKeyFromSettings && azureResourceNameFromSettings
   );
   const azureHasEnvConfiguration = Boolean(
-    envVars["AZURE_API_KEY"] && envVars["AZURE_RESOURCE_NAME"],
+    envVars["AZURE_API_KEY"] && envVars["AZURE_RESOURCE_NAME"]
   );
 
   const vertexSettings = settings?.providerSettings?.vertex as
@@ -102,13 +98,11 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
   const isVertexConfigured = Boolean(
     vertexSettings?.projectId &&
       vertexSettings?.location &&
-      vertexSettings?.serviceAccountKey?.value,
+      vertexSettings?.serviceAccountKey?.value
   );
 
   const isAzureConfigured =
-    provider === "azure"
-      ? azureHasSavedSettings || azureHasEnvConfiguration
-      : false;
+    provider === "azure" ? azureHasSavedSettings || azureHasEnvConfiguration : false;
 
   const isConfigured =
     provider === "azure"
@@ -137,8 +131,8 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
           },
         },
       };
-      if (isDyad) {
-        settingsUpdate.enableDyadPro = true;
+      if (isEezi) {
+        settingsUpdate.enableEeziPro = true;
       }
       await updateSettings(settingsUpdate);
       setApiKeyInput(""); // Clear input on success
@@ -174,15 +168,15 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
     }
   };
 
-  // --- Toggle Dyad Pro Handler ---
-  const handleToggleDyadPro = async (enabled: boolean) => {
+  // --- Toggle Eezi Pro Handler ---
+  const handleToggleEeziPro = async (enabled: boolean) => {
     setIsSaving(true);
     try {
       await updateSettings({
-        enableDyadPro: enabled,
+        enableEeziPro: enabled,
       });
     } catch (error: any) {
-      showError(`Error toggling Dyad Pro: ${error}`);
+      showError(`Error toggling Eezi Pro: ${error}`);
     } finally {
       setIsSaving(false);
     }
@@ -241,7 +235,7 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
   }
 
   // Handle case where provider is not found (e.g., invalid ID in URL)
-  if (!providerData && !isDyad) {
+  if (!providerData && !isEezi) {
     return (
       <div className="min-h-screen px-8 py-4">
         <div className="max-w-4xl mx-auto">
@@ -278,7 +272,7 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
           isLoading={settingsLoading}
           hasFreeTier={hasFreeTier}
           providerWebsiteUrl={providerWebsiteUrl}
-          isDyad={isDyad}
+          isEezi={isEezi}
           onBackClick={() => router.history.back()}
         />
 
@@ -306,22 +300,22 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
             onApiKeyInputChange={setApiKeyInput}
             onSaveKey={handleSaveKey}
             onDeleteKey={handleDeleteKey}
-            isDyad={isDyad}
+            isEezi={isEezi}
             updateSettings={updateSettings}
           />
         )}
 
-        {isDyad && !settingsLoading && (
+        {isEezi && !settingsLoading && (
           <div className="mt-6 flex items-center justify-between p-4 bg-(--background-lightest) rounded-lg border">
             <div>
-              <h3 className="font-medium">Enable Dyad Pro</h3>
+              <h3 className="font-medium">Enable Eezi Pro</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Toggle to enable Dyad Pro
+                Toggle to enable Eezi Pro
               </p>
             </div>
             <Switch
-              checked={settings?.enableDyadPro}
-              onCheckedChange={handleToggleDyadPro}
+              checked={settings?.enableEeziPro}
+              onCheckedChange={handleToggleEeziPro}
               disabled={isSaving}
             />
           </div>

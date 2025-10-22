@@ -51,14 +51,8 @@ export function SupabaseConnector({ appId }: { appId: number }) {
     };
     handleDeepLink();
   }, [lastDeepLink]);
-  const {
-    projects,
-    loading,
-    error,
-    loadProjects,
-    setAppProject,
-    unsetAppProject,
-  } = useSupabase();
+  const { projects, loading, error, loadProjects, setAppProject, unsetAppProject } =
+    useSupabase();
   const currentProjectId = app?.supabaseProjectId;
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import fs from "fs";
-import { IS_TEST_BUILD } from "@/utils/test_utils";
+import { IS_TEST_BUILD } from "@/config";
 
 /**
  * Normalize the path to use forward slashes instead of backslashes.

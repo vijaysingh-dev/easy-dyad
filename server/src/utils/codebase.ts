@@ -42,9 +42,9 @@ const ALLOWED_EXTENSIONS = [
   ".gradle",
   ".swift",
   // Edge cases
-  // https://github.com/dyad-sh/dyad/issues/880
+  // https://github.com/eezi-sh/eezi/issues/880
   ".py",
-  // https://github.com/dyad-sh/dyad/issues/1221
+  // https://github.com/eezi-sh/eezi/issues/1221
   ".php",
 ];
 
@@ -53,7 +53,7 @@ const ALLOWED_EXTENSIONS = [
 // people don't have their gitignore setup correctly so we want to
 // be conservative and never include these directories.
 //
-// ex: https://github.com/dyad-sh/dyad/issues/727
+// ex: https://github.com/eezi-sh/eezi/issues/727
 const EXCLUDED_DIRS = ["node_modules", ".git", "dist", "build", ".next"];
 
 // Files to always exclude
@@ -356,9 +356,9 @@ async function formatFile({
   try {
     // Check if we should read file contents
     if (!shouldReadFileContents({ filePath, normalizedRelativePath })) {
-      return `<dyad-file path="${normalizedRelativePath}">
+      return `<eezi-file path="${normalizedRelativePath}">
 ${OMITTED_FILE_CONTENT}
-</dyad-file>
+</eezi-file>
 
 `;
     }
@@ -366,23 +366,23 @@ ${OMITTED_FILE_CONTENT}
     const content = await readFileWithCache(filePath, virtualFileSystem);
 
     if (content == null) {
-      return `<dyad-file path="${normalizedRelativePath}">
+      return `<eezi-file path="${normalizedRelativePath}">
 // Error reading file
-</dyad-file>
+</eezi-file>
 
 `;
     }
 
-    return `<dyad-file path="${normalizedRelativePath}">
+    return `<eezi-file path="${normalizedRelativePath}">
 ${content}
-</dyad-file>
+</eezi-file>
 
 `;
   } catch (error) {
     logger.error(`Error reading file: ${filePath}`, error);
-    return `<dyad-file path="${normalizedRelativePath}">
+    return `<eezi-file path="${normalizedRelativePath}">
 // Error reading file: ${error}
-</dyad-file>
+</eezi-file>
 
 `;
   }
@@ -414,7 +414,7 @@ export async function extractCodebase({
 }> {
   const settings = readSettings();
   const isSmartContextEnabled =
-    settings?.enableDyadPro && settings?.enableProSmartFilesContextMode;
+    settings?.enableEeziPro && settings?.enableProSmartFilesContextMode;
 
   try {
     await fsAsync.access(appPath);

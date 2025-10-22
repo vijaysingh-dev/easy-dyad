@@ -160,15 +160,13 @@ export function HelpBotDialog({ isOpen, onClose }: HelpBotDialogProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Dyad Help Bot</DialogTitle>
+          <DialogTitle>Eezi Help Bot</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3 h-[480px]">
           {error && (
             <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
               <div className="flex items-start gap-2">
-                <div className="text-destructive text-sm font-medium">
-                  Error:
-                </div>
+                <div className="text-destructive text-sm font-medium">Error:</div>
                 <div className="text-destructive text-sm flex-1">{error}</div>
                 <button
                   onClick={() => setError(null)}
@@ -183,11 +181,11 @@ export function HelpBotDialog({ isOpen, onClose }: HelpBotDialogProps) {
             {messages.length === 0 ? (
               <div className="space-y-3">
                 <div className="text-sm text-muted-foreground">
-                  Ask a question about using Dyad.
+                  Ask a question about using Eezi.
                 </div>
                 <div className="text-xs text-muted-foreground/70 bg-muted/50 rounded-md p-3">
-                  This conversation may be logged and used to improve the
-                  product. Please do not put any sensitive information in here.
+                  This conversation may be logged and used to improve the product. Please
+                  do not put any sensitive information in here.
                 </div>
               </div>
             ) : (

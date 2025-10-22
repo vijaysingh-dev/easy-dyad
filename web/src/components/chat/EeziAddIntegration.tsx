@@ -6,7 +6,7 @@ import { useAtomValue } from "jotai";
 import { showError } from "@/components/Toast";
 import { useLoadApp } from "@/hooks/useLoadApp";
 
-interface DyadAddIntegrationProps {
+interface EeziAddIntegrationProps {
   node: {
     properties: {
       provider: string;
@@ -15,7 +15,7 @@ interface DyadAddIntegrationProps {
   children: React.ReactNode;
 }
 
-export const DyadAddIntegration: React.FC<DyadAddIntegrationProps> = ({
+export const EeziAddIntegration: React.FC<EeziAddIntegrationProps> = ({
   node,
   children,
 }) => {
@@ -52,11 +52,7 @@ export const DyadAddIntegration: React.FC<DyadAddIntegrationProps> = ({
               strokeWidth="2"
               fill="#bbf7d0"
             />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 12l2 2 4-4"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
           </svg>
           <span className="font-semibold text-green-800">
             Supabase integration complete

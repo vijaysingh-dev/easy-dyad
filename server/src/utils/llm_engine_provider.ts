@@ -35,7 +35,7 @@ or to provide a custom fetch implementation for e.g. testing.
   fetch?: FetchFunction;
 
   originalProviderId: string;
-  dyadOptions: {
+  eeziOptions: {
     enableLazyEdits?: boolean;
     enableSmartFilesContext?: boolean;
     enableWebSearch?: boolean;
@@ -44,7 +44,7 @@ or to provide a custom fetch implementation for e.g. testing.
   settings: UserSettings;
 }
 
-export interface DyadEngineProvider {
+export interface EeziEngineProvider {
   /**
 Creates a model for text generation.
 */
@@ -59,9 +59,9 @@ Creates a chat model for text generation.
   ): LanguageModelV2;
 }
 
-export function createDyadEngine(options: ExampleProviderSettings): DyadEngineProvider {
+export function createEeziEngine(options: ExampleProviderSettings): EeziEngineProvider {
   const baseURL = withoutTrailingSlash(options.baseURL);
-  logger.info("creating dyad engine with baseURL", baseURL);
+  logger.info("creating eezi engine with baseURL", baseURL);
 
   // Track request ID attempts
   const requestIdAttempts = new Map<string, number>();
@@ -83,7 +83,7 @@ export function createDyadEngine(options: ExampleProviderSettings): DyadEnginePr
   }
 
   const getCommonModelConfig = (): CommonModelConfig => ({
-    provider: `dyad-engine`,
+    provider: `eezi-engine`,
     url: ({ path }) => {
       const url = new URL(`${baseURL}${path}`);
       if (options.queryParams) {
@@ -120,17 +120,17 @@ export function createDyadEngine(options: ExampleProviderSettings): DyadEnginePr
             ...JSON.parse(init.body),
             ...getExtraProviderOptions(options.originalProviderId, options.settings),
           };
-          const requestId = parsedBody.dyadRequestId;
-          if ("dyadRequestId" in parsedBody) {
-            delete parsedBody.dyadRequestId;
+          const requestId = parsedBody.eeziRequestId;
+          if ("eeziRequestId" in parsedBody) {
+            delete parsedBody.eeziRequestId;
           }
-          const dyadDisableFiles = parsedBody.dyadDisableFiles;
-          if ("dyadDisableFiles" in parsedBody) {
-            delete parsedBody.dyadDisableFiles;
+          const eeziDisableFiles = parsedBody.eeziDisableFiles;
+          if ("eeziDisableFiles" in parsedBody) {
+            delete parsedBody.eeziDisableFiles;
           }
-          const dyadMentionedApps = parsedBody.dyadMentionedApps;
-          if ("dyadMentionedApps" in parsedBody) {
-            delete parsedBody.dyadMentionedApps;
+          const eeziMentionedApps = parsedBody.eeziMentionedApps;
+          if ("eeziMentionedApps" in parsedBody) {
+            delete parsedBody.eeziMentionedApps;
           }
 
           // Track and modify requestId with attempt number
@@ -142,16 +142,16 @@ export function createDyadEngine(options: ExampleProviderSettings): DyadEnginePr
           }
 
           // Add files to the request if they exist
-          if (files?.length && !dyadDisableFiles) {
-            parsedBody.dyad_options = {
+          if (files?.length && !eeziDisableFiles) {
+            parsedBody.eezi_options = {
               files,
-              enable_lazy_edits: options.dyadOptions.enableLazyEdits,
-              enable_smart_files_context: options.dyadOptions.enableSmartFilesContext,
-              smart_context_mode: options.dyadOptions.smartContextMode,
-              enable_web_search: options.dyadOptions.enableWebSearch,
+              enable_lazy_edits: options.eeziOptions.enableLazyEdits,
+              enable_smart_files_context: options.eeziOptions.enableSmartFilesContext,
+              smart_context_mode: options.eeziOptions.smartContextMode,
+              enable_web_search: options.eeziOptions.enableWebSearch,
             };
-            if (dyadMentionedApps?.length) {
-              parsedBody.dyad_options.mentioned_apps = dyadMentionedApps;
+            if (eeziMentionedApps?.length) {
+              parsedBody.eezi_options.mentioned_apps = eeziMentionedApps;
             }
           }
 
@@ -161,7 +161,7 @@ export function createDyadEngine(options: ExampleProviderSettings): DyadEnginePr
             headers: {
               ...init.headers,
               ...(modifiedRequestId && {
-                "X-Dyad-Request-Id": modifiedRequestId,
+                "X-Eezi-Request-Id": modifiedRequestId,
               }),
             },
             body: JSON.stringify(parsedBody),

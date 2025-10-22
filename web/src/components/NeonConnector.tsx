@@ -66,7 +66,7 @@ export function NeonConnector() {
             if (settings?.isTestMode) {
               await api.integration.fakeHandleNeonConnect();
             } else {
-              await api.app.openExternalUrl(
+              api.app.openExternalUrl(
                 "https://oauth.dyad.sh/api/integrations/neon/login"
               );
             }

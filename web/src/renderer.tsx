@@ -11,8 +11,8 @@ import {
   QueryClientProvider,
   MutationCache,
 } from "@tanstack/react-query";
-import { showError, showMcpConsentToast } from "../../server/src/services/lib/toast";
-import { IpcClient } from "../../server/src/ipc_client";
+import { showError, showMcpConsentToast } from "@/components/Toast";
+import api from "@/api";
 
 // @ts-ignore
 console.log("Running in mode:", import.meta.env.MODE);
@@ -53,40 +53,32 @@ const queryClient = new QueryClient({
   }),
 });
 
-const posthogClient = posthog.init(
-  "phc_5Vxx0XT8Ug3eWROhP6mm4D6D2DgIIKT232q4AKxC2ab",
-  {
-    api_host: "https://us.i.posthog.com",
-    // @ts-ignore
-    debug: import.meta.env.MODE === "development",
-    autocapture: false,
-    capture_exceptions: true,
-    capture_pageview: false,
-    before_send: (event) => {
-      if (!isTelemetryOptedIn()) {
-        console.debug("Telemetry not opted in, skipping event");
-        return null;
-      }
-      const telemetryUserId = getTelemetryUserId();
-      if (telemetryUserId) {
-        posthogClient.identify(telemetryUserId);
-      }
+const posthogClient = posthog.init("phc_5Vxx0XT8Ug3eWROhP6mm4D6D2DgIIKT232q4AKxC2ab", {
+  api_host: "https://us.i.posthog.com",
+  // @ts-ignore
+  debug: import.meta.env.MODE === "development",
+  autocapture: false,
+  capture_exceptions: true,
+  capture_pageview: false,
+  before_send: (event) => {
+    if (!isTelemetryOptedIn()) {
+      console.debug("Telemetry not opted in, skipping event");
+      return null;
+    }
+    const telemetryUserId = getTelemetryUserId();
+    if (telemetryUserId) {
+      posthogClient.identify(telemetryUserId);
+    }
 
-      if (event?.properties["$ip"]) {
-        event.properties["$ip"] = null;
-      }
+    if (event?.properties["$ip"]) {
+      event.properties["$ip"] = null;
+    }
 
-      console.debug(
-        "Telemetry opted in - UUID:",
-        telemetryUserId,
-        "sending event",
-        event,
-      );
-      return event;
-    },
-    persistence: "localStorage",
+    console.debug("Telemetry opted in - UUID:", telemetryUserId, "sending event", event);
+    return event;
   },
-);
+  persistence: "localStorage",
+});
 
 function App() {
   useEffect(() => {
@@ -111,14 +103,13 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const ipc = IpcClient.getInstance();
-    const unsubscribe = ipc.onMcpToolConsentRequest((payload) => {
+    const unsubscribe = api.mcp.onMcpToolConsentRequest((payload) => {
       showMcpConsentToast({
         serverName: payload.serverName,
         toolName: payload.toolName,
         toolDescription: payload.toolDescription,
         inputPreview: payload.inputPreview,
-        onDecision: (d) => ipc.respondToMcpConsentRequest(payload.requestId, d),
+        onDecision: (d) => api.mcp.respondToMcpConsentRequest(payload.requestId, d),
       });
     });
     return () => unsubscribe();
@@ -134,5 +125,5 @@ createRoot(document.getElementById("root")!).render(
         <App />
       </PostHogProvider>
     </QueryClientProvider>
-  </StrictMode>,
+  </StrictMode>
 );

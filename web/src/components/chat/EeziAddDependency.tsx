@@ -6,13 +6,13 @@ import { Package, ChevronsUpDown, ChevronsDownUp } from "lucide-react";
 import { CodeHighlight } from "./CodeHighlight";
 import api from "@/api";
 
-interface DyadAddDependencyProps {
+interface EeziAddDependencyProps {
   children?: ReactNode;
   node?: any;
   packages?: string;
 }
 
-export const DyadAddDependency: React.FC<DyadAddDependencyProps> = ({
+export const EeziAddDependency: React.FC<EeziAddDependencyProps> = ({
   children,
   node,
 }) => {

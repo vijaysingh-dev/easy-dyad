@@ -27,12 +27,12 @@ export function useRunApp() {
 
   const processProxyServerOutput = (output: AppOutput) => {
     const matchesProxyServerStart = output.message.includes(
-      "[dyad-proxy-server]started=["
+      "[eezi-proxy-server]started=["
     );
     if (matchesProxyServerStart) {
       // Extract both proxy URL and original URL using regex
       const proxyUrlMatch = output.message.match(
-        /\[dyad-proxy-server\]started=\[(.*?)\]/
+        /\[eezi-proxy-server\]started=\[(.*?)\]/
       );
       const originalUrlMatch = output.message.match(/original=\[(.*?)\]/);
 
@@ -104,10 +104,10 @@ export function useRunApp() {
         console.error(`Error running app ${appId}:`, error);
         setPreviewErrorMessage(
           error instanceof Error
-            ? { message: error.message, source: "dyad-app" }
+            ? { message: error.message, source: "eezi-app" }
             : {
                 message: error?.toString() || "Unknown error",
-                source: "dyad-app",
+                source: "eezi-app",
               }
         );
       } finally {
@@ -131,10 +131,10 @@ export function useRunApp() {
       console.error(`Error stopping app ${appId}:`, error);
       setPreviewErrorMessage(
         error instanceof Error
-          ? { message: error.message, source: "dyad-app" }
+          ? { message: error.message, source: "eezi-app" }
           : {
               message: error?.toString() || "Unknown error",
-              source: "dyad-app",
+              source: "eezi-app",
             }
       );
     } finally {
@@ -192,10 +192,10 @@ export function useRunApp() {
         console.error(`Error restarting app ${appId}:`, error);
         setPreviewErrorMessage(
           error instanceof Error
-            ? { message: error.message, source: "dyad-app" }
+            ? { message: error.message, source: "eezi-app" }
             : {
                 message: error?.toString() || "Unknown error",
-                source: "dyad-app",
+                source: "eezi-app",
               }
         );
       } finally {

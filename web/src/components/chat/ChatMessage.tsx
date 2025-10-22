@@ -1,30 +1,15 @@
 import type { Message } from "@shared/eeziTypes";
-import {
-  DyadMarkdownParser,
-  VanillaMarkdownParser,
-} from "./DyadMarkdownParser";
+import { EeziMarkdownParser, VanillaMarkdownParser } from "./EeziMarkdownParser";
 import { motion } from "framer-motion";
 import { useStreamChat } from "@/hooks/useStreamChat";
-import {
-  CheckCircle,
-  XCircle,
-  Clock,
-  GitCommit,
-  Copy,
-  Check,
-} from "lucide-react";
+import { CheckCircle, XCircle, Clock, GitCommit, Copy, Check } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useVersions } from "@/hooks/useVersions";
 import { useAtomValue } from "jotai";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
 import { useMemo } from "react";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface ChatMessageProps {
   message: Message;
@@ -42,16 +27,12 @@ const ChatMessage = ({ message, isLastMessage }: ChatMessageProps) => {
   };
   // Find the version that was active when this message was sent
   const messageVersion = useMemo(() => {
-    if (
-      message.role === "assistant" &&
-      message.commitHash &&
-      liveVersions.length
-    ) {
+    if (message.role === "assistant" && message.commitHash && liveVersions.length) {
       return (
         liveVersions.find(
           (version) =>
             message.commitHash &&
-            version.oid.slice(0, 7) === message.commitHash.slice(0, 7),
+            version.oid.slice(0, 7) === message.commitHash.slice(0, 7)
         ) || null
       );
     }
@@ -62,8 +43,7 @@ const ChatMessage = ({ message, isLastMessage }: ChatMessageProps) => {
   const formatTimestamp = (timestamp: string | Date) => {
     const now = new Date();
     const messageTime = new Date(timestamp);
-    const diffInHours =
-      (now.getTime() - messageTime.getTime()) / (1000 * 60 * 60);
+    const diffInHours = (now.getTime() - messageTime.getTime()) / (1000 * 60 * 60);
     if (diffInHours < 24) {
       return formatDistanceToNow(messageTime, { addSuffix: true });
     } else {
@@ -128,7 +108,7 @@ const ChatMessage = ({ message, isLastMessage }: ChatMessageProps) => {
             >
               {message.role === "assistant" ? (
                 <>
-                  <DyadMarkdownParser content={message.content} />
+                  <EeziMarkdownParser content={message.content} />
                   {isLastMessage && isStreaming && (
                     <div className="mt-4 ml-4 relative w-5 h-5 animate-spin">
                       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-(--primary) dark:bg-blue-500 rounded-full"></div>
@@ -154,31 +134,27 @@ const ChatMessage = ({ message, isLastMessage }: ChatMessageProps) => {
                   : ""
               } text-xs`}
             >
-              {message.role === "assistant" &&
-                message.content &&
-                !isStreaming && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          data-testid="copy-message-button"
-                          onClick={handleCopyFormatted}
-                          className="flex items-center space-x-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors duration-200 cursor-pointer"
-                        >
-                          {copied ? (
-                            <Check className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                          <span className="hidden sm:inline"></span>
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {copied ? "Copied!" : "Copy"}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
+              {message.role === "assistant" && message.content && !isStreaming && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        data-testid="copy-message-button"
+                        onClick={handleCopyFormatted}
+                        className="flex items-center space-x-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors duration-200 cursor-pointer"
+                      >
+                        {copied ? (
+                          <Check className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                        <span className="hidden sm:inline"></span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>{copied ? "Copied!" : "Copy"}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               {message.approvalState && (
                 <div className="flex items-center space-x-1">
                   {message.approvalState === "approved" ? (
@@ -209,11 +185,7 @@ const ChatMessage = ({ message, isLastMessage }: ChatMessageProps) => {
                 <GitCommit className="h-3 w-3" />
                 {messageVersion && messageVersion.message && (
                   <span className="max-w-70 truncate font-medium">
-                    {
-                      messageVersion.message
-                        .replace(/^\[dyad\]\s*/i, "")
-                        .split("\n")[0]
-                    }
+                    {messageVersion.message.replace(/^\[eezi\]\s*/i, "").split("\n")[0]}
                   </span>
                 )}
               </div>

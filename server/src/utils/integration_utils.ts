@@ -7,7 +7,7 @@ import * as path from "path";
 import { Vercel } from "@vercel/sdk";
 import { CreateProjectFramework } from "@vercel/sdk/models/createprojectop.js";
 import { readSettings, writeSettings } from "@/services/settings";
-import { IS_TEST_BUILD } from "./test_utils";
+import { IS_TEST_BUILD } from "@/config";
 import { GithubUser } from "@shared/schemas";
 
 // Use test server URLs when in test mode

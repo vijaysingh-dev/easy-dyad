@@ -24,7 +24,7 @@ import {
   getDefaultTeamId,
   updateAppVercelProject,
 } from "@/utils/integration_utils";
-import { IS_TEST_BUILD } from "@/utils/test_utils";
+import { IS_TEST_BUILD } from "@/config";
 import { withLock } from "@/utils/lock_utils";
 import { retryOnLocked } from "@/utils/retryOnLocked";
 import { safeSend } from "@/utils/safe_sender";
@@ -39,14 +39,18 @@ const TEST_SERVER_BASE = "http://localhost:3500";
 
 const activeClients = new Map<string, Response>();
 
-router.get("/stream/fake-connect", async (req, res) => {
+router.get("/stream/fake-connect", (req, res) => {
   // Set up SSE
+  const origin = req.headers.origin ?? "*";
+  res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders();
 
   try {
+    logger.info("fake-connect stream connected");
     const clientId = crypto.randomUUID();
     // Handle disconnection
     req.on("close", () => {
@@ -307,7 +311,7 @@ router.get("/supabase/list-projects", async (req, res) => {
   }
 });
 
-// Set app project - links a Dyad app to a Supabase project
+// Set app project - links a Eezi app to a Supabase project
 router.post("/supabase/set-app-project", async (req, res) => {
   try {
     const { project, app } = req.body as { project: string; app: number };
@@ -320,7 +324,7 @@ router.post("/supabase/set-app-project", async (req, res) => {
   }
 });
 
-// Unset app project - removes the link between a Dyad app and a Supabase project
+// Unset app project - removes the link between a Eezi app and a Supabase project
 router.post("/supabase/unset-app-project", async (req, res) => {
   try {
     const { app } = req.body as { app: number };

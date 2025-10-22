@@ -6,9 +6,10 @@ import { eq } from "drizzle-orm";
 import { Router } from "express";
 import * as fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import git, { type ReadCommitResult } from "isomorphic-git";
 import { getEeziAppPath } from "@/services/paths";
-import { IS_TEST_BUILD } from "@/utils/test_utils";
+import { IS_TEST_BUILD } from "@/config";
 import { withLock } from "@/utils/lock_utils";
 import { retryOnLocked } from "@/utils/retryOnLocked";
 import { gitCheckout, gitCommit, gitStageToRevert } from "@/utils/git_utils";
@@ -28,6 +29,7 @@ const router = Router();
 
 router.get("/get-app-version", async (req, res) => {
   // Read version from package.json at project root
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
   res.json({ version: packageJson.version });

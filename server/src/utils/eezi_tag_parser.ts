@@ -2,19 +2,19 @@ import logger from "@/logger";
 import { normalizePath } from "@/services/paths";
 import { SqlQuery } from "@shared/schemas";
 
-export function getDyadWriteTags(fullResponse: string): {
+export function getEeziWriteTags(fullResponse: string): {
   path: string;
   content: string;
   description?: string;
 }[] {
-  const dyadWriteRegex = /<dyad-write([^>]*)>([\s\S]*?)<\/dyad-write>/gi;
+  const eeziWriteRegex = /<eezi-write([^>]*)>([\s\S]*?)<\/eezi-write>/gi;
   const pathRegex = /path="([^"]+)"/;
   const descriptionRegex = /description="([^"]+)"/;
 
   let match;
   const tags: { path: string; content: string; description?: string }[] = [];
 
-  while ((match = dyadWriteRegex.exec(fullResponse)) !== null) {
+  while ((match = eeziWriteRegex.exec(fullResponse)) !== null) {
     const attributesString = match[1];
     let content = match[2].trim();
 
@@ -36,21 +36,21 @@ export function getDyadWriteTags(fullResponse: string): {
 
       tags.push({ path: normalizePath(path), content, description });
     } else {
-      logger.warn("Found <dyad-write> tag without a valid 'path' attribute:", match[0]);
+      logger.warn("Found <eezi-write> tag without a valid 'path' attribute:", match[0]);
     }
   }
   return tags;
 }
 
-export function getDyadRenameTags(fullResponse: string): {
+export function getEeziRenameTags(fullResponse: string): {
   from: string;
   to: string;
 }[] {
-  const dyadRenameRegex =
-    /<dyad-rename from="([^"]+)" to="([^"]+)"[^>]*>([\s\S]*?)<\/dyad-rename>/g;
+  const eeziRenameRegex =
+    /<eezi-rename from="([^"]+)" to="([^"]+)"[^>]*>([\s\S]*?)<\/eezi-rename>/g;
   let match;
   const tags: { from: string; to: string }[] = [];
-  while ((match = dyadRenameRegex.exec(fullResponse)) !== null) {
+  while ((match = eeziRenameRegex.exec(fullResponse)) !== null) {
     tags.push({
       from: normalizePath(match[1]),
       to: normalizePath(match[2]),
@@ -59,43 +59,43 @@ export function getDyadRenameTags(fullResponse: string): {
   return tags;
 }
 
-export function getDyadDeleteTags(fullResponse: string): string[] {
-  const dyadDeleteRegex = /<dyad-delete path="([^"]+)"[^>]*>([\s\S]*?)<\/dyad-delete>/g;
+export function getEeziDeleteTags(fullResponse: string): string[] {
+  const eeziDeleteRegex = /<eezi-delete path="([^"]+)"[^>]*>([\s\S]*?)<\/eezi-delete>/g;
   let match;
   const paths: string[] = [];
-  while ((match = dyadDeleteRegex.exec(fullResponse)) !== null) {
+  while ((match = eeziDeleteRegex.exec(fullResponse)) !== null) {
     paths.push(normalizePath(match[1]));
   }
   return paths;
 }
 
-export function getDyadAddDependencyTags(fullResponse: string): string[] {
-  const dyadAddDependencyRegex =
-    /<dyad-add-dependency packages="([^"]+)">[^<]*<\/dyad-add-dependency>/g;
+export function getEeziAddDependencyTags(fullResponse: string): string[] {
+  const eeziAddDependencyRegex =
+    /<eezi-add-dependency packages="([^"]+)">[^<]*<\/eezi-add-dependency>/g;
   let match;
   const packages: string[] = [];
-  while ((match = dyadAddDependencyRegex.exec(fullResponse)) !== null) {
+  while ((match = eeziAddDependencyRegex.exec(fullResponse)) !== null) {
     packages.push(...match[1].split(" "));
   }
   return packages;
 }
 
-export function getDyadChatSummaryTag(fullResponse: string): string | null {
-  const dyadChatSummaryRegex = /<dyad-chat-summary>([\s\S]*?)<\/dyad-chat-summary>/g;
-  const match = dyadChatSummaryRegex.exec(fullResponse);
+export function getEeziChatSummaryTag(fullResponse: string): string | null {
+  const eeziChatSummaryRegex = /<eezi-chat-summary>([\s\S]*?)<\/eezi-chat-summary>/g;
+  const match = eeziChatSummaryRegex.exec(fullResponse);
   if (match && match[1]) {
     return match[1].trim();
   }
   return null;
 }
 
-export function getDyadExecuteSqlTags(fullResponse: string): SqlQuery[] {
-  const dyadExecuteSqlRegex = /<dyad-execute-sql([^>]*)>([\s\S]*?)<\/dyad-execute-sql>/g;
+export function getEeziExecuteSqlTags(fullResponse: string): SqlQuery[] {
+  const eeziExecuteSqlRegex = /<eezi-execute-sql([^>]*)>([\s\S]*?)<\/eezi-execute-sql>/g;
   const descriptionRegex = /description="([^"]+)"/;
   let match;
   const queries: { content: string; description?: string }[] = [];
 
-  while ((match = dyadExecuteSqlRegex.exec(fullResponse)) !== null) {
+  while ((match = eeziExecuteSqlRegex.exec(fullResponse)) !== null) {
     const attributesString = match[1] || "";
     let content = match[2].trim();
     const descriptionMatch = descriptionRegex.exec(attributesString);
@@ -117,12 +117,12 @@ export function getDyadExecuteSqlTags(fullResponse: string): SqlQuery[] {
   return queries;
 }
 
-export function getDyadCommandTags(fullResponse: string): string[] {
-  const dyadCommandRegex = /<dyad-command type="([^"]+)"[^>]*><\/dyad-command>/g;
+export function getEeziCommandTags(fullResponse: string): string[] {
+  const eeziCommandRegex = /<eezi-command type="([^"]+)"[^>]*><\/eezi-command>/g;
   let match;
   const commands: string[] = [];
 
-  while ((match = dyadCommandRegex.exec(fullResponse)) !== null) {
+  while ((match = eeziCommandRegex.exec(fullResponse)) !== null) {
     commands.push(match[1]);
   }
 

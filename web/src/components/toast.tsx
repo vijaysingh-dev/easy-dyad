@@ -38,7 +38,7 @@ export const showError = (message: any) => {
           onCopy={() => onCopy(t)}
         />
       ),
-      { id: toastId, duration: Infinity },
+      { id: toastId, duration: Infinity }
     );
 
     // After 2 seconds, revert the toast back to the original state
@@ -52,7 +52,7 @@ export const showError = (message: any) => {
             onCopy={() => onCopy(t)}
           />
         ),
-        { id: toastId, duration: Infinity },
+        { id: toastId, duration: Infinity }
       );
     }, 2000);
   };
@@ -60,13 +60,9 @@ export const showError = (message: any) => {
   // Use custom error toast with enhanced features
   const toastId = toast.custom(
     (t) => (
-      <CustomErrorToast
-        message={errorMessage}
-        toastId={t}
-        onCopy={() => onCopy(t)}
-      />
+      <CustomErrorToast message={errorMessage} toastId={t} onCopy={() => onCopy(t)} />
     ),
-    { duration: 8_000 },
+    { duration: 8_000 }
   );
 
   return toastId;
@@ -96,17 +92,11 @@ export const showInfo = (message: string) => {
  */
 export const showInputRequest = (
   message: string,
-  onResponse: (response: "y" | "n") => void,
+  onResponse: (response: "y" | "n") => void
 ) => {
   const toastId = toast.custom(
-    (t) => (
-      <InputRequestToast
-        message={message}
-        toastId={t}
-        onResponse={onResponse}
-      />
-    ),
-    { duration: Infinity }, // Don't auto-close
+    (t) => <InputRequestToast message={message} toastId={t} onResponse={onResponse} />,
+    { duration: Infinity } // Don't auto-close
   );
 
   return toastId;
@@ -130,7 +120,7 @@ export function showMcpConsentToast(args: {
         onDecision={args.onDecision}
       />
     ),
-    { duration: Infinity },
+    { duration: Infinity }
   );
   return toastId;
 }
@@ -146,7 +136,7 @@ export const showExtraFilesToast = ({
 }) => {
   if (error) {
     showError(
-      `Error committing files ${files.join(", ")} changed outside of Dyad: ${error}`,
+      `Error committing files ${files.join(", ")} changed outside of Eezi: ${error}`
     );
     posthog.capture("extra-files:error", {
       files: files,
@@ -154,8 +144,8 @@ export const showExtraFilesToast = ({
     });
   } else {
     showWarning(
-      `Files changed outside of Dyad have automatically been committed:
-    \n\n${files.join("\n")}`,
+      `Files changed outside of Eezi have automatically been committed:
+    \n\n${files.join("\n")}`
     );
     posthog.capture("extra-files:warning", {
       files: files,

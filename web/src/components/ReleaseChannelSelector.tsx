@@ -33,12 +33,11 @@ export function ReleaseChannelSelector() {
       });
     } else {
       toast("Using Beta release channel", {
-        description:
-          "You will need to restart Dyad for your settings to take effect.",
+        description: "You will need to restart Eezi for your settings to take effect.",
         action: {
-          label: "Restart Dyad",
+          label: "Restart Eezi",
           onClick: () => {
-            api.app.restartDyad();
+            api.app.restartEezi();
           },
         },
       });

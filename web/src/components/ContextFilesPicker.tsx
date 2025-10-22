@@ -1,19 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { InfoIcon, Settings2, Trash2 } from "lucide-react";
 import { useState } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useSettings } from "@/hooks/useSettings";
 import { useContextPaths } from "@/hooks/useContextPaths";
 import type { ContextPathResult } from "@shared/schemas";
@@ -62,7 +53,7 @@ export function ContextFilesPicker() {
     if (
       newAutoIncludePath.trim() === "" ||
       smartContextAutoIncludes.find(
-        (p: ContextPathResult) => p.globPath === newAutoIncludePath,
+        (p: ContextPathResult) => p.globPath === newAutoIncludePath
       )
     ) {
       setNewAutoIncludePath("");
@@ -113,7 +104,7 @@ export function ContextFilesPicker() {
   };
 
   const isSmartContextEnabled =
-    settings?.enableDyadPro && settings?.enableProSmartFilesContextMode;
+    settings?.enableEeziPro && settings?.enableProSmartFilesContextMode;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -133,10 +124,7 @@ export function ContextFilesPicker() {
         <TooltipContent>Codebase Context</TooltipContent>
       </Tooltip>
 
-      <PopoverContent
-        className="w-96 max-h-[80vh] overflow-y-auto"
-        align="start"
-      >
+      <PopoverContent className="w-96 max-h-[80vh] overflow-y-auto" align="start">
         <div className="relative space-y-4">
           <div>
             <h3 className="font-medium">Codebase Context</h3>
@@ -145,18 +133,16 @@ export function ContextFilesPicker() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span className="flex items-center gap-1 cursor-help">
-                      Select the files to use as context.{" "}
-                      <InfoIcon className="size-4" />
+                      Select the files to use as context. <InfoIcon className="size-4" />
                     </span>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-[300px]">
                     {isSmartContextEnabled ? (
                       <p>
-                        With Smart Context, Dyad uses the most relevant files as
-                        context.
+                        With Smart Context, Eezi uses the most relevant files as context.
                       </p>
                     ) : (
-                      <p>By default, Dyad uses your whole codebase.</p>
+                      <p>By default, Eezi uses your whole codebase.</p>
                     )}
                   </TooltipContent>
                 </Tooltip>
@@ -226,8 +212,8 @@ export function ContextFilesPicker() {
               <div className="rounded-md border border-dashed p-4 text-center">
                 <p className="text-sm text-muted-foreground">
                   {isSmartContextEnabled
-                    ? "Dyad will use Smart Context to automatically find the most relevant files to use as context."
-                    : "Dyad will use the entire codebase as context."}
+                    ? "Eezi will use Smart Context to automatically find the most relevant files to use as context."
+                    : "Eezi will use the entire codebase as context."}
                 </p>
               </div>
             )}
@@ -247,8 +233,8 @@ export function ContextFilesPicker() {
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[300px]">
                       <p>
-                        Exclude paths take precedence - files that match both
-                        include and exclude patterns will be excluded.
+                        Exclude paths take precedence - files that match both include and
+                        exclude patterns will be excluded.
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -333,9 +319,8 @@ export function ContextFilesPicker() {
                       </TooltipTrigger>
                       <TooltipContent className="max-w-[300px]">
                         <p>
-                          Auto-include files are always included in the context
-                          in addition to the files selected as relevant by Smart
-                          Context.
+                          Auto-include files are always included in the context in
+                          addition to the files selected as relevant by Smart Context.
                         </p>
                       </TooltipContent>
                     </Tooltip>

@@ -4,7 +4,7 @@ import {
   SupabaseManagementAPIError,
 } from "@dyad-sh/supabase-management-js";
 import { readSettings, writeSettings } from "@/services/settings";
-import { IS_TEST_BUILD } from "@/utils/test_utils";
+import { IS_TEST_BUILD } from "@/config";
 import { withLock } from "@/utils/lock_utils";
 
 /**
@@ -179,7 +179,7 @@ export async function deploySupabaseFunctions({
     JSON.stringify({
       entrypoint_path: "index.ts",
       name: functionName,
-      // See: https://github.com/dyad-sh/dyad/issues/1010
+      // See: https://github.com/eezi-sh/eezi/issues/1010
       verify_jwt: false,
     })
   );

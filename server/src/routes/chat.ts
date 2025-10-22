@@ -48,22 +48,22 @@ import { getExtraProviderOptions } from "@/utils/thinking_utils";
 import { cleanFullResponse } from "@/utils/cleanFullResponse";
 import { replacePromptReference } from "@/utils/replacePromptReference";
 import {
-  getDyadWriteTags,
-  getDyadRenameTags,
-  getDyadDeleteTags,
-  getDyadExecuteSqlTags,
-  getDyadAddDependencyTags,
-  getDyadChatSummaryTag,
-  getDyadCommandTags,
-} from "@/utils/dyad_tag_parser";
+  getEeziWriteTags,
+  getEeziRenameTags,
+  getEeziDeleteTags,
+  getEeziExecuteSqlTags,
+  getEeziAddDependencyTags,
+  getEeziChatSummaryTag,
+  getEeziCommandTags,
+} from "@/utils/eezi_tag_parser";
 import {
   isTextFile,
   formatMessagesForSummary,
   createOtherAppsCodebasePrompt,
-  removeDyadTags,
+  removeEeziTags,
   removeNonEssentialTags,
   prepareMessageWithAttachments,
-  hasUnclosedDyadWrite,
+  hasUnclosedEeziWrite,
   escapeXml,
   getMcpTools,
   processStreamChunks,
@@ -113,10 +113,10 @@ router.get("/get-chat/:chatId", async (req, res) => {
 router.get("/get-chats", async (req, res) => {
   // If appId is provided, filter chats for that app
   try {
-    const { appId } = req.body;
+    const appId = req.query?.appId;
     const query = appId
       ? db.query.chats.findMany({
-          where: eq(chats.appId, appId),
+          where: eq(chats.appId, parseInt(appId as string)),
           columns: {
             id: true,
             title: true,
@@ -414,7 +414,7 @@ router.post("/add-dep", async (req, res) => {
     const message = [...foundMessages]
       .reverse()
       .find((m) =>
-        m.content.includes(`<dyad-add-dependency packages="${packages.join(" ")}">`)
+        m.content.includes(`<eezi-add-dependency packages="${packages.join(" ")}">`)
       );
 
     if (!message) {
@@ -445,7 +445,7 @@ const activeChatStreams = new Map<
 const partialResponses = new Map<number, string>();
 
 // Ensure the temp directory exists for storing temporary files
-const TEMP_DIR = path.join(os.tmpdir(), "dyad-attachments");
+const TEMP_DIR = path.join(os.tmpdir(), "eezi-attachments");
 if (!fs.existsSync(TEMP_DIR)) {
   fs.mkdirSync(TEMP_DIR, { recursive: true });
 }
@@ -473,6 +473,9 @@ router.get("/:chatId/stream", async (req, res) => {
   const chatId = parseInt(req.params.chatId);
   try {
     // Set up SSE
+    const origin = req.headers.origin ?? "*";
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
@@ -489,7 +492,7 @@ router.get("/:chatId/stream", async (req, res) => {
     const fileUploadsState = FileUploadsState.getInstance();
 
     req.on("close", () => {
-      logger.info("Client disconnected");
+      logger.info("Client disconnected:", chatId);
       activeChatStreams.delete(chatId);
       res.end();
     });
@@ -576,7 +579,7 @@ router.get("/:chatId/stream", async (req, res) => {
             }
           );
 
-          // Add instruction for AI to use dyad-write tag
+          // Add instruction for AI to use eezi-write tag
           attachmentInfo += `\n\nFile to upload to codebase: ${attachment.name} (file id: ${fileId})\n`;
         } else {
           // For chat-context, use the existing logic
@@ -584,8 +587,8 @@ router.get("/:chatId/stream", async (req, res) => {
           // If it's a text-based file, try to include the content
           if (await isTextFile(filePath)) {
             try {
-              attachmentInfo += `<dyad-text-attachment filename="${attachment.name}" type="${attachment.type}" path="${filePath}">
-                </dyad-text-attachment>
+              attachmentInfo += `<eezi-text-attachment filename="${attachment.name}" type="${attachment.type}" path="${filePath}">
+                </eezi-text-attachment>
                 \n\n`;
             } catch (err) {
               logger.error(`Error reading file content: ${err}`);
@@ -851,21 +854,21 @@ ${componentSnippet}
         );
       // If there's mixed attachments (e.g. some upload to codebase attachments and some upload images as chat context attachemnts)
       // we will just include the file upload system prompt, otherwise the AI gets confused and doesn't reliably
-      // print out the dyad-write tags.
+      // print out the eezi-write tags.
       // Usually, AI models will want to use the image as reference to generate code (e.g. UI mockups) anyways, so
       // it's not that critical to include the image analysis instructions.
       if (hasUploadedAttachments) {
         systemPrompt += `
 When files are attached to this conversation, upload them to the codebase using this exact format:
 
-<dyad-write path="path/to/destination/filename.ext" description="Upload file to codebase">
+<eezi-write path="path/to/destination/filename.ext" description="Upload file to codebase">
 DYAD_ATTACHMENT_X
-</dyad-write>
+</eezi-write>
 
 Example for file with id of DYAD_ATTACHMENT_0:
-<dyad-write path="src/components/Button.jsx" description="Upload file to codebase">
+<eezi-write path="src/components/Button.jsx" description="Upload file to codebase">
 DYAD_ATTACHMENT_0
-</dyad-write>
+</eezi-write>
 
   `;
       } else if (hasImageAttachments) {
@@ -918,7 +921,7 @@ This conversation includes one or more image attachments. When the user uploads 
         // and eats up extra tokens.
         content:
           settings.selectedChatMode === "ask"
-            ? removeDyadTags(removeNonEssentialTags(msg.content))
+            ? removeEeziTags(removeNonEssentialTags(msg.content))
             : removeNonEssentialTags(msg.content),
       }));
 
@@ -966,31 +969,31 @@ This conversation includes one or more image attachments. When the user uploads 
         modelClient,
         tools,
         systemPromptOverride = systemPrompt,
-        dyadDisableFiles = false,
+        eeziDisableFiles = false,
       }: {
         chatMessages: ModelMessage[];
         modelClient: ModelClient;
         tools?: ToolSet;
         systemPromptOverride?: string;
-        dyadDisableFiles?: boolean;
+        eeziDisableFiles?: boolean;
       }) => {
-        const dyadRequestId = uuidv4();
+        const eeziRequestId = uuidv4();
         if (isEngineEnabled) {
-          logger.log("sending AI request to engine with request id:", dyadRequestId);
+          logger.log("sending AI request to engine with request id:", eeziRequestId);
         } else {
           logger.log("sending AI request");
         }
         // Build provider options with correct Google/Vertex thinking config gating
         const providerOptions: Record<string, any> = {
-          "dyad-engine": {
-            dyadRequestId,
-            dyadDisableFiles,
-            dyadMentionedApps: mentionedAppsCodebases.map(({ files, appName }) => ({
+          "eezi-engine": {
+            eeziRequestId,
+            eeziDisableFiles,
+            eeziMentionedApps: mentionedAppsCodebases.map(({ files, appName }) => ({
               appName,
               files,
             })),
           },
-          "dyad-gateway": getExtraProviderOptions(
+          "eezi-gateway": getExtraProviderOptions(
             modelClient.builtinProviderId,
             settings
           ),
@@ -1051,7 +1054,7 @@ This conversation includes one or more image attachments. When the user uploads 
             }
             const message = errorMessage || JSON.stringify(error);
             const requestIdPrefix = isEngineEnabled
-              ? `[Request ID: ${dyadRequestId}] `
+              ? `[Request ID: ${eeziRequestId}] `
               : "";
             res.write(
               `data: ${JSON.stringify({
@@ -1135,7 +1138,7 @@ This conversation includes one or more image attachments. When the user uploads 
             aiRules: await readAiRules(getEeziAppPath(updatedChat.app.path)),
             chatMode: "agent",
           }),
-          dyadDisableFiles: true,
+          eeziDisableFiles: true,
         });
 
         const result = await processStreamChunks({
@@ -1176,16 +1179,16 @@ This conversation includes one or more image attachments. When the user uploads 
         if (
           !abortController.signal.aborted &&
           settings.selectedChatMode !== "ask" &&
-          hasUnclosedDyadWrite(fullResponse)
+          hasUnclosedEeziWrite(fullResponse)
         ) {
           let continuationAttempts = 0;
           while (
-            hasUnclosedDyadWrite(fullResponse) &&
+            hasUnclosedEeziWrite(fullResponse) &&
             continuationAttempts < 2 &&
             !abortController.signal.aborted
           ) {
             logger.warn(
-              `Received unclosed dyad-write tag, attempting to continue, attempt #${continuationAttempts + 1}`
+              `Received unclosed eezi-write tag, attempting to continue, attempt #${continuationAttempts + 1}`
             );
             continuationAttempts++;
 
@@ -1212,7 +1215,7 @@ This conversation includes one or more image attachments. When the user uploads 
             }
           }
         }
-        const addDependencies = getDyadAddDependencyTags(fullResponse);
+        const addDependencies = getEeziAddDependencyTags(fullResponse);
         if (
           !abortController.signal.aborted &&
           // If there are dependencies, we don't want to auto-fix problems
@@ -1237,14 +1240,14 @@ This conversation includes one or more image attachments. When the user uploads 
               autoFixAttempts < 2 &&
               !abortController.signal.aborted
             ) {
-              fullResponse += `<dyad-problem-report summary="${problemReport.problems.length} problems">
+              fullResponse += `<eezi-problem-report summary="${problemReport.problems.length} problems">
 ${problemReport.problems
   .map(
     (problem) =>
       `<problem file="${escapeXml(problem.file)}" line="${problem.line}" column="${problem.column}" code="${problem.code}">${escapeXml(problem.message)}</problem>`
   )
   .join("\n")}
-</dyad-problem-report>`;
+</eezi-problem-report>`;
 
               logger.info(
                 `Attempting to auto-fix problems, attempt #${autoFixAttempts + 1}`
@@ -1259,9 +1262,9 @@ ${problemReport.problems
                   readFile: (fileName: string) => readFileWithCache(fileName),
                 }
               );
-              const writeTags = getDyadWriteTags(fullResponse);
-              const renameTags = getDyadRenameTags(fullResponse);
-              const deletePaths = getDyadDeleteTags(fullResponse);
+              const writeTags = getEeziWriteTags(fullResponse);
+              const renameTags = getEeziRenameTags(fullResponse);
+              const deletePaths = getEeziDeleteTags(fullResponse);
               virtualFileSystem.applyResponseChanges({
                 deletePaths,
                 renameTags,
@@ -1367,9 +1370,9 @@ ${problemReport.problems
 
     // Only save the response and process it if we weren't aborted
     if (!abortController.signal.aborted && fullResponse) {
-      // Scrape from: <dyad-chat-summary>Renaming profile file</dyad-chat-title>
+      // Scrape from: <eezi-chat-summary>Renaming profile file</eezi-chat-title>
       const chatTitle = fullResponse.match(
-        /<dyad-chat-summary>(.*?)<\/dyad-chat-summary>/
+        /<eezi-chat-summary>(.*?)<\/eezi-chat-summary>/
       );
       if (chatTitle) {
         await db
@@ -1464,7 +1467,6 @@ ${problemReport.problems
     activeChatStreams.delete(chatId);
     // Clean up file uploads state on error
     FileUploadsState.getInstance().clear(chatId);
-  } finally {
     res.end();
   }
 });
@@ -1675,13 +1677,13 @@ router.get("/get-proposal/:chatId", async (req, res) => {
           );
           const messageContent = latestAssistantMessage.content;
 
-          const proposalTitle = getDyadChatSummaryTag(messageContent);
+          const proposalTitle = getEeziChatSummaryTag(messageContent);
 
-          const proposalWriteFiles = getDyadWriteTags(messageContent);
-          const proposalRenameFiles = getDyadRenameTags(messageContent);
-          const proposalDeleteFiles = getDyadDeleteTags(messageContent);
-          const proposalExecuteSqlQueries = getDyadExecuteSqlTags(messageContent);
-          const packagesAdded = getDyadAddDependencyTags(messageContent);
+          const proposalWriteFiles = getEeziWriteTags(messageContent);
+          const proposalRenameFiles = getEeziRenameTags(messageContent);
+          const proposalDeleteFiles = getEeziDeleteTags(messageContent);
+          const proposalExecuteSqlQueries = getEeziExecuteSqlTags(messageContent);
+          const packagesAdded = getEeziAddDependencyTags(messageContent);
 
           const filesChanged = [
             ...proposalWriteFiles.map((tag) => ({
@@ -1746,7 +1748,7 @@ router.get("/get-proposal/:chatId", async (req, res) => {
         }
         const actions: ActionProposal["actions"] = [];
         if (latestAssistantMessage?.content) {
-          const writeTags = getDyadWriteTags(latestAssistantMessage.content);
+          const writeTags = getEeziWriteTags(latestAssistantMessage.content);
           const refactorTarget = writeTags.reduce(
             (largest, tag) => {
               const lineCount = tag.content.split("\n").length;
@@ -1769,7 +1771,7 @@ router.get("/get-proposal/:chatId", async (req, res) => {
           }
 
           // Check for command tags and add corresponding actions
-          const commandTags = getDyadCommandTags(latestAssistantMessage.content);
+          const commandTags = getEeziCommandTags(latestAssistantMessage.content);
           if (commandTags.includes("rebuild")) {
             actions.push({
               id: "rebuild",
@@ -1884,7 +1886,7 @@ router.post("/approve-proposal", async (req, res) => {
     }
 
     // 2. Process the actions defined in the message content
-    const chatSummary = getDyadChatSummaryTag(messageToApprove.content);
+    const chatSummary = getEeziChatSummaryTag(messageToApprove.content);
     const processResult = await processFullResponseActions(
       messageToApprove.content,
       chatId,
@@ -2007,11 +2009,11 @@ router.post("/count-tokens", async (req, res) => {
         chatContext: validateChatContext(chat.app.chatContext),
       });
       codebaseInfo = formattedOutput;
-      if (settings.enableDyadPro && settings.enableProSmartFilesContextMode) {
+      if (settings.enableEeziPro && settings.enableProSmartFilesContextMode) {
         codebaseTokens = estimateTokens(
           files
             // It doesn't need to be the exact format but it's just to get a token estimate
-            .map((file) => `<dyad-file=${file.path}>${file.content}</dyad-file>`)
+            .map((file) => `<eezi-file=${file.path}>${file.content}</eezi-file>`)
             .join("\n\n")
         );
       } else {
