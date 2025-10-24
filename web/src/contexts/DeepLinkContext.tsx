@@ -18,6 +18,7 @@ export function DeepLinkProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = api.integration.onDeepLinkReceived((data) => {
       // Update with timestamp to ensure state change even if same type comes twice
+      console.log("Deep link received:", data);
       setLastDeepLink({ ...data, timestamp: Date.now() });
     });
 

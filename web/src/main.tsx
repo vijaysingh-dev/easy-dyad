@@ -12,7 +12,7 @@ import {
   MutationCache,
 } from "@tanstack/react-query";
 import { showError } from "@/components/Toast";
-import { getTelemetryUserId, isTelemetryOptedIn } from "./hooks/useSettings";
+import { getTelemetryUserId, isTelemetryOptedIn } from "./atoms/settingsAtom";
 
 // @ts-ignore
 console.log("Running in mode:", import.meta.env.MODE);

@@ -519,6 +519,7 @@ export interface GitHubDeviceFlowErrorData {
 
 export interface DeepLinkData {
   type: string;
+  url: string;
 }
 
 export interface OllamaModel {

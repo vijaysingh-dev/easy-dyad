@@ -105,6 +105,11 @@ class EeziClient {
           this.chatStreams.delete(chatId);
           break;
         }
+        case "mcp:tool-consent-request": {
+          const { chatId } = data;
+          this.mcpConsentHandlers.get("consent")?.(data);
+          break;
+        }
         default:
           console.warn("[chat] Unknown event type:", data.eventType);
       }
@@ -115,6 +120,7 @@ class EeziClient {
   public initAppStreamSSE(url: string) {
     this.initEventSource("app", url, (data) => {
       if (data.eventType === "app:output") {
+        console.log("[app] Output received:", data);
         const { appId, type, message } = data as AppOutput;
         this.appStreams
           .get(appId)

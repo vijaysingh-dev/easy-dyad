@@ -70,7 +70,6 @@ class LLMApiService {
     const config: AxiosRequestConfig = { params };
     const { data } = await Api.delete("/llm/delete-custom-model", { config });
     return data;
-    ``;
   }
 
   async deleteCustomLanguageModelProvider(providerId: string) {

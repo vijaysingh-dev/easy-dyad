@@ -106,10 +106,3 @@ userData/
 
 # For development only
 **/src/ipc/
-**/src/lib/
-
-**/src/atoms/
-**/src/client_logic/
-**/src/constants/
-**/src/main/
-**/src/neon_admin/

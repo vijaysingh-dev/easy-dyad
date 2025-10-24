@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAtomValue } from "jotai";
 import { useTheme } from "../contexts/ThemeContext";
 import { ProviderSettingsGrid } from "@/components/ProviderSettings";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
@@ -8,7 +9,7 @@ import { TelemetrySwitch } from "@/components/TelemetrySwitch";
 import { MaxChatTurnsSelector } from "@/components/MaxChatTurnsSelector";
 import { ThinkingBudgetSelector } from "@/components/ThinkingBudgetSelector";
 import { useSettings } from "@/hooks/useSettings";
-import { useAppVersion } from "@/hooks/useAppVersion";
+import { appVersionAtom } from "@/atoms/appAtoms";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
@@ -29,7 +30,7 @@ import api from "@/api";
 export default function SettingsPage() {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-  const appVersion = useAppVersion();
+  const appVersion = useAtomValue(appVersionAtom);
   const { settings, updateSettings } = useSettings();
   const router = useRouter();
 

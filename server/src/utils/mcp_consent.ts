@@ -2,6 +2,7 @@ import db from "@/db";
 import { Response } from "express";
 import { and, eq } from "drizzle-orm";
 import { mcpToolConsents } from "@/db/schema";
+import { safeSend } from "./safe_sender";
 
 export type Consent = "ask" | "always" | "denied";
 
@@ -86,14 +87,7 @@ export async function requireMcpToolConsent(
 
   // Ask renderer for a decision via event bridge
   const requestId = `${params.serverId}:${params.toolName}:${Date.now()}`;
-  res.write(
-    `data: ${JSON.stringify({
-      chatId: chatId,
-      type: "mcp:tool-consent-request",
-      requestId,
-      ...params,
-    })}\n\n`
-  );
+  safeSend(res, "mcp:tool-consent-request", { chatId, requestId, ...params });
   const response = await waitForConsent(requestId);
 
   if (response === "accept-always") {

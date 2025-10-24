@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, use } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useSetAtom, useAtomValue } from "jotai";
 import { homeChatInputValueAtom } from "@/atoms/chatAtoms";
-import { selectedAppIdAtom } from "@/atoms/appAtoms";
+import { selectedAppIdAtom, appVersionAtom } from "@/atoms/appAtoms";
 import { generateCuteAppName } from "@shared/utils";
 import { useLoadApps } from "@/hooks/useLoadApps";
 import { useSettings } from "@/hooks/useSettings";
@@ -13,7 +13,6 @@ import { HomeChatInput } from "@/components/chat/HomeChatInput";
 import { usePostHog } from "posthog-js/react";
 import { PrivacyBanner } from "@/components/TelemetryBanner";
 import { INSPIRATION_PROMPTS } from "@/prompts/inspiration_prompts";
-import { useAppVersion } from "@/hooks/useAppVersion";
 import {
   Dialog,
   DialogContent,
@@ -50,7 +49,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const { streamMessage } = useStreamChat({ hasChatId: false });
   const posthog = usePostHog();
-  const appVersion = useAppVersion();
+  const appVersion = useAtomValue(appVersionAtom);
   const [releaseNotesOpen, setReleaseNotesOpen] = useState(false);
   const [releaseUrl, setReleaseUrl] = useState("");
   const { theme } = useTheme();

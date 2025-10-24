@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { posthog } from "posthog-js";
 import { RouterProvider } from "@tanstack/react-router";
+import { showMcpConsentToast } from "./components/Toast";
 import { router } from "./router";
+import api from "./api";
 
 export default function App() {
   useEffect(() => {
@@ -23,6 +25,19 @@ export default function App() {
     return () => {
       unsubscribe();
     };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = api.mcp.onMcpToolConsentRequest((payload) => {
+      showMcpConsentToast({
+        serverName: payload.serverName,
+        toolName: payload.toolName,
+        toolDescription: payload.toolDescription,
+        inputPreview: payload.inputPreview,
+        onDecision: (d) => api.mcp.respondToMcpConsentRequest(payload.requestId, d),
+      });
+    });
+    return () => unsubscribe();
   }, []);
 
   return <RouterProvider router={router} />;

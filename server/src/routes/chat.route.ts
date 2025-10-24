@@ -98,7 +98,6 @@ router.get("/get-chat/:chatId", async (req, res) => {
         },
       },
     });
-
     if (!chat) {
       throw new Error("Chat not found");
     }

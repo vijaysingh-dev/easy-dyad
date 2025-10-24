@@ -31,12 +31,13 @@ class ChatApiService {
       return ChatSummariesSchema.parse(data);
     } catch (error) {
       showError(error);
+      return [];
     }
   }
 
   public async getChat(chatId: number) {
     try {
-      const { data } = await Api.get(`/chat/get-chat/:${chatId}`);
+      const { data } = await Api.get(`/chat/get-chat/${chatId}`);
       return data;
     } catch (error) {
       showError(error);

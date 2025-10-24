@@ -2,14 +2,14 @@
  * proxy.js – zero-dependency worker-based HTTP/WS forwarder
  */
 
-const { parentPort, workerData } = require("worker_threads");
+import { parentPort, workerData } from "worker_threads";
 
-const http = require("http");
-const https = require("https");
+import http from "http";
+import https from "https";
 
-const { URL } = require("url");
-const fs = require("fs");
-const path = require("path");
+import { URL } from "url";
+import fs from "fs";
+import path from "path";
 
 /* ──────────────────────────── worker code ─────────────────────────────── */
 const LISTEN_HOST = "localhost";

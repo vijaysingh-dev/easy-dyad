@@ -51,6 +51,7 @@ export function useRunApp() {
   const processAppOutput = useCallback(
     (output: AppOutput) => {
       // Handle input requests specially
+      console.log("FE: App output received:", output);
       if (output.type === "input-requested") {
         showInputRequest(output.message, async (response) => {
           try {
