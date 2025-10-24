@@ -30,7 +30,7 @@ export function useCountTokens() {
         setLoading(false);
       }
     },
-    [setLoading, setError, setResult],
+    [setLoading, setError, setResult]
   );
 
   return {

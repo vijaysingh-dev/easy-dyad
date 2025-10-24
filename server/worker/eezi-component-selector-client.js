@@ -1,5 +1,5 @@
 (() => {
-  const OVERLAY_ID = "__dyad_overlay__";
+  const OVERLAY_ID = "__eezi_overlay__";
   let overlay, label;
 
   //detect if the user is using Mac
@@ -58,9 +58,7 @@
       height: `${rect.height}px`,
       display: "block",
       border: isSelected ? "3px solid #7f22fe" : "2px solid #7f22fe",
-      background: isSelected
-        ? "rgba(127, 34, 254, 0.05)"
-        : "rgba(0,170,255,.05)",
+      background: isSelected ? "rgba(127, 34, 254, 0.05)" : "rgba(0,170,255,.05)",
     });
 
     css(label, {
@@ -89,7 +87,7 @@
       const path = document.createElementNS(svgNS, "path");
       path.setAttribute(
         "d",
-        "M8 0L9.48528 6.51472L16 8L9.48528 9.48528L8 16L6.51472 9.48528L0 8L6.51472 6.51472L8 0Z",
+        "M8 0L9.48528 6.51472L16 8L9.48528 9.48528L8 16L6.51472 9.48528L0 8L6.51472 6.51472L8 0Z"
       );
       path.setAttribute("fill", "white");
       svg.appendChild(path);
@@ -99,8 +97,8 @@
       label.appendChild(editLine);
     }
 
-    const name = el.dataset.dyadName || "<unknown>";
-    const file = (el.dataset.dyadId || "").split(":")[0];
+    const name = el.dataset.eeziName || "<unknown>";
+    const file = (el.dataset.eeziId || "").split(":")[0];
 
     const nameEl = document.createElement("div");
     nameEl.textContent = name;
@@ -119,7 +117,7 @@
     if (state.type !== "inspecting") return;
 
     let el = e.target;
-    while (el && !el.dataset.dyadId) el = el.parentElement;
+    while (el && !el.dataset.eeziId) el = el.parentElement;
 
     if (state.element === el) return;
     state.element = el;
@@ -141,11 +139,11 @@
 
     window.parent.postMessage(
       {
-        type: "dyad-component-selected",
-        id: state.element.dataset.dyadId,
-        name: state.element.dataset.dyadName,
+        type: "eezi-component-selected",
+        id: state.element.dataset.eeziId,
+        name: state.element.dataset.eeziName,
       },
-      "*",
+      "*"
     );
   }
 
@@ -167,9 +165,9 @@
       e.preventDefault();
       window.parent.postMessage(
         {
-          type: "dyad-select-component-shortcut",
+          type: "eezi-select-component-shortcut",
         },
-        "*",
+        "*"
       );
     }
   }
@@ -202,8 +200,8 @@
   /* ---------- message bridge -------------------------------------------- */
   window.addEventListener("message", (e) => {
     if (e.source !== window.parent) return;
-    if (e.data.type === "activate-dyad-component-selector") activate();
-    if (e.data.type === "deactivate-dyad-component-selector") deactivate();
+    if (e.data.type === "activate-eezi-component-selector") activate();
+    if (e.data.type === "deactivate-eezi-component-selector") deactivate();
   });
 
   // Always listen for keyboard shortcuts
@@ -212,22 +210,22 @@
   function initializeComponentSelector() {
     if (!document.body) {
       console.error(
-        "Dyad component selector initialization failed: document.body not found.",
+        "Eezi component selector initialization failed: document.body not found."
       );
       return;
     }
     setTimeout(() => {
-      if (document.body.querySelector("[data-dyad-id]")) {
+      if (document.body.querySelector("[data-eezi-id]")) {
         window.parent.postMessage(
           {
-            type: "dyad-component-selector-initialized",
+            type: "eezi-component-selector-initialized",
           },
-          "*",
+          "*"
         );
-        console.debug("Dyad component selector initialized");
+        console.debug("Eezi component selector initialized");
       } else {
         console.warn(
-          "Dyad component selector not initialized because no DOM elements were tagged",
+          "Eezi component selector not initialized because no DOM elements were tagged"
         );
       }
     }, 0);

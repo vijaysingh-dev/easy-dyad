@@ -29,7 +29,7 @@ import { invalidateAppQuery } from "@/hooks/useLoadApp";
 import { useQueryClient } from "@tanstack/react-query";
 
 import type { FileAttachment } from "@shared/eeziTypes";
-import { NEON_TEMPLATE_IDS } from "@/shared/templates";
+import { NEON_TEMPLATE_IDS } from "@shared/templates";
 import { neonTemplateHook } from "@/client_logic/template_hook";
 import { ProBanner } from "@/components/ProBanner";
 import api from "@/api";

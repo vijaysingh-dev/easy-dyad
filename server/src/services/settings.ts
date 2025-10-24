@@ -2,9 +2,10 @@ import logger from "@/logger";
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "crypto";
-import { getUserDataPath } from "./paths";
+import { getPath } from "./paths";
 import { v4 as uuidv4 } from "uuid";
-import { DEFAULT_TEMPLATE_ID } from "@/services/llm/templates";
+import { DEFAULT_TEMPLATE_ID } from "@shared/templates";
+import { IS_TEST_BUILD } from "@/config";
 import {
   UserSettingsSchema,
   type UserSettings,
@@ -36,7 +37,7 @@ const DEFAULT_SETTINGS: UserSettings = {
 const SETTINGS_FILE = "user-settings.json";
 
 export function getSettingsFilePath(): string {
-  return path.join(getUserDataPath(), SETTINGS_FILE);
+  return path.join(getPath("userData"), SETTINGS_FILE);
 }
 
 export function readSettings(): UserSettings {

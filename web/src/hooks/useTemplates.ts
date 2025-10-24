@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { localTemplatesData, type Template } from "@/shared/templates";
+import { localTemplatesData, type Template } from "@shared/templates";
 import api from "@/api";
 
 export function useTemplates() {
   const query = useQuery({
     queryKey: ["templates"],
     queryFn: async (): Promise<Template[]> => {
-      return api.version.getTemplates();
+      return api.app.getTemplates();
     },
     initialData: localTemplatesData,
     meta: {

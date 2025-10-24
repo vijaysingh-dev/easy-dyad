@@ -24,9 +24,15 @@ class AppApiService {
     newTab?.focus();
   }
 
-  public minimizeWindow() {}
-  public maximizeWindow() {}
-  public closeWindow() {}
+  public minimizeWindow() {
+    console.log("Minimize window called");
+  }
+  public maximizeWindow() {
+    console.log("Maximize window called");
+  }
+  public closeWindow() {
+    console.log("Close window called");
+  }
 
   public async selectAppFolder() {
     return { app: null, name: null };

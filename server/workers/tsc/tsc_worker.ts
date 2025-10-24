@@ -8,8 +8,8 @@ import {
   SyncVirtualFileSystem,
   WorkerInput,
   WorkerOutput,
-} from "../../shared/tsc_types";
-import { SyncVirtualFileSystemImpl } from "../../shared/VirtualFilesystem";
+} from "@shared/tscTypes";
+import { SyncVirtualFileSystemImpl } from "@/services/VirtualFilesystem";
 
 function loadLocalTypeScript(appPath: string): typeof import("typescript") {
   try {
@@ -18,9 +18,7 @@ function loadLocalTypeScript(appPath: string): typeof import("typescript") {
     const ts = require(requirePath);
     return ts;
   } catch (error) {
-    throw new Error(
-      `Failed to load TypeScript from ${appPath} because of ${error}`,
-    );
+    throw new Error(`Failed to load TypeScript from ${appPath} because of ${error}`);
   }
 }
 
@@ -44,7 +42,7 @@ function findTypeScriptConfig(appPath: string): string {
   }
 
   throw new Error(
-    `No TypeScript configuration file found in ${appPath}. Expected one of: ${possibleConfigs.join(", ")}`,
+    `No TypeScript configuration file found in ${appPath}. Expected one of: ${possibleConfigs.join(", ")}`
   );
 }
 
@@ -59,7 +57,7 @@ async function runTypeScriptCheck(
     appPath: string;
     tsconfigPath: string;
     tsBuildInfoCacheDir: string;
-  },
+  }
 ): Promise<ProblemReport> {
   return runSingleProject(ts, vfs, {
     appPath,
@@ -79,7 +77,7 @@ async function runSingleProject(
     appPath: string;
     tsconfigPath: string;
     tsBuildInfoCacheDir: string;
-  },
+  }
 ): Promise<ProblemReport> {
   // Use the idiomatic way to parse TypeScript config
   const parsedCommandLine = ts.getParsedCommandLineOfConfigFile(
@@ -91,13 +89,13 @@ async function runSingleProject(
       fileExists: (fileName: string) => vfs.fileExists(fileName),
       readFile: (fileName: string) => vfs.readFile(fileName),
       onUnRecoverableConfigFileDiagnostic: (
-        diagnostic: import("typescript").Diagnostic,
+        diagnostic: import("typescript").Diagnostic
       ) => {
         throw new Error(
-          `TypeScript config error: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")}`,
+          `TypeScript config error: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")}`
         );
       },
-    },
+    }
   );
 
   if (!parsedCommandLine) {
@@ -115,13 +113,8 @@ async function runSingleProject(
 
     // Create a unique filename based on both the app path and tsconfig path to prevent collisions
     const configName = path.basename(tsconfigPath, path.extname(tsconfigPath));
-    const appHash = Buffer.from(appPath)
-      .toString("base64")
-      .replace(/[/+=]/g, "_");
-    options.tsBuildInfoFile = path.join(
-      tmpDir,
-      `${appHash}-${configName}.tsbuildinfo`,
-    );
+    const appHash = Buffer.from(appPath).toString("base64").replace(/[/+=]/g, "_");
+    options.tsBuildInfoFile = path.join(tmpDir, `${appHash}-${configName}.tsbuildinfo`);
     options.incremental = true;
   }
 
@@ -134,9 +127,7 @@ async function runSingleProject(
     .filter(isTypeScriptFile);
 
   // Remove deleted files from rootNames
-  const deletedFiles = vfs
-    .getDeletedFiles()
-    .map((file) => path.resolve(appPath, file));
+  const deletedFiles = vfs.getDeletedFiles().map((file) => path.resolve(appPath, file));
   rootNames = rootNames.filter((fileName) => {
     const resolvedPath = path.resolve(fileName);
     return !deletedFiles.includes(resolvedPath);
@@ -156,8 +147,7 @@ async function runSingleProject(
     rootNames,
     options,
     host,
-    configFileParsingDiagnostics:
-      ts.getConfigFileParsingDiagnostics(parsedCommandLine),
+    configFileParsingDiagnostics: ts.getConfigFileParsingDiagnostics(parsedCommandLine),
   });
 
   // Get diagnostics - the incremental program optimizes this by only checking changed files
@@ -177,12 +167,9 @@ async function runSingleProject(
     if (!diagnostic.file) continue;
 
     const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(
-      diagnostic.start!,
+      diagnostic.start!
     );
-    const message = ts.flattenDiagnosticMessageText(
-      diagnostic.messageText,
-      "\n",
-    );
+    const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n");
 
     if (diagnostic.category !== ts.DiagnosticCategory.Error) {
       continue;
@@ -192,8 +179,7 @@ async function runSingleProject(
     const sourceLines = diagnostic.file.getFullText().split(/\r?\n/);
     const lineBefore = line > 0 ? sourceLines[line - 1] : "";
     const problematicLine = sourceLines[line] || "";
-    const lineAfter =
-      line < sourceLines.length - 1 ? sourceLines[line + 1] : "";
+    const lineAfter = line < sourceLines.length - 1 ? sourceLines[line + 1] : "";
 
     let snippet = "";
     if (lineBefore) snippet += lineBefore + "\n";
@@ -219,7 +205,7 @@ function createVirtualCompilerHost(
   ts: typeof import("typescript"),
   appPath: string,
   vfs: SyncVirtualFileSystem,
-  compilerOptions: import("typescript").CompilerOptions,
+  compilerOptions: import("typescript").CompilerOptions
 ): import("typescript").CompilerHost {
   const host = ts.createIncrementalCompilerHost(compilerOptions);
 
@@ -243,17 +229,11 @@ function createVirtualCompilerHost(
     fileName: string,
     data: string,
     writeByteOrderMark?: boolean,
-    onError?: (message: string) => void,
+    onError?: (message: string) => void
   ) => {
     // Only write build info files to disk, not emit files
     if (fileName.endsWith(".tsbuildinfo")) {
-      originalWriteFile?.call(
-        host,
-        fileName,
-        data,
-        !!writeByteOrderMark,
-        onError,
-      );
+      originalWriteFile?.call(host, fileName, data, !!writeByteOrderMark, onError);
     }
     // Ignore other emit files since we're only doing type checking
   };
@@ -266,9 +246,7 @@ function isTypeScriptFile(fileName: string): boolean {
   return [".ts", ".tsx", ".js", ".jsx"].includes(ext);
 }
 
-async function processTypeScriptCheck(
-  input: WorkerInput,
-): Promise<WorkerOutput> {
+async function processTypeScriptCheck(input: WorkerInput): Promise<WorkerOutput> {
   try {
     const { appPath, virtualChanges, tsBuildInfoCacheDir } = input;
 

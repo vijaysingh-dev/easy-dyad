@@ -3,7 +3,7 @@ import fs from "node:fs";
 import fsAsync from "node:fs/promises";
 import path from "node:path";
 import { isIgnored } from "isomorphic-git";
-import { IS_TEST_BUILD } from "../ipc/utils/test_utils";
+import { IS_TEST_BUILD } from "@/config";
 import { glob } from "glob";
 import { readSettings } from "@/services/settings";
 import { AppChatContext } from "@shared/schemas";

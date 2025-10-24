@@ -3,7 +3,7 @@ import {
   type Template,
   type ApiTemplate,
   localTemplatesData,
-} from "../services/llm/templates";
+} from "../../../shared/templates";
 
 // In-memory cache for API templates
 let apiTemplatesCache: Template[] | null = null;

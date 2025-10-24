@@ -26,8 +26,8 @@ import {
 import { isServerFunction } from "@/services/supabase/supabase_utils";
 import { constructSystemPrompt, readAiRules } from "@/services/prompts/system_prompt";
 import { SUMMARIZE_CHAT_SYSTEM_PROMPT } from "@/services/prompts/summarize_chat_system_prompt";
-import { createProblemFixPrompt } from "@/services/llm/problem_prompt";
-import { parseAppMentions } from "@/services/llm/parse_mention_apps";
+import { createProblemFixPrompt } from "@shared/problem_prompt";
+import { parseAppMentions } from "@shared/parse_mention_apps";
 import { processFullResponseActions } from "@/services/processors/response_processor";
 import { executeAddDependency } from "@/services/processors/executeAddDependency";
 import { generateProblemReport } from "@/services/processors/tsc";
@@ -84,7 +84,6 @@ import {
 } from "@shared/schemas";
 import { MAX_CHAT_TURNS_IN_CONTEXT } from "@shared/constants";
 import { ChatStreamParams, ChatResponseEnd } from "@shared/eeziTypes";
-import { ca } from "zod/v4/locales";
 
 const router = Router();
 
@@ -104,8 +103,8 @@ router.get("/get-chat/:chatId", async (req, res) => {
       throw new Error("Chat not found");
     }
     res.json(chat);
-  } catch (error) {
-    logger.error("Error fetching chat:", error);
+  } catch (error: any) {
+    logger.error("Error fetching chat:", error.message);
     res.status(500).json({ error: "Failed to fetch chat" });
   }
 });
@@ -136,9 +135,10 @@ router.get("/get-chats", async (req, res) => {
         });
 
     const allChats = await query;
+    logger.info("Fetched chats:", allChats);
     res.json(allChats);
-  } catch (error) {
-    logger.error("Error fetching chats:", error.message);
+  } catch (error: any) {
+    logger.error("Error fetching chats:", error?.message);
     res.status(500).json({ error: "Failed to fetch chats" });
   }
 });
@@ -1652,7 +1652,7 @@ router.get("/get-proposal/:chatId", async (req, res) => {
   try {
     const chatId = parseInt(req.params.chatId);
     const result = await withLock("get-proposal:" + chatId, async () => {
-      logger.log(`IPC: get-proposal called for chatId: ${chatId}`);
+      logger.log(`get-proposal called for chatId: ${chatId}`);
 
       try {
         // Find the latest ASSISTANT message for the chat

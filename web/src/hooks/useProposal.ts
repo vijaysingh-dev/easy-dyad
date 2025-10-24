@@ -20,13 +20,11 @@ export function useProposal(chatId?: number | undefined) {
       setIsLoading(true);
       setError(null);
       try {
-        // Type assertion might be needed depending on how IpcClient is typed
         const result = (await api.chat.getProposal(chatId)) as ProposalResult | null;
-
         if (result) {
           setProposalResult(result);
         } else {
-          setProposalResult(null); // Explicitly set to null if IPC returns null
+          setProposalResult(null); // Explicitly set to null if API returns null
         }
       } catch (err: any) {
         console.error("Error fetching proposal:", err);

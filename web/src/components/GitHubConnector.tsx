@@ -327,7 +327,7 @@ function UnconnectedGitHubConnector({
     setGithubVerificationUri(null);
     setGithubStatusMessage("Requesting device code from GitHub...");
 
-    // Send IPC message to main process to start the flow
+    // Send message to main process to start the flow
     api.integration.startGithubDeviceFlow(appId, {
       onGithubDeviceFlowUpdate: (data) => {
         console.log("Received github:flow-update", data);

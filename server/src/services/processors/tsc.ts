@@ -1,5 +1,6 @@
 import logger from "@/logger";
 import * as path from "node:path";
+import { fileURLToPath } from "url";
 import { Worker } from "node:worker_threads";
 
 import {
@@ -20,6 +21,7 @@ export async function generateProblemReport({
 }): Promise<ProblemReport> {
   return new Promise((resolve, reject) => {
     // Determine the worker script path
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const workerPath = path.join(__dirname, "tsc_worker.js");
 
     logger.info(`Starting TSC worker for app ${appPath}`);

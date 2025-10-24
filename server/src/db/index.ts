@@ -6,7 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "url";
 import * as schema from "./schema";
-import { getEeziAppPath, getUserDataPath } from "@/services/paths";
+import { getPath, getEeziAppPath, ensureDir } from "@/services/paths";
 
 // Database connection factory
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -15,7 +15,7 @@ let _db: ReturnType<typeof drizzle> | null = null;
  * Get the database path based on the current environment
  */
 export function getDatabasePath(): string {
-  return path.join(getUserDataPath(), "sqlite.db");
+  return path.join(getPath("userData"), "sqlite.db");
 }
 
 /**
@@ -42,8 +42,8 @@ export function initializeDatabase(): BetterSQLite3Database<typeof schema> & {
     logger.error("Error checking database file:", error);
   }
 
-  fs.mkdirSync(getUserDataPath(), { recursive: true });
-  fs.mkdirSync(getEeziAppPath("."), { recursive: true });
+  ensureDir(getPath("userData"));
+  ensureDir(getEeziAppPath("."));
 
   const sqlite = new Database(dbPath, { timeout: 10000 });
   sqlite.pragma("foreign_keys = ON");
@@ -59,8 +59,7 @@ export function initializeDatabase(): BetterSQLite3Database<typeof schema> & {
       logger.log("Running migrations from:", migrationsFolder);
       migrate(_db, { migrationsFolder });
     }
-  } catch (error) {
-    logger.info(error.message);
+  } catch (error: any) {
     logger.error("Migration error:", error.message);
   }
 

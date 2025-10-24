@@ -16,11 +16,11 @@ export function useLanguageModelsForProvider(providerId: string | undefined) {
     queryKey: ["language-models", providerId],
     queryFn: async () => {
       if (!providerId) {
-        // Avoid calling IPC if providerId is not set
+        // Avoid calling API if providerId is not set
         // Return an empty array as it's a query, not an error state
         return [];
       }
-      return api.mcp.getLanguageModels({ providerId });
+      return api.llm.getLanguageModels({ providerId });
     },
     enabled: !!providerId,
   });

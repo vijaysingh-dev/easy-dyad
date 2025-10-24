@@ -1,5 +1,5 @@
 (function () {
-  console.debug("dyad-shim.js loaded via proxy v0.6.0");
+  console.debug("eezi-shim.js loaded via proxy v0.6.0");
   const isInsideIframe = window.parent !== window;
   if (!isInsideIframe) return;
 
@@ -14,9 +14,7 @@
     const oldUrlForMessage = previousUrl;
     let newUrl;
     try {
-      newUrl = url
-        ? new URL(url, window.location.href).href
-        : window.location.href;
+      newUrl = url ? new URL(url, window.location.href).href : window.location.href;
     } catch (e) {
       console.error("Could not parse URL", e);
       newUrl = window.location.href;
@@ -34,13 +32,10 @@
           type: navigationType,
           payload: { oldUrl: oldUrlForMessage, newUrl: newUrl },
         },
-        PARENT_TARGET_ORIGIN,
+        PARENT_TARGET_ORIGIN
       );
     } catch (e) {
-      console.error(
-        `[vite-dev-plugin] Error calling original ${navigationType}: `,
-        e,
-      );
+      console.error(`[vite-dev-plugin] Error calling original ${navigationType}: `, e);
       window.parent.postMessage(
         {
           type: "navigation-error",
@@ -52,7 +47,7 @@
             urlAttempted: url,
           },
         },
-        PARENT_TARGET_ORIGIN,
+        PARENT_TARGET_ORIGIN
       );
     }
   };
@@ -73,11 +68,7 @@
 
   // --- Listener for Commands from Parent ---
   window.addEventListener("message", (event) => {
-    if (
-      event.source !== window.parent ||
-      !event.data ||
-      typeof event.data !== "object"
-    )
+    if (event.source !== window.parent || !event.data || typeof event.data !== "object")
       return;
     if (event.data.type === "navigate") {
       const direction = event.data.payload?.direction;
@@ -96,20 +87,17 @@
           type: sourceType,
           payload: {
             message: error?.message || String(error),
-            stack:
-              error?.stack || "<no stack available - StackTrace.js missing>",
+            stack: error?.stack || "<no stack available - StackTrace.js missing>",
           },
         },
-        PARENT_TARGET_ORIGIN,
+        PARENT_TARGET_ORIGIN
       );
       return;
     }
 
     window.StackTrace.fromError(error)
       .then((stackFrames) => {
-        const sourcemappedStack = stackFrames
-          .map((sf) => sf.toString())
-          .join("\n");
+        const sourcemappedStack = stackFrames.map((sf) => sf.toString()).join("\n");
 
         const payload = {
           message: error?.message || String(error),
@@ -121,13 +109,13 @@
             type: "iframe-sourcemapped-error",
             payload: { ...payload, originalSourceType: sourceType },
           },
-          PARENT_TARGET_ORIGIN,
+          PARENT_TARGET_ORIGIN
         );
       })
       .catch((mappingError) => {
         console.error(
           "[vite-dev-plugin] Error during stacktrace sourcemapping:",
-          mappingError,
+          mappingError
         );
 
         const payload = {
@@ -143,7 +131,7 @@
             type: "iframe-sourcemapped-error",
             payload: { ...payload, originalSourceType: sourceType },
           },
-          PARENT_TARGET_ORIGIN,
+          PARENT_TARGET_ORIGIN
         );
       });
   }
@@ -159,7 +147,7 @@
             stack: "<no stack available - an improper error was thrown>",
           },
         },
-        PARENT_TARGET_ORIGIN,
+        PARENT_TARGET_ORIGIN
       );
       return;
     }
@@ -174,11 +162,10 @@
           type: "unhandled-rejection",
           payload: {
             message: event.reason.toString(),
-            stack:
-              "<no stack available - an improper error was thrown (promise)>",
+            stack: "<no stack available - an improper error was thrown (promise)>",
           },
         },
-        PARENT_TARGET_ORIGIN,
+        PARENT_TARGET_ORIGIN
       );
       return;
     }
@@ -225,7 +212,7 @@
               frame: node.shadowRoot.querySelector(".frame").textContent,
             },
           },
-          PARENT_TARGET_ORIGIN,
+          PARENT_TARGET_ORIGIN
         );
       } catch (error) {
         console.error("Could not report vite error overlay", error);
@@ -237,9 +224,7 @@
       // The document is still loading, wait for DOMContentLoaded
       document.addEventListener("DOMContentLoaded", () => {
         if (!document.body) {
-          console.error(
-            "document.body does not exist - something very weird happened",
-          );
+          console.error("document.body does not exist - something very weird happened");
           return;
         }
 
@@ -250,14 +235,10 @@
         const observer = new MutationObserver(observerCallback);
         observer.observe(document.body, config);
       });
-      console.log(
-        "Document loading, waiting for DOMContentLoaded to set up observer.",
-      );
+      console.log("Document loading, waiting for DOMContentLoaded to set up observer.");
     } else {
       if (!document.body) {
-        console.error(
-          "document.body does not exist - something very weird happened",
-        );
+        console.error("document.body does not exist - something very weird happened");
         return;
       }
       // The DOM is already interactive or complete

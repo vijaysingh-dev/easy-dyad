@@ -22,12 +22,10 @@ let rememberedOrigin = null; // e.g. "http://localhost:5173"
   if (fixed) {
     try {
       rememberedOrigin = new URL(fixed).origin;
-      parentPort?.postMessage(
-        `[proxy-worker] fixed upstream: ${rememberedOrigin}`,
-      );
+      parentPort?.postMessage(`[proxy-worker] fixed upstream: ${rememberedOrigin}`);
     } catch {
       throw new Error(
-        `Invalid target origin "${fixed}". Must be absolute http/https URL.`,
+        `Invalid target origin "${fixed}". Must be absolute http/https URL.`
       );
     }
   }
@@ -36,8 +34,8 @@ let rememberedOrigin = null; // e.g. "http://localhost:5173"
 /* ---------- optional resources for HTML injection ---------------------- */
 
 let stacktraceJsContent = null;
-let dyadShimContent = null;
-let dyadComponentSelectorClientContent = null;
+let eeziShimContent = null;
+let eeziComponentSelectorClientContent = null;
 try {
   const stackTraceLibPath = path.join(
     __dirname,
@@ -45,41 +43,39 @@ try {
     "node_modules",
     "stacktrace-js",
     "dist",
-    "stacktrace.min.js",
+    "stacktrace.min.js"
   );
   stacktraceJsContent = fs.readFileSync(stackTraceLibPath, "utf-8");
   parentPort?.postMessage("[proxy-worker] stacktrace.js loaded.");
 } catch (error) {
   parentPort?.postMessage(
-    `[proxy-worker] Failed to read stacktrace.js: ${error.message}`,
+    `[proxy-worker] Failed to read stacktrace.js: ${error.message}`
   );
 }
 
 try {
-  const dyadShimPath = path.join(__dirname, "dyad-shim.js");
-  dyadShimContent = fs.readFileSync(dyadShimPath, "utf-8");
-  parentPort?.postMessage("[proxy-worker] dyad-shim.js loaded.");
+  const eeziShimPath = path.join(__dirname, "eezi-shim.js");
+  eeziShimContent = fs.readFileSync(eeziShimPath, "utf-8");
+  parentPort?.postMessage("[proxy-worker] eezi-shim.js loaded.");
 } catch (error) {
   parentPort?.postMessage(
-    `[proxy-worker] Failed to read dyad-shim.js: ${error.message}`,
+    `[proxy-worker] Failed to read eezi-shim.js: ${error.message}`
   );
 }
 
 try {
-  const dyadComponentSelectorClientPath = path.join(
+  const eeziComponentSelectorClientPath = path.join(
     __dirname,
-    "dyad-component-selector-client.js",
+    "eezi-component-selector-client.js"
   );
-  dyadComponentSelectorClientContent = fs.readFileSync(
-    dyadComponentSelectorClientPath,
-    "utf-8",
+  eeziComponentSelectorClientContent = fs.readFileSync(
+    eeziComponentSelectorClientPath,
+    "utf-8"
   );
-  parentPort?.postMessage(
-    "[proxy-worker] dyad-component-selector-client.js loaded.",
-  );
+  parentPort?.postMessage("[proxy-worker] eezi-component-selector-client.js loaded.");
 } catch (error) {
   parentPort?.postMessage(
-    `[proxy-worker] Failed to read dyad-component-selector-client.js: ${error.message}`,
+    `[proxy-worker] Failed to read eezi-component-selector-client.js: ${error.message}`
   );
 }
 
@@ -90,8 +86,8 @@ function needsInjection(pathname) {
 
 function injectHTML(buf) {
   let txt = buf.toString("utf8");
-  // These are strings that were used since the first version of the dyad shim.
-  // If the dyad shim is used from legacy apps which came pre-baked with the shim
+  // These are strings that were used since the first version of the eezi shim.
+  // If the eezi shim is used from legacy apps which came pre-baked with the shim
   // as a vite plugin, then do not inject the shim twice to avoid weird behaviors.
   const legacyAppWithShim =
     txt.includes("window-error") && txt.includes("unhandled-rejection");
@@ -103,23 +99,23 @@ function injectHTML(buf) {
       scripts.push(`<script>${stacktraceJsContent}</script>`);
     } else {
       scripts.push(
-        '<script>console.warn("[proxy-worker] stacktrace.js was not injected.");</script>',
+        '<script>console.warn("[proxy-worker] stacktrace.js was not injected.");</script>'
       );
     }
 
-    if (dyadShimContent) {
-      scripts.push(`<script>${dyadShimContent}</script>`);
+    if (eeziShimContent) {
+      scripts.push(`<script>${eeziShimContent}</script>`);
     } else {
       scripts.push(
-        '<script>console.warn("[proxy-worker] dyad shim was not injected.");</script>',
+        '<script>console.warn("[proxy-worker] eezi shim was not injected.");</script>'
       );
     }
   }
-  if (dyadComponentSelectorClientContent) {
-    scripts.push(`<script>${dyadComponentSelectorClientContent}</script>`);
+  if (eeziComponentSelectorClientContent) {
+    scripts.push(`<script>${eeziComponentSelectorClientContent}</script>`);
   } else {
     scripts.push(
-      '<script>console.warn("[proxy-worker] dyad component selector client was not injected.");</script>',
+      '<script>console.warn("[proxy-worker] eezi component selector client was not injected.");</script>'
     );
   }
   const allScripts = scripts.join("\n");
@@ -130,7 +126,7 @@ function injectHTML(buf) {
   } else {
     txt = allScripts + "\n" + txt;
     parentPort?.postMessage(
-      "[proxy-worker] Warning: <head> tag not found – scripts prepended.",
+      "[proxy-worker] Warning: <head> tag not found – scripts prepended."
     );
   }
   return Buffer.from(txt, "utf8");
@@ -260,7 +256,7 @@ server.on("upgrade", (req, socket, _head) => {
         Object.entries(upRes.headers)
           .map(([k, v]) => `${k}: ${v}`)
           .join("\r\n") +
-        "\r\n\r\n",
+        "\r\n\r\n"
     );
     if (upHead && upHead.length) socket.write(upHead);
 
@@ -274,7 +270,5 @@ server.on("upgrade", (req, socket, _head) => {
 /* ----------------------------------------------------------------------- */
 
 server.listen(LISTEN_PORT, LISTEN_HOST, () => {
-  parentPort?.postMessage(
-    `proxy-server-start url=http://${LISTEN_HOST}:${LISTEN_PORT}`,
-  );
+  parentPort?.postMessage(`proxy-server-start url=http://${LISTEN_HOST}:${LISTEN_PORT}`);
 });

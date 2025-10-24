@@ -414,7 +414,7 @@ export function getTestResponse(prompt: string): string | null {
 
 /**
  * Streams a canned test response to the client
- * @param event The IPC event
+ * @param res The Express response object
  * @param chatId The chat ID
  * @param testResponse The canned response to stream
  * @param abortController The abort controller for this stream

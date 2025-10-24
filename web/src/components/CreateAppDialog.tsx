@@ -14,7 +14,7 @@ import { useCreateApp } from "@/hooks/useCreateApp";
 import { useCheckName } from "@/hooks/useCheckName";
 import { useSetAtom } from "jotai";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
-import { NEON_TEMPLATE_IDS, Template } from "@/shared/templates";
+import { NEON_TEMPLATE_IDS, Template } from "@shared/templates";
 
 import { useRouter } from "@tanstack/react-router";
 
@@ -28,11 +28,7 @@ interface CreateAppDialogProps {
   template: Template | undefined;
 }
 
-export function CreateAppDialog({
-  open,
-  onOpenChange,
-  template,
-}: CreateAppDialogProps) {
+export function CreateAppDialog({ open, onOpenChange, template }: CreateAppDialogProps) {
   const setSelectedAppId = useSetAtom(selectedAppIdAtom);
   const [appName, setAppName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -124,9 +120,7 @@ export function CreateAppDialog({
               disabled={!canSubmit}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSubmitting ? "Creating..." : "Create App"}
             </Button>
           </DialogFooter>

@@ -35,7 +35,7 @@ export function getPath(
 ): string {
   const home = os.homedir();
   const tmp = os.tmpdir();
-  const appName = "eezi";
+  const appDir = "eezi-apps";
 
   switch (name) {
     case "home":
@@ -50,15 +50,18 @@ export function getPath(
       );
 
     case "userData": {
-      const userDataPath = path.join(getPath("appData"), appName);
-      ensureDir(userDataPath);
-      return userDataPath;
+      return IS_TEST_BUILD
+        ? path.resolve("../userData")
+        : path.join(os.homedir(), "userData");
     }
-
+    case "logs": {
+      return path.join(getPath("userData"), "logs");
+    }
+    case "crashDumps": {
+      return path.join(getPath("userData"), "crashDumps");
+    }
     case "sessionData": {
-      const sessionPath = path.join(tmp, appName, "sessionData");
-      ensureDir(sessionPath);
-      return sessionPath;
+      return path.join(tmp, appDir, "sessionData");
     }
 
     case "temp":
@@ -94,50 +97,26 @@ export function getPath(
     case "recent":
       return path.join(home, "Recent");
 
-    case "logs": {
-      const logsPath = path.join(getPath("userData"), "logs");
-      ensureDir(logsPath);
-      return logsPath;
-    }
-
-    case "crashDumps": {
-      const crashPath = path.join(getPath("userData"), "crashDumps");
-      ensureDir(crashPath);
-      return crashPath;
-    }
-
     default:
       throw new Error(`Unknown path name: ${name}`);
   }
 }
 
-function ensureDir(dir: string) {
+export function ensureDir(dir: string) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 }
 
-export function getEeziAppPath(appPath: string): string {
-  if (IS_TEST_BUILD) {
-    return path.join(getPath("userData"), "eezi-apps", appPath);
-  }
-  return path.join(os.homedir(), "eezi-apps", appPath);
+export function getEeziAppPath(appPath?: string): string {
+  let eeziAppPath = path.join(
+    IS_TEST_BUILD ? getPath("userData") : os.homedir(),
+    "eezi-apps"
+  );
+  if (appPath) eeziAppPath = path.join(eeziAppPath, appPath);
+  return eeziAppPath;
 }
 
 export function getTypeScriptCachePath(): string {
   return path.join(getPath("sessionData"), "typescript-cache");
-}
-
-/**
- * Gets the user data path, handling both Electron and non-Electron environments
- * In Electron: returns the app's userData directory
- * In non-Electron: returns "./userData" in the current directory
- */
-
-export function getUserDataPath(): string {
-  if (IS_TEST_BUILD) {
-    // For development or when the Electron app object isn't available
-    return path.resolve("../../userData");
-  }
-  return getPath("userData");
 }

@@ -7,6 +7,7 @@ import { platform } from "os";
 import path from "path";
 import fixPath from "fix-path";
 import * as fs from "fs";
+import { fileURLToPath } from "url";
 import fsPromises from "fs/promises";
 import { spawn } from "child_process";
 import * as git from "isomorphic-git";
@@ -53,8 +54,8 @@ import {
   deploySupabaseFunctions,
   getSupabaseProjectName,
 } from "@/services/supabase/supabase_management_client";
-import { localTemplatesData } from "@/services/llm/templates";
-import { getEeziAppPath, normalizePath, getUserDataPath } from "@/services/paths";
+import { localTemplatesData } from "@shared/templates";
+import { getPath, getEeziAppPath, normalizePath } from "@/services/paths";
 import { type AppSearchResult } from "@shared/schemas";
 import { AppUpgrade } from "@shared/eeziTypes";
 
@@ -135,7 +136,7 @@ router.post("/create-app", async (req, res) => {
 
     res.json({ app, chatId: chat.id });
   } catch (error: any) {
-    logger.error("Error creating app:", error);
+    logger.error("Error creating app:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -279,7 +280,7 @@ router.get("/list-apps", async (req, res) => {
     });
     res.json({
       apps: allApps,
-      appBasePath: getEeziAppPath("$APP_BASE_PATH"),
+      appBasePath: getEeziAppPath(),
     });
   } catch (error: any) {
     logger.error("Error getting all apps:", error);
@@ -290,6 +291,7 @@ router.get("/list-apps", async (req, res) => {
 router.get("/read-app-file/:appId/:filePath", async (req, res) => {
   try {
     const { appId, filePath } = req.params;
+    logger.info(`Reading file ${filePath} for app ${appId}`);
     const app = await db.query.apps.findFirst({
       where: eq(apps.id, parseInt(appId)),
     });
@@ -929,7 +931,7 @@ router.get("reset-all", async (req, res) => {
     logger.log("database deleted.");
     logger.log("deleting settings...");
     // 2. Remove settings
-    const userDataPath = getUserDataPath();
+    const userDataPath = getPath("userData");
     const settingsPath = path.join(userDataPath, "user-settings.json");
 
     if (fs.existsSync(settingsPath)) {
@@ -959,6 +961,7 @@ router.get("reset-all", async (req, res) => {
 router.get("/get-app-version", async (req, res) => {
   try {
     // Read version from package.json at project root
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
     res.json({ version: packageJson.version });
@@ -1113,8 +1116,9 @@ router.get("/check-app-name", async (req, res) => {
     const appPath = getEeziAppPath(appName);
     await fsPromises.access(appPath);
     res.json({ exists: true });
+    return;
   } catch {
-    // Path doesn't exist, continue checking database
+    logger.info("Path doesn't exist, continue checking database");
   }
 
   // Check database
@@ -1238,7 +1242,7 @@ router.get("/get-app-upgrades", async (req, res) => {
       return { ...upgrade, isNeeded };
     });
 
-    return upgradesWithStatus;
+    res.json(upgradesWithStatus);
   } catch (error) {
     logger.error("Error fetching app upgrades:", error);
     res.status(500).json({ error: "Failed to fetch app upgrades" });
@@ -1494,7 +1498,7 @@ router.get("/get-chat-logs/:chatId", async (req, res) => {
 router.post("/upload-to-signed-url", async (req, res) => {
   try {
     const { url, contentType, data } = req.body;
-    logger.debug("IPC: upload-to-signed-url called");
+    logger.debug("upload-to-signed-url called");
 
     // Validate the signed URL
     if (!url || typeof url !== "string" || !url.startsWith("https://")) {

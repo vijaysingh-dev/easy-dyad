@@ -38,7 +38,6 @@ class EeziClient {
   public helpStreams = new Map<string, HelpStreamCallbacks>();
   public mcpConsentHandlers = new Map<string, (payload: any) => void>();
   public githubStreams = new Map<number, GithubStreamCallbacks>();
-  public deepLinkHandler: (data: any) => void = () => {};
 
   // EventSource connections per type
   public eventSources: {
@@ -47,7 +46,6 @@ class EeziClient {
     help?: EventSource;
     mcp?: EventSource;
     github?: EventSource;
-    deeplink?: EventSource;
   } = {};
 
   constructor() {}
@@ -178,19 +176,6 @@ class EeziClient {
         this.githubStreams.get(data.appId)?.onGithubDeviceFlowError(data);
       } else {
         console.warn("[github] Unknown event type:", data.eventType);
-      }
-    });
-  }
-
-  // DeepLink Stream
-  public initDeepLinkSSE(url: string) {
-    this.initEventSource("deeplink", url, (data) => {
-      if (data.eventType === "deep-link:register") {
-        localStorage.setItem("clientId", data.clientId);
-      } else if (data.eventType === "deep-link:received") {
-        this.deepLinkHandler(data);
-      } else {
-        console.warn("[deeplink] Unknown event type:", data.eventType);
       }
     });
   }

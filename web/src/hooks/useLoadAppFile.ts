@@ -16,9 +16,7 @@ export function useLoadAppFile(appId: number | null, filePath: string | null) {
 
       setLoading(true);
       try {
-        const ipcClient = IpcClient.getInstance();
-        const fileContent = await ipcClient.readAppFile(appId, filePath);
-
+        const fileContent = await api.app.readAppFile(appId, filePath);
         setContent(fileContent);
         setError(null);
       } catch (error) {

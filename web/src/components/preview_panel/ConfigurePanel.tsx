@@ -5,20 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
-import {
-  Trash2,
-  Edit2,
-  Plus,
-  Save,
-  X,
-  HelpCircle,
-  ArrowRight,
-} from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Trash2, Edit2, Plus, Save, X, HelpCircle, ArrowRight } from "lucide-react";
 import { showError, showSuccess } from "@/components/Toast";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
 import { useNavigate } from "@tanstack/react-router";
@@ -102,10 +90,7 @@ export const ConfigurePanel = () => {
       return;
     }
 
-    const newEnvVars = [
-      ...envVars,
-      { key: newKey.trim(), value: newValue.trim() },
-    ];
+    const newEnvVars = [...envVars, { key: newKey.trim(), value: newValue.trim() }];
     saveEnvVarsMutation.mutate(newEnvVars);
     setNewKey("");
     setNewValue("");
@@ -127,8 +112,7 @@ export const ConfigurePanel = () => {
     // Check for duplicate keys (excluding the current one being edited)
     if (
       envVars.some(
-        (envVar) =>
-          envVar.key === editingKeyValue.trim() && envVar.key !== editingKey,
+        (envVar) => envVar.key === editingKeyValue.trim() && envVar.key !== editingKey
       )
     ) {
       showError("Environment variable with this key already exists");
@@ -138,7 +122,7 @@ export const ConfigurePanel = () => {
     const newEnvVars = envVars.map((envVar) =>
       envVar.key === editingKey
         ? { key: editingKeyValue.trim(), value: editingValue.trim() }
-        : envVar,
+        : envVar
     );
     saveEnvVarsMutation.mutate(newEnvVars);
     setEditingKey(null);
@@ -157,7 +141,7 @@ export const ConfigurePanel = () => {
       const newEnvVars = envVars.filter((envVar) => envVar.key !== key);
       saveEnvVarsMutation.mutate(newEnvVars);
     },
-    [envVars, saveEnvVarsMutation],
+    [envVars, saveEnvVarsMutation]
   );
 
   const handleCancelAdd = useCallback(() => {
@@ -340,9 +324,7 @@ export const ConfigurePanel = () => {
                   ) : (
                     <>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm truncate">
-                          {envVar.key}
-                        </div>
+                        <div className="font-medium text-sm truncate">{envVar.key}</div>
                         <div className="text-xs text-muted-foreground truncate">
                           {envVar.value}
                         </div>

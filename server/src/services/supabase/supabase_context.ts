@@ -1,4 +1,4 @@
-import { IS_TEST_BUILD } from "@/ipc/utils/test_utils";
+import { IS_TEST_BUILD } from "@/config";
 import { getSupabaseClient } from "./supabase_management_client";
 import { SUPABASE_SCHEMA_QUERY } from "./supabase_schema_query";
 

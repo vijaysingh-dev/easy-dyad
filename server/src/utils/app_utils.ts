@@ -8,6 +8,7 @@ import { platform, arch } from "os";
 import util from "util";
 import killPort from "kill-port";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import fs, { promises as fsPromises } from "node:fs";
 import { ChildProcess, spawn } from "node:child_process";
 import { readSettings } from "@/services/settings";
@@ -108,6 +109,7 @@ export async function getSystemDebugInfo({
   }
 
   // Get Eezi version from package.json
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
   let eeziVersion = "unknown";
   try {

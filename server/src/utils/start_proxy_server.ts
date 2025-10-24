@@ -2,6 +2,7 @@
 import logger from "@/logger";
 import { Worker } from "worker_threads";
 import path from "path";
+import { fileURLToPath } from "url";
 import { findAvailablePort } from "./port_utils";
 
 export async function startProxy(
@@ -23,15 +24,15 @@ export async function startProxy(
     onStarted,
   } = opts;
 
-  const worker = new Worker(
-    path.resolve(__dirname, "..", "..", "worker", "proxy_server.js"),
-    {
-      workerData: {
-        targetOrigin,
-        port,
-      },
-    }
-  );
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const proxyServerJS = path.resolve(__dirname, "..", "..", "worker", "proxy_server.js");
+  logger.info("Starting proxy worker:", proxyServerJS);
+  const worker = new Worker(proxyServerJS, {
+    workerData: {
+      targetOrigin,
+      port,
+    },
+  });
 
   worker.on("message", (m) => {
     logger.info("[proxy]", m);
@@ -40,7 +41,7 @@ export async function startProxy(
       onStarted?.(url);
     }
   });
-  worker.on("error", (e) => logger.error("[proxy] error:", e));
+  worker.on("error", (e) => logger.error("[proxy] error:", e.message));
   worker.on("exit", (c) => logger.info("[proxy] exit", c));
 
   return worker; // let the caller keep a handle if desired

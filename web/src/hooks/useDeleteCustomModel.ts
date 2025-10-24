@@ -20,8 +20,7 @@ export function useDeleteCustomModel({
       if (!params.providerId || !params.modelApiName) {
         throw new Error("Provider ID and Model API Name are required for deletion.");
       }
-      // This method will be added to IpcClient next
-      await api.mcp.deleteCustomModel(params);
+      await api.llm.deleteCustomModel(params);
     },
     onSuccess: (data, params: DeleteCustomModelParams) => {
       // Invalidate queries related to language models for the specific provider

@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 
 import { useStreamChat } from "@/hooks/useStreamChat";
 import { useCheckProblems } from "@/hooks/useCheckProblems";
-import { createProblemFixPrompt } from "@/shared/problem_prompt";
+import { createProblemFixPrompt } from "@shared/problem_prompt";
 import { showError } from "@/components/Toast";
 
 interface ProblemItemProps {
@@ -37,9 +37,7 @@ const ProblemItem = ({ problem }: ProblemItemProps) => {
             {problem.line}:{problem.column}
           </span>
         </div>
-        <p className="text-sm text-foreground leading-relaxed">
-          {problem.message}
-        </p>
+        <p className="text-sm text-foreground leading-relaxed">{problem.message}</p>
       </div>
     </div>
   );
@@ -48,13 +46,7 @@ const ProblemItem = ({ problem }: ProblemItemProps) => {
 interface RecheckButtonProps {
   appId: number;
   size?: "sm" | "default" | "lg";
-  variant?:
-    | "default"
-    | "destructive"
-    | "outline"
-    | "secondary"
-    | "ghost"
-    | "link";
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   className?: string;
 }
 

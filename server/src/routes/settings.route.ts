@@ -118,12 +118,7 @@ router.get("/get-env-vars", async (_req, res) => {
 // Get Node.js system info
 router.get("/nodejs-status", async (_req, res) => {
   try {
-    logger.log(
-      "handling ipc: nodejs-status for platform:",
-      platform(),
-      "and arch:",
-      arch()
-    );
+    logger.log("nodejs-status for platform:", platform(), "and arch:", arch());
     // Run checks in parallel
     const [nodeVersion, pnpmVersion] = await Promise.all([
       runShellCommand("node --version"),

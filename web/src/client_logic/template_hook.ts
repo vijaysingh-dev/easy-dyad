@@ -15,7 +15,7 @@ export async function neonTemplateHook({
   });
 
   console.log("Neon project created", neonProject);
-  await api.settings.setAppEnvVars({
+  await api.app.setAppEnvVars({
     appId: appId,
     envVars: [
       {

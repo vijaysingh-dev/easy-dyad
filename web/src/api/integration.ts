@@ -16,30 +16,36 @@ import {
   DisconnectVercelProjectParams,
 } from "@shared/eeziTypes";
 import eeziClient from "./client";
+import { showError } from "@/components/Toast";
 
 class IntegrationApiService {
+  private deepLinkHandler: ((data: DeepLinkData) => void) | null = null;
   // Listen for deep link events
   public onDeepLinkReceived(callback: (data: DeepLinkData) => void) {
-    eeziClient.deepLinkHandler = callback;
-    const url = eeziClient.baseURL + `/integration/stream/fake-connect`;
-    eeziClient.initDeepLinkSSE(url);
+    this.deepLinkHandler = callback;
   }
 
   public async fakeHandleNeonConnect() {
-    const clientId = localStorage.getItem("clientId");
-    const config: AxiosRequestConfig = { params: { clientId } };
-    return Api.get(`/integration/neon/fake-connect`, { config });
+    Api.get(`/integration/fake-connect/neon`)
+      .then((res) => {
+        if (res.status == 200) this.deepLinkHandler?.(res.data as DeepLinkData);
+      })
+      .catch((error) => {
+        showError(`Error in fakeHandleNeonConnect: ${error}`);
+      });
   }
 
   public async fakeHandleSupabaseConnect(params: {
     appId: number;
     fakeProjectId: string;
   }) {
-    const clientId = localStorage.getItem("clientId");
-    const config: AxiosRequestConfig = { params: { clientId } };
-    await Api.post("/integration/supabase/fake-connect-and-set-project", params, {
-      config,
-    });
+    Api.post("/integration/supabase/fake-connect-and-set-project", params)
+      .then((res) => {
+        if (res.status == 200) this.deepLinkHandler?.(res.data as DeepLinkData);
+      })
+      .catch((error) => {
+        showError(`Error in fakeHandleSupabaseConnect: ${error}`);
+      });
   }
 
   // --- Neon Management ---

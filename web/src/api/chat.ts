@@ -31,7 +31,6 @@ class ChatApiService {
       return ChatSummariesSchema.parse(data);
     } catch (error) {
       showError(error);
-      throw error;
     }
   }
 
@@ -100,7 +99,7 @@ class ChatApiService {
   // Get proposal details
   public async getProposal(chatId: number) {
     try {
-      const { data } = await Api.get(`get-proposal/${chatId}`);
+      const { data } = await Api.get(`/chat/get-proposal/${chatId}`);
       // Assuming the main process returns data matching the ProposalResult interface
       // Add a type check/guard if necessary for robustness
       return data as ProposalResult | null;
@@ -115,12 +114,12 @@ class ChatApiService {
 
   // --- Proposal Management ---
   public async approveProposal(params: { chatId: number; messageId: number }) {
-    const { data } = await Api.post("approve-proposal", params);
+    const { data } = await Api.post("/chat/approve-proposal", params);
     return data;
   }
 
   public async rejectProposal(params: { chatId: number; messageId: number }) {
-    const { data } = await Api.patch("reject-proposal", params);
+    const { data } = await Api.patch("/chat/reject-proposal", params);
     return data;
   }
   // --- End Proposal Management ---
@@ -182,7 +181,7 @@ class ChatApiService {
 
     processAttachments
       .then((fileDataArray) =>
-        Api.post(`/${chatId}/start`, {
+        Api.post(`/chat/${chatId}/start`, {
           prompt,
           redo,
           selectedComponent,
@@ -190,7 +189,7 @@ class ChatApiService {
         })
           .then((res) => {
             if (!eeziClient.eventSources.chat) {
-              const url = eeziClient.baseURL + `/${chatId}/stream`;
+              const url = eeziClient.baseURL + `/chat/${chatId}/stream`;
               eeziClient.initChatStreamSSE(url);
             }
           })
@@ -208,7 +207,7 @@ class ChatApiService {
   }
 
   public cancelChatStream(chatId: number): void {
-    Api.delete(`/${chatId}/cancel`);
+    Api.delete(`/chat/${chatId}/cancel`);
     eeziClient.chatStreams.delete(chatId);
   }
 

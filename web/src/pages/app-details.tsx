@@ -1,25 +1,11 @@
 import { useState } from "react";
 import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import {
-  appBasePathAtom,
-  appsListAtom,
-  selectedAppIdAtom,
-} from "@/atoms/appAtoms";
+import { appBasePathAtom, appsListAtom, selectedAppIdAtom } from "@/atoms/appAtoms";
 import { useLoadApps } from "@/hooks/useLoadApps";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowLeft,
-  MoreVertical,
-  MessageCircle,
-  Pencil,
-  Folder,
-} from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { ArrowLeft, MoreVertical, MessageCircle, Pencil, Folder } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -51,12 +37,10 @@ export default function AppDetailsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
-  const [isRenameConfirmDialogOpen, setIsRenameConfirmDialogOpen] =
-    useState(false);
+  const [isRenameConfirmDialogOpen, setIsRenameConfirmDialogOpen] = useState(false);
   const [newAppName, setNewAppName] = useState("");
   const [isRenaming, setIsRenaming] = useState(false);
-  const [isRenameFolderDialogOpen, setIsRenameFolderDialogOpen] =
-    useState(false);
+  const [isRenameFolderDialogOpen, setIsRenameFolderDialogOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [isRenamingFolder, setIsRenamingFolder] = useState(false);
   const appBasePath = useAtomValue(appBasePathAtom);
@@ -69,7 +53,7 @@ export default function AppDetailsPage() {
 
   const debouncedNewCopyAppName = useDebounce(newCopyAppName, 150);
   const { data: checkNameResult, isLoading: isCheckingName } = useCheckName(
-    debouncedNewCopyAppName,
+    debouncedNewCopyAppName
   );
   const nameExists = checkNameResult?.exists ?? false;
 
@@ -129,9 +113,7 @@ export default function AppDetailsPage() {
     } catch (error) {
       console.error("Failed to rename app:", error);
       alert(
-        `Error renaming app: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
+        `Error renaming app: ${error instanceof Error ? error.message : String(error)}`
       );
     } finally {
       setIsRenaming(false);
@@ -157,7 +139,7 @@ export default function AppDetailsPage() {
       alert(
         `Error renaming folder: ${
           error instanceof Error ? error.message : String(error)
-        }`,
+        }`
       );
     } finally {
       setIsRenamingFolder(false);
@@ -219,13 +201,10 @@ export default function AppDetailsPage() {
     );
   }
 
-  const fullAppPath = appBasePath.replace("$APP_BASE_PATH", selectedApp.path);
+  const fullAppPath = appBasePath.replace("eezi-apps", selectedApp.path);
 
   return (
-    <div
-      className="relative min-h-screen p-4 w-full"
-      data-testid="app-details-page"
-    >
+    <div className="relative min-h-screen p-4 w-full" data-testid="app-details-page">
       <Button
         onClick={() => router.history.back()}
         variant="outline"
@@ -521,8 +500,7 @@ export default function AppDetailsPage() {
                 <DialogDescription className="text-sm">
                   <p>Create a copy of this app.</p>
                   <p>
-                    Note: this does not copy over the Supabase project or GitHub
-                    project.
+                    Note: this does not copy over the Supabase project or GitHub project.
                   </p>
                 </DialogDescription>
               </DialogHeader>
@@ -547,8 +525,7 @@ export default function AppDetailsPage() {
 
                   {nameExists && (
                     <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-1">
-                      An app with this name already exists. Please choose
-                      another name.
+                      An app with this name already exists. Please choose another name.
                     </p>
                   )}
                 </div>
@@ -557,9 +534,7 @@ export default function AppDetailsPage() {
                   <Button
                     variant="outline"
                     className="w-full justify-start p-2 h-auto relative text-sm"
-                    onClick={() =>
-                      copyAppMutation.mutate({ withHistory: true })
-                    }
+                    onClick={() => copyAppMutation.mutate({ withHistory: true })}
                     disabled={
                       copyAppMutation.isPending ||
                       nameExists ||
@@ -577,12 +552,9 @@ export default function AppDetailsPage() {
                       </span>
                     </div>
                     <div className="text-left">
-                      <p className="font-medium text-xs">
-                        Copy app with history
-                      </p>
+                      <p className="font-medium text-xs">Copy app with history</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Copies the entire app, including the Git version
-                        history.
+                        Copies the entire app, including the Git version history.
                       </p>
                     </div>
                   </Button>
@@ -590,9 +562,7 @@ export default function AppDetailsPage() {
                   <Button
                     variant="outline"
                     className="w-full justify-start p-2 h-auto text-sm"
-                    onClick={() =>
-                      copyAppMutation.mutate({ withHistory: false })
-                    }
+                    onClick={() => copyAppMutation.mutate({ withHistory: false })}
                     disabled={
                       copyAppMutation.isPending ||
                       nameExists ||
@@ -605,9 +575,7 @@ export default function AppDetailsPage() {
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
                     <div className="text-left">
-                      <p className="font-medium text-xs">
-                        Copy app without history
-                      </p>
+                      <p className="font-medium text-xs">Copy app without history</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         Useful if the current app has a Git-related issue.
                       </p>
@@ -635,8 +603,8 @@ export default function AppDetailsPage() {
             <DialogHeader className="pb-2">
               <DialogTitle>Delete "{selectedApp.name}"?</DialogTitle>
               <DialogDescription className="text-xs">
-                This action is irreversible. All app files and chat history will
-                be permanently deleted.
+                This action is irreversible. All app files and chat history will be
+                permanently deleted.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="flex justify-end gap-2 pt-2">

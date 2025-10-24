@@ -15,7 +15,7 @@ export const ChatSummarySchema = z.object({
   id: z.number(),
   appId: z.number(),
   title: z.string().nullable(),
-  createdAt: z.date(),
+  createdAt: z.coerce.date(),
 });
 
 /**

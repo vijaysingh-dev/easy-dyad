@@ -35,39 +35,8 @@ const router = Router();
 
 const TEST_SERVER_BASE = "http://localhost:3500";
 
-// --- Deep Link SSE Management ---
-
-const activeClients = new Map<string, Response>();
-
-router.get("/stream/fake-connect", (req, res) => {
-  // Set up SSE
-  const origin = req.headers.origin ?? "*";
-  res.setHeader("Access-Control-Allow-Origin", origin);
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.flushHeaders();
-
-  try {
-    logger.info("fake-connect stream connected");
-    const clientId = crypto.randomUUID();
-    // Handle disconnection
-    req.on("close", () => {
-      console.log(`Client disconnected: ${clientId}`);
-      activeClients.delete(clientId);
-    });
-
-    activeClients.set(clientId, res);
-    safeSend(res, "deep-link:register", { clientId });
-  } catch (error) {
-    logger.error("Error in fake-connect stream:", error);
-    safeSend(res, "deep-link:error", { error: "Internal server error" });
-    res.end();
-  }
-});
-
-router.get("/neon/fake-connect", async (req, res) => {
+// --- Deep Link Management ---
+router.get("/neon/fake-connect", async (_, res) => {
   try {
     // Call handleNeonOAuthReturn with fake data
     handleNeonOAuthReturn({
@@ -77,20 +46,13 @@ router.get("/neon/fake-connect", async (req, res) => {
     });
     logger.info("Called handleNeonOAuthReturn with fake data during testing.");
 
-    // Simulate the deep link event
-    const clientRes = activeClients.get(req.query.clientId as string);
-    if (!clientRes) {
-      res.status(400).json({ error: "Client not found for deep link simulation" });
-      return;
-    }
-    safeSend(clientRes, "deep-link:received", {
+    logger.info("Sent fake neon deep-link-received event during testing.");
+    res.json({
       type: "neon-oauth-return",
       url: "https://oauth.dyad.sh/api/integrations/neon/login",
     });
-    logger.info("Sent fake neon deep-link-received event during testing.");
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error sending fake neon deep-link-received event:", error);
+  } catch (error: any) {
+    logger.error("Error sending fake neon deep-link-received event:", error.message);
     res.status(500).json({ error: "Failed to send fake neon deep-link-received event" });
   }
 });
@@ -120,22 +82,16 @@ router.post("/supabase/fake-connect-and-set-project", async (req, res) => {
     );
 
     // Simulate the deep link event
-    const clientRes = activeClients.get(req.query.clientId as string);
-    if (!clientRes) {
-      res.status(400).json({ error: "Client not found for deep link simulation" });
-      return;
-    }
-    safeSend(clientRes, "deep-link:received", {
+    res.json({
       type: "supabase-oauth-return",
       url: "https://supabase-oauth.dyad.sh/api/connect-supabase/login",
     });
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error in fake Supabase connect and set project:", error);
+  } catch (error: any) {
+    logger.error("Error in fake Supabase connect and set project:", error.message);
     res.status(500).json({ error: "Failed to fake connect and set Supabase project" });
   }
 });
-// --- End Deep Link SSE Management ---
+// --- End Deep Link Management ---
 
 // --- Neon Management ---
 router.get("/neon/get-project", async (req, res) => {
@@ -891,6 +847,7 @@ export async function pollForAccessToken(res: Response, appId: number) {
       writeSettings({
         githubAccessToken: {
           value: data.access_token,
+          encryptionType: "aes-256-gcm",
         },
       });
 
@@ -995,6 +952,7 @@ router.post("/vercel/save-token", async (req, res) => {
     writeSettings({
       vercelAccessToken: {
         value: token.trim(),
+        encryptionType: "aes-256-gcm",
       },
     });
 

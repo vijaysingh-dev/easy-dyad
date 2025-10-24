@@ -25,16 +25,15 @@ export function useMcp() {
 
   const serverIds = useMemo(
     () => (serversQuery.data || []).map((s) => s.id).sort((a, b) => a - b),
-    [serversQuery.data],
+    [serversQuery.data]
   );
 
   const toolsByServerQuery = useQuery<Record<number, McpTool[]>, Error>({
     queryKey: ["mcp", "tools-by-server", serverIds],
     enabled: serverIds.length > 0,
     queryFn: async () => {
-      const ipc = IpcClient.getInstance();
       const entries = await Promise.all(
-        serverIds.map(async (id) => [id, await ipc.listMcpTools(id)] as const),
+        serverIds.map(async (id) => [id, await api.mcp.listMcpTools(id)] as const)
       );
       return Object.fromEntries(entries) as Record<number, McpTool[]>;
     },
@@ -44,8 +43,7 @@ export function useMcp() {
   const consentsQuery = useQuery<McpToolConsent[], Error>({
     queryKey: ["mcp", "consents"],
     queryFn: async () => {
-      const ipc = IpcClient.getInstance();
-      const list = await ipc.getMcpToolConsents();
+      const list = await api.mcp.getMcpToolConsents();
       return (list || []) as McpToolConsent[];
     },
     meta: { showErrorToast: true },
@@ -61,8 +59,7 @@ export function useMcp() {
 
   const createServerMutation = useMutation({
     mutationFn: async (params: CreateMcpServer) => {
-      const ipc = IpcClient.getInstance();
-      return ipc.createMcpServer(params);
+      return api.mcp.createMcpServer(params);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["mcp", "servers"] });
@@ -75,8 +72,7 @@ export function useMcp() {
 
   const updateServerMutation = useMutation({
     mutationFn: async (params: McpServerUpdate) => {
-      const ipc = IpcClient.getInstance();
-      return ipc.updateMcpServer(params);
+      return api.mcp.updateMcpServer(params);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["mcp", "servers"] });
@@ -89,8 +85,7 @@ export function useMcp() {
 
   const deleteServerMutation = useMutation({
     mutationFn: async (id: number) => {
-      const ipc = IpcClient.getInstance();
-      return ipc.deleteMcpServer(id);
+      return api.mcp.deleteMcpServer(id);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["mcp", "servers"] });
@@ -107,8 +102,7 @@ export function useMcp() {
       toolName: string;
       consent: McpToolConsent["consent"];
     }) => {
-      const ipc = IpcClient.getInstance();
-      return ipc.setMcpToolConsent(params);
+      return api.mcp.setMcpToolConsent(params);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["mcp", "consents"] });
@@ -125,13 +119,12 @@ export function useMcp() {
   const updateServer = async (params: McpServerUpdate) =>
     updateServerMutation.mutateAsync(params);
 
-  const deleteServer = async (id: number) =>
-    deleteServerMutation.mutateAsync(id);
+  const deleteServer = async (id: number) => deleteServerMutation.mutateAsync(id);
 
   const setToolConsent = async (
     serverId: number,
     toolName: string,
-    consent: McpToolConsent["consent"],
+    consent: McpToolConsent["consent"]
   ) => setConsentMutation.mutateAsync({ serverId, toolName, consent });
 
   const refetchAll = async () => {
@@ -148,11 +141,8 @@ export function useMcp() {
     consentsList: consentsQuery.data || [],
     consentsMap,
     isLoading:
-      serversQuery.isLoading ||
-      toolsByServerQuery.isLoading ||
-      consentsQuery.isLoading,
-    error:
-      serversQuery.error || toolsByServerQuery.error || consentsQuery.error,
+      serversQuery.isLoading || toolsByServerQuery.isLoading || consentsQuery.isLoading,
+    error: serversQuery.error || toolsByServerQuery.error || consentsQuery.error,
     refetchAll,
 
     // Mutations

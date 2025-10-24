@@ -1,16 +1,16 @@
 import { NODE_ENV, PORT, ALLOWED_ORIGINS } from "@/config";
 
+import { initializeDatabase } from "@/db";
 import express, { type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import morgan from "morgan";
-import { initializeDatabase } from "@/db";
-import appRoutes from "./routes/app";
-import chatRoutes from "./routes/chat";
-import integrationRoutes from "./routes/integration";
-import mcpRoutes from "./routes/mcp";
-import llmRoutes from "./routes/llm";
-import settingsRoutes from "./routes/settings";
-import versionRoutes from "./routes/version";
+import appRoutes from "./routes/app.route";
+import chatRoutes from "./routes/chat.route";
+import integrationRoutes from "./routes/integration.route";
+import mcpRoutes from "./routes/mcp.route";
+import llmRoutes from "./routes/llm.route";
+import settingsRoutes from "./routes/settings.route";
+import versionRoutes from "./routes/version.route";
 
 initializeDatabase();
 

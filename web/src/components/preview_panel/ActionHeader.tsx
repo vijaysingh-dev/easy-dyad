@@ -34,12 +34,7 @@ import { useCheckProblems } from "@/hooks/useCheckProblems";
 import { isPreviewOpenAtom } from "@/atoms/viewAtoms";
 import api from "@/api";
 
-export type PreviewMode =
-  | "preview"
-  | "code"
-  | "problems"
-  | "configure"
-  | "publish";
+export type PreviewMode = "preview" | "code" | "problems" | "configure" | "publish";
 
 const BUTTON_CLASS_NAME =
   "no-app-region-drag cursor-pointer relative flex items-center gap-1 px-2 py-1 rounded-md text-[13px] font-medium z-10 hover:bg-[var(--background)]";
@@ -170,7 +165,7 @@ export const ActionHeader = () => {
     icon: React.ReactNode,
     text: string,
     testId: string,
-    badge?: React.ReactNode,
+    badge?: React.ReactNode
   ) => {
     const buttonContent = (
       <button
@@ -221,7 +216,7 @@ export const ActionHeader = () => {
             previewRef,
             <Eye size={14} />,
             "Preview",
-            "preview-mode-button",
+            "preview-mode-button"
           )}
           {renderButton(
             "problems",
@@ -233,28 +228,22 @@ export const ActionHeader = () => {
               <span className="ml-0.5 px-1 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full min-w-[16px] text-center">
                 {displayCount}
               </span>
-            ),
+            )
           )}
-          {renderButton(
-            "code",
-            codeRef,
-            <Code size={14} />,
-            "Code",
-            "code-mode-button",
-          )}
+          {renderButton("code", codeRef, <Code size={14} />, "Code", "code-mode-button")}
           {renderButton(
             "configure",
             configureRef,
             <Wrench size={14} />,
             "Configure",
-            "configure-mode-button",
+            "configure-mode-button"
           )}
           {renderButton(
             "publish",
             publishRef,
             <Globe size={14} />,
             "Publish",
-            "publish-mode-button",
+            "publish-mode-button"
           )}
         </div>
         {/* Chat activity bell */}
