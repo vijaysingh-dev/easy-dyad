@@ -171,7 +171,7 @@ async function isGitIgnored(filePath: string, baseDir: string): Promise<boolean>
 
     gitIgnoreCache.set(cacheKey, result);
     return result;
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error checking if path is git ignored: ${filePath}`, error);
     return false;
   }
@@ -226,7 +226,7 @@ export async function readFileWithCache(
     }
 
     return content;
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error reading file: ${filePath}`, error);
     return undefined;
   }
@@ -280,7 +280,7 @@ async function collectFiles(dir: string, baseDir: string): Promise<string[]> {
           if (stats.size > MAX_FILE_SIZE) {
             return;
           }
-        } catch (error) {
+        } catch (error: any) {
           logger.error(`Error checking file size: ${fullPath}`, error);
           return;
         }
@@ -291,7 +291,7 @@ async function collectFiles(dir: string, baseDir: string): Promise<string[]> {
     });
 
     await Promise.all(promises);
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error reading directory ${dir}:`, error);
   }
 
@@ -378,7 +378,7 @@ ${content}
 </eezi-file>
 
 `;
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error reading file: ${filePath}`, error);
     return `<eezi-file path="${normalizedRelativePath}">
 // Error reading file: ${error}
@@ -602,7 +602,7 @@ async function sortFilesByModificationTime(files: string[]): Promise<string[]> {
       try {
         const stats = await fsAsync.stat(file);
         return { file, mtime: stats.mtimeMs };
-      } catch (error) {
+      } catch (error: any) {
         // If there's an error getting stats, use current time as fallback
         // This can happen with virtual files, so it's not a big deal.
         logger.warn(`Error getting file stats for ${file}:`, error);

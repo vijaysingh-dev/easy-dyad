@@ -71,7 +71,7 @@ export async function debugFetch(
             controller.enqueue(value);
           }
           controller.close();
-        } catch (error) {
+        } catch (error: any) {
           logger.error(`[${debugTag}] Stream error:`, error);
           controller.error(error);
         }
@@ -91,7 +91,7 @@ export async function debugFetch(
     try {
       const bodyText = await clonedResponse.text();
       logger.info(`[${debugTag}] Response body:`, bodyText);
-    } catch (error) {
+    } catch (error: any) {
       logger.error(`[${debugTag}] Error reading response body:`, error);
     }
   }

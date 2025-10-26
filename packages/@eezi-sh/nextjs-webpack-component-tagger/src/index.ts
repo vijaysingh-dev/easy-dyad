@@ -6,9 +6,9 @@ import { walk } from "estree-walker";
 const VALID_EXTENSIONS = new Set([".jsx", ".tsx"]);
 
 /**
- * A webpack loader that adds `data-dyad-*` attributes to JSX elements.
+ * A webpack loader that adds `data-eezi-*` attributes to JSX elements.
  */
-export default function dyadTaggerLoader(this: any, code: string) {
+export default function eeziTaggerLoader(this: any, code: string) {
   // Signal that this is an async loader
   const callback = this.async();
 
@@ -47,28 +47,27 @@ export default function dyadTaggerLoader(this: any, code: string) {
             // Skip if already tagged
             const alreadyTagged = node.attributes?.some(
               (attr: any) =>
-                attr.type === "JSXAttribute" &&
-                attr.name?.name === "data-dyad-id",
+                attr.type === "JSXAttribute" && attr.name?.name === "data-eezi-id"
             );
             if (alreadyTagged) return;
 
-            // Build the dyad ID
+            // Build the eezi ID
             const loc = node.loc?.start;
             if (!loc) return;
-            const dyadId = `${fileRelative}:${loc.line}:${loc.column}`;
+            const eeziId = `${fileRelative}:${loc.line}:${loc.column}`;
 
             // Inject the attributes
             if (node.name.end != null) {
               ms.appendLeft(
                 node.name.end,
-                ` data-dyad-id="${dyadId}" data-dyad-name="${tagName}"`,
+                ` data-eezi-id="${eeziId}" data-eezi-name="${tagName}"`
               );
               transformCount++;
             }
           } catch (error) {
             console.warn(
-              `[dyad-tagger] Warning: Failed to process JSX node in ${this.resourcePath}:`,
-              error,
+              `[eezi-tagger] Warning: Failed to process JSX node in ${this.resourcePath}:`,
+              error
             );
           }
         },
@@ -86,8 +85,8 @@ export default function dyadTaggerLoader(this: any, code: string) {
       };
     } catch (error) {
       console.warn(
-        `[dyad-tagger] Warning: Failed to transform ${this.resourcePath}:`,
-        error,
+        `[eezi-tagger] Warning: Failed to transform ${this.resourcePath}:`,
+        error
       );
       return null;
     }
@@ -102,7 +101,7 @@ export default function dyadTaggerLoader(this: any, code: string) {
       }
     })
     .catch((err) => {
-      console.error(`[dyad-tagger] ERROR in ${this.resourcePath}:`, err);
+      console.error(`[eezi-tagger] ERROR in ${this.resourcePath}:`, err);
       // Return original code instead of throwing
       callback(null, code);
     });

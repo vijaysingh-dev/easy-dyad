@@ -152,7 +152,6 @@ class ChatApiService {
     const { chatId, redo, attachments, selectedComponent, onUpdate, onEnd, onError } =
       options;
 
-    eeziClient.chatStreams.set(chatId, { onUpdate, onEnd, onError });
     // Process file attachments if any
     const processAttachments = attachments
       ? Promise.all(
@@ -189,10 +188,11 @@ class ChatApiService {
           attachments: fileDataArray,
         })
           .then((res) => {
-            if (!eeziClient.eventSources.chat) {
-              const url = eeziClient.baseURL + `/chat/${chatId}/stream`;
-              eeziClient.initChatStreamSSE(url);
-            }
+            eeziClient.chatStreams.set(chatId, { onUpdate, onEnd, onError });
+            eeziClient.eventSources["chat"]?.close();
+
+            const url = eeziClient.baseURL + `/chat/${chatId}/stream`;
+            eeziClient.initChatStreamSSE(url);
           })
           .catch((err) => {
             showError(err);
@@ -224,6 +224,9 @@ class ChatApiService {
   ): void {
     Api.post(`/chat/help/${sessionId}/start`, { message })
       .then(() => {
+        eeziClient.helpStreams.delete(sessionId);
+        eeziClient.eventSources["help"]?.close();
+
         eeziClient.helpStreams.set(sessionId, options);
         const url = eeziClient.baseURL + `/chat/help/${sessionId}/stream`;
         eeziClient.initHelpStreamSSE(url);

@@ -77,8 +77,8 @@ export async function refreshSupabaseToken(): Promise<void> {
         tokenTimestamp: Math.floor(Date.now() / 1000), // Store current timestamp
       },
     });
-  } catch (error) {
-    logger.error("Error refreshing Supabase token:", error);
+  } catch (error: any) {
+    logger.error("Error refreshing Supabase token:", error.message);
     throw error;
   }
 }

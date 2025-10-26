@@ -101,7 +101,7 @@ router.get("/get-chat/:chatId", async (req, res) => {
     if (!chat) {
       throw new Error("Chat not found");
     }
-    res.json(chat);
+    res.status(200).json(chat);
   } catch (error: any) {
     logger.error("Error fetching chat:", error.message);
     res.status(500).json({ error: "Failed to fetch chat" });
@@ -134,8 +134,8 @@ router.get("/get-chats", async (req, res) => {
         });
 
     const allChats = await query;
-    logger.info("Fetched chats:", allChats);
-    res.json(allChats);
+    // logger.info("Fetched chats:", allChats);
+    res.status(200).json(allChats);
   } catch (error: any) {
     logger.error("Error fetching chats:", error?.message);
     res.status(500).json({ error: "Failed to fetch chats" });
@@ -165,8 +165,8 @@ router.post("/create-chat/", async (req, res) => {
         dir: getEeziAppPath(app.path),
         ref: "main",
       });
-    } catch (error) {
-      logger.error("Error getting git revision:", error);
+    } catch (error: any) {
+      logger.error("Error getting git revision:", error.message);
       // Continue without the git revision
     }
 
@@ -186,9 +186,9 @@ router.post("/create-chat/", async (req, res) => {
       "with initial commit hash:",
       initialCommitHash
     );
-    res.json(chat.id);
-  } catch (error) {
-    logger.error("Error creating chat:", error);
+    res.status(200).json(chat.id);
+  } catch (error: any) {
+    logger.error("Error creating chat:", error.message);
     res.status(500).json({ error: "Failed to create chat" });
   }
 });
@@ -197,9 +197,9 @@ router.delete("/delete-chat/:chatId", async (req, res) => {
   try {
     const chatId = parseInt(req.params.chatId);
     await db.delete(chats).where(eq(chats.id, chatId));
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error deleting chat:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    logger.error("Error deleting chat:", error.message);
     res.status(500).json({ error: "Failed to delete chat" });
   }
 });
@@ -209,9 +209,9 @@ router.patch("/update-chat/:chatId", async (req, res) => {
     const chatId = parseInt(req.params.chatId);
     const { title } = req.body;
     await db.update(chats).set({ title }).where(eq(chats.id, chatId));
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error updating chat:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    logger.error("Error updating chat:", error.message);
     res.status(500).json({ error: "Failed to update chat" });
   }
 });
@@ -220,9 +220,9 @@ router.delete("/delete-messages/:chatId", async (req, res) => {
   try {
     const chatId = parseInt(req.params.chatId);
     await db.delete(messages).where(eq(messages.chatId, chatId));
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error deleting messages:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    logger.error("Error deleting messages:", error.message);
     res.status(500).json({ error: "Failed to delete messages" });
   }
 });
@@ -278,9 +278,9 @@ router.post("/search-chats/:appId", async (req, res) => {
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
-    res.json(uniqueChats);
-  } catch (error) {
-    logger.error("Error searching chats:", error);
+    res.status(200).json(uniqueChats);
+  } catch (error: any) {
+    logger.error("Error searching chats:", error.message);
     res.status(500).json({ error: "Failed to search chats" });
   }
 });
@@ -360,9 +360,9 @@ router.get("/get-context-paths", async (req, res) => {
         tokens: totalTokens,
       });
     }
-    res.json(results);
-  } catch (error) {
-    logger.error("Error getting context paths:", error);
+    res.status(200).json(results);
+  } catch (error: any) {
+    logger.error("Error getting context paths:", error.message);
     res.status(500).json({ error: "Failed to get context paths" });
   }
 });
@@ -377,9 +377,9 @@ router.post("/set-context-paths", async (req, res) => {
     schema.parse({ appId, chatContext });
 
     await db.update(apps).set({ chatContext }).where(eq(apps.id, appId));
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error setting context paths:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    logger.error("Error setting context paths:", error.message);
     res.status(500).json({ error: "Failed to set context paths" });
   }
 });
@@ -425,9 +425,9 @@ router.post("/add-dep", async (req, res) => {
       message,
       appPath: getEeziAppPath(app.path),
     });
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error adding dependencies:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    logger.error("Error adding dependencies:", error.message);
     res.status(500).json({ error: "Failed to add dependencies" });
   }
 });
@@ -461,9 +461,9 @@ router.post("/:chatId/start", async (req, res) => {
       controller: new AbortController(),
       data: req.body as ChatStreamParams,
     });
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error starting stream:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    logger.error("Error starting stream:", error.message);
     res.status(500).json({ error: "Failed to start stream" });
   }
 });
@@ -492,6 +492,7 @@ router.get("/:chatId/stream", async (req, res) => {
 
     req.on("close", () => {
       logger.info("Client disconnected:", chatId);
+      abortController.abort();
       activeChatStreams.delete(chatId);
       res.end();
     });
@@ -646,12 +647,7 @@ router.get("/:chatId/stream", async (req, res) => {
         logger.error(`Error reading selected component file content: ${err}`);
       }
 
-      userPrompt += `\n\nSelected component: ${selectedComponent.name} (file: ${selectedComponent.relativePath})
-Snippet:
-\`\`\`
-${componentSnippet}
-\`\`\`
-`;
+      userPrompt += `\n\nSelected component: ${selectedComponent.name} (file: ${selectedComponent.relativePath})\nSnippet:\n\`\`\`\n${componentSnippet}\n\`\`\``;
     }
     await db
       .insert(messages)
@@ -868,11 +864,9 @@ Example for file with id of DYAD_ATTACHMENT_0:
 <eezi-write path="src/components/Button.jsx" description="Upload file to codebase">
 DYAD_ATTACHMENT_0
 </eezi-write>
-
-  `;
+`;
       } else if (hasImageAttachments) {
         systemPrompt += `
-
 # Image Analysis Instructions
 This conversation includes one or more image attachments. When the user uploads images:
 1. If the user explicitly asks for analysis, description, or information about the image, please analyze the image content.
@@ -1045,7 +1039,7 @@ This conversation includes one or more image attachments. When the user uploads 
           tools,
           messages: chatMessages.filter((m) => m.content),
           onError: (error: any) => {
-            logger.error("Error streaming text:", error);
+            logger.error("Error streaming text:", error.message);
             let errorMessage = (error as any)?.error?.message;
             const responseBody = error?.error?.responseBody;
             if (errorMessage && responseBody) {
@@ -1328,7 +1322,7 @@ ${problemReport.problems
                 appPath: getEeziAppPath(updatedChat.app.path),
               });
             }
-          } catch (error) {
+          } catch (error: any) {
             logger.error(
               "Error generating problem report or auto-fixing:",
               settings.enableAutoFixProblems,
@@ -1348,7 +1342,6 @@ ${problemReport.problems
                 .update(messages)
                 .set({
                   content: `${partialResponse}
-
 [Response cancelled by user]`,
                 })
                 .where(eq(messages.id, placeholderAssistantMessage.id));
@@ -1357,7 +1350,7 @@ ${problemReport.problems
                 `Updated cancelled response for placeholder message ${placeholderAssistantMessage.id} in chat ${chatId}`
               );
               partialResponses.delete(chatId);
-            } catch (error) {
+            } catch (error: any) {
               logger.error(`Error saving partial response for chat ${chatId}:`, error);
             }
           }
@@ -1448,16 +1441,13 @@ ${problemReport.problems
             },
             30 * 60 * 1000
           ); // Delete after 30 minutes
-        } catch (error) {
+        } catch (error: any) {
           logger.error(`Error scheduling file deletion: ${error}`);
         }
       }
     }
-
-    // Return the chat ID for backwards compatibility
-    return chatId;
-  } catch (error) {
-    logger.error("Error streaming chat:", error);
+  } catch (error: any) {
+    logger.error("Error streaming chat:", error.message);
     safeSend(res, "chat:response:error", {
       chatId,
       error: `Sorry, there was an error processing your request: ${error}`,
@@ -1479,13 +1469,13 @@ router.delete("/:chatId/cancel", async (req, res) => {
       stream.controller.abort();
       activeChatStreams.delete(chatId);
       logger.log(`Canceled active stream for chat ${chatId}`);
-      res.json({ success: true });
+      res.status(200).json({ success: true });
     } else {
       console.warn(`No active stream found for chat ${chatId}`);
       res.status(404).json({ error: "No active stream found" });
     }
-  } catch (error) {
-    logger.error("Error canceling chat stream:", error);
+  } catch (error: any) {
+    logger.error("Error canceling chat stream:", error.message);
     res.status(500).json({ error: "Failed to cancel chat stream" });
   }
 });
@@ -1510,9 +1500,9 @@ router.post("/help/:sessionId/start", async (req, res) => {
       controller: new AbortController(),
       message: req.body.message,
     });
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error starting help stream:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    logger.error("Error starting help stream:", error.message);
     res.status(500).json({ error: "Failed to start help stream" });
   }
 });
@@ -1521,6 +1511,9 @@ router.get("/help/:sessionId/stream", async (req, res) => {
   const sessionId = req.params.sessionId;
   try {
     // Set up SSE
+    const origin = req.headers.origin ?? "*";
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
@@ -1535,6 +1528,13 @@ router.get("/help/:sessionId/stream", async (req, res) => {
 
     const abortController = activeHelpStreams.get(sessionId).controller;
     const message = activeHelpStreams.get(sessionId).message;
+
+    req.on("close", () => {
+      logger.log(`Client disconnected from help ${sessionId} run stream.`);
+      abortController.abort();
+      activeHelpStreams.delete(sessionId);
+      res.end();
+    });
 
     // Append user message to session history
     const history = helpSessions.get(sessionId) ?? [];
@@ -1569,7 +1569,7 @@ router.get("/help/:sessionId/stream", async (req, res) => {
       onError: (error) => {
         let errorMessage = (error as any)?.error?.message;
         logger.error("help bot stream error", errorMessage);
-        safeSend(res, "help:chat:response:error", {
+        safeSend(res, "help:chat:error", {
           sessionId,
           error: String(errorMessage),
         });
@@ -1583,7 +1583,7 @@ router.get("/help/:sessionId/stream", async (req, res) => {
 
           if (part.type === "text-delta") {
             assistantContent += part.text;
-            safeSend(res, "help:chat:response:chunk", {
+            safeSend(res, "help:chat:chunk", {
               sessionId,
               delta: part.text,
               type: "text",
@@ -1598,14 +1598,14 @@ router.get("/help/:sessionId/stream", async (req, res) => {
         ];
         helpSessions.set(sessionId, finalHistory);
 
-        safeSend(res, "help:chat:response:end", { sessionId });
+        safeSend(res, "help:chat:end", { sessionId });
       } catch (err) {
         if ((err as any)?.name === "AbortError") {
           logger.log("help bot stream aborted", sessionId);
           return;
         }
         logger.error("help bot stream loop error", err);
-        safeSend(res, "help:chat:response:error", {
+        safeSend(res, "help:chat:error", {
           sessionId,
           error: String(err instanceof Error ? err.message : err),
         });
@@ -1613,17 +1613,14 @@ router.get("/help/:sessionId/stream", async (req, res) => {
         activeHelpStreams.delete(sessionId);
       }
     })();
-
-    return { ok: true } as const;
-  } catch (err) {
-    logger.error("help:chat:start error", err);
-    safeSend(res, "help:chat:start:error", {
+  } catch (err: any) {
+    logger.error("Error in help:chat", err.message);
+    safeSend(res, "help:chat:error", {
       sessionId,
       error: String(err instanceof Error ? err.message : err),
     });
     // Clean up the abort controller
     activeHelpStreams.delete(sessionId);
-  } finally {
     res.end();
   }
 });
@@ -1635,13 +1632,13 @@ router.delete("/help/:sessionId/cancel", async (req, res) => {
     if (stream) {
       stream.controller.abort();
       activeHelpStreams.delete(sessionId);
-      res.json({ success: true });
+      res.status(200).json({ success: true });
     } else {
       console.warn(`No active stream found for help ${sessionId}`);
       res.status(404).json({ error: "No active stream found" });
     }
-  } catch (error) {
-    logger.error("Error canceling help stream:", error);
+  } catch (error: any) {
+    logger.error("Error canceling help stream:", error.message);
     res.status(500).json({ error: "Failed to cancel help stream" });
   }
 });
@@ -1844,14 +1841,14 @@ router.get("/get-proposal/:chatId", async (req, res) => {
           };
         }
         return null;
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Error processing proposal for chatId ${chatId}:`, error);
         return null; // Indicate DB or processing error
       }
     });
-    res.json(result);
-  } catch (error) {
-    logger.error("Error in getting proposal:", error);
+    res.status(200).json(result);
+  } catch (error: any) {
+    logger.error("Error in getting proposal:", error.message);
     res.status(500).json({ error: "Failed to get proposal" });
   }
 });
@@ -1901,12 +1898,12 @@ router.post("/approve-proposal", async (req, res) => {
       );
     }
 
-    res.json({
+    res.status(200).json({
       extraFiles: processResult.extraFiles,
       extraFilesError: processResult.extraFilesError,
     });
-  } catch (error) {
-    logger.error("Error approving proposal:", error);
+  } catch (error: any) {
+    logger.error("Error approving proposal:", error.message);
     res.status(500).json({ error: "Failed to approve proposal: " + error });
   }
 });
@@ -1940,9 +1937,9 @@ router.patch("/reject-proposal", async (req, res) => {
       .where(eq(messages.id, messageId));
 
     logger.log(`Message ${messageId} marked as rejected.`);
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error rejecting proposal:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    logger.error("Error rejecting proposal:", error.message);
     res.status(500).json({ error: "Failed to reject proposal: " + error });
   }
 });
@@ -2054,7 +2051,7 @@ router.post("/count-tokens", async (req, res) => {
       codebaseTokens +
       mentionedAppsTokens;
 
-    res.json({
+    res.status(200).json({
       totalTokens,
       messageHistoryTokens,
       codebaseTokens,
@@ -2063,8 +2060,8 @@ router.post("/count-tokens", async (req, res) => {
       systemPromptTokens,
       contextWindow: await getContextWindow(),
     });
-  } catch (error) {
-    logger.error("Error counting tokens:", error);
+  } catch (error: any) {
+    logger.error("Error counting tokens:", error.message);
     res.status(500).json({ error: "Failed to count tokens: " + error });
   }
 });

@@ -45,9 +45,9 @@ router.get("/local-models/list-ollama", async (req, res) => {
       };
     });
     logger.info(`Successfully fetched ${models.length} models from Ollama`);
-    res.json({ models });
-  } catch (error) {
-    logger.error("Error fetching local Ollama models:", error);
+    res.status(200).json({ models });
+  } catch (error: any) {
+    logger.error("Error fetching local Ollama models:", error.message);
     res.status(500).json({ error: "Failed to fetch local Ollama models" });
   }
 });
@@ -68,9 +68,9 @@ router.get("/local-models/list-lmstudio", async (req, res) => {
       }));
 
     logger.info(`Successfully fetched ${models.length} models from LM Studio`);
-    res.json({ models });
-  } catch (error) {
-    logger.error("Error fetching local LMStudio models:", error);
+    res.status(200).json({ models });
+  } catch (error: any) {
+    logger.error("Error fetching local LMStudio models:", error.message);
     res.status(500).json({ error: "Failed to fetch local LMStudio models" });
   }
 });
@@ -79,9 +79,9 @@ router.get("/local-models/list-lmstudio", async (req, res) => {
 router.get("/get-language-model-providers", async (req, res) => {
   try {
     const providers = await getLanguageModelProviders();
-    res.json(providers);
-  } catch (error) {
-    logger.error("Error fetching language model providers:", error);
+    res.status(200).json(providers);
+  } catch (error: any) {
+    logger.error("Error fetching language model providers:", error.message);
     res.status(500).json({ error: "Failed to fetch language model providers" });
   }
 });
@@ -124,15 +124,15 @@ router.post("/create-custom-language-model-provider", async (req, res) => {
     });
 
     // Return the newly created provider
-    res.json({
+    res.status(200).json({
       id,
       name,
       apiBaseUrl,
       envVarName,
       type: "custom",
     });
-  } catch (error) {
-    logger.error("Error creating custom language model provider:", error);
+  } catch (error: any) {
+    logger.error("Error creating custom language model provider:", error.message);
     res.status(500).json({ error: "Failed to create custom language model provider" });
   }
 });
@@ -176,9 +176,9 @@ router.post("/create-custom-language-model", async (req, res) => {
       max_output_tokens: maxOutputTokens || null,
       context_window: contextWindow || null,
     });
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error creating custom language model:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    logger.error("Error creating custom language model:", error.message);
     res.status(500).json({ error: "Failed to create custom language model" });
   }
 });
@@ -235,9 +235,9 @@ router.patch("/edit-custom-language-model-provider", async (req, res) => {
       };
     });
     logger.info(`Successfully updated provider`);
-    res.json(result);
-  } catch (error) {
-    logger.error("Error editing custom language model provider:", error);
+    res.status(200).json(result);
+  } catch (error: any) {
+    logger.error("Error editing custom language model provider:", error.message);
     res.status(500).json({ error: "Failed to edit custom language model provider" });
   }
 });
@@ -265,9 +265,9 @@ router.delete("/delete-custom-language-model/:modelId", async (req, res) => {
     await db
       .delete(languageModelsSchema)
       .where(eq(languageModelsSchema.apiName, apiName));
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error deleting custom language model:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    logger.error("Error deleting custom language model:", error.message);
     res.status(500).json({ error: "Failed to delete custom language model" });
   }
 });
@@ -317,9 +317,9 @@ router.delete("/delete-custom-model/:providerId", async (req, res) => {
         `Successfully deleted ${result.changes} custom model(s) with apiName=${modelApiName} for provider=${providerId}`
       );
     }
-    res.json(result);
-  } catch (error) {
-    logger.error("Error deleting custom model:", error);
+    res.status(200).json(result);
+  } catch (error: any) {
+    logger.error("Error deleting custom model:", error.message);
     res.status(500).json({ error: "Failed to delete custom model" });
   }
 });
@@ -382,10 +382,10 @@ router.delete("/delete-custom-language-model-provider/:providerId", async (req, 
         );
       }
       logger.info(`Successfully deleted provider with ID "${providerId}".`);
-      res.json(deleteProviderResult);
+      res.status(200).json(deleteProviderResult);
     });
-  } catch (error) {
-    logger.error("Error deleting custom language model provider:", error);
+  } catch (error: any) {
+    logger.error("Error deleting custom language model provider:", error.message);
     res.status(500).json({ error: "Failed to delete custom language model provider" });
   }
 });
@@ -396,18 +396,10 @@ router.get("/get-language-models/", async (req, res) => {
     if (!providerId || typeof providerId !== "string") {
       throw new Error("Invalid parameters: providerId (string) is required.");
     }
-    const providers = await getLanguageModelProviders();
-    const provider = providers.find((p) => p.id === providerId);
-    if (!provider) {
-      throw new Error(`Provider with ID "${providerId}" not found`);
-    }
-    if (provider.type === "local") {
-      throw new Error("Local models cannot be fetched");
-    }
-    const result = getLanguageModels({ providerId });
-    res.json(result);
-  } catch (error) {
-    logger.error("Error fetching language models by provider:", error);
+    const result = await getLanguageModels({ providerId });
+    res.status(200).json(result);
+  } catch (error: any) {
+    logger.error("Error fetching language models by provider:", error.message);
     res.status(500).json({ error: "Failed to fetch language models by provider" });
   }
 });
@@ -415,9 +407,9 @@ router.get("/get-language-models/", async (req, res) => {
 router.get("/get-language-models-by-providers", async (req, res) => {
   try {
     const result = await getLanguageModelsByProviders();
-    res.json(result);
-  } catch (error) {
-    logger.error("Error fetching language models by providers:", error);
+    res.status(200).json(result);
+  } catch (error: any) {
+    logger.error("Error fetching language models by providers:", error.message);
     res.status(500).json({ error: "Failed to fetch language models by providers" });
   }
 });

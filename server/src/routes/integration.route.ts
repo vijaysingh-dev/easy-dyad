@@ -172,7 +172,7 @@ router.get("/neon/get-project", async (req, res) => {
       orgId: project.org_id ?? "<unknown_org_id>",
       branches,
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Failed to get Neon project info:`, error);
     res.status(500).json({ error: "Failed to get Neon project info" });
   }
@@ -261,7 +261,7 @@ router.get("/supabase/list-projects", async (req, res) => {
   try {
     const supabase = await getSupabaseClient();
     res.json(supabase.getProjects());
-  } catch (error) {
+  } catch (error: any) {
     logger.error("Error listing Supabase projects:", error);
     res.status(500).json({ error: "Failed to list Supabase projects" });
   }
@@ -274,7 +274,7 @@ router.post("/supabase/set-app-project", async (req, res) => {
     await db.update(apps).set({ supabaseProjectId: project }).where(eq(apps.id, app));
     logger.info(`Associated app ${app} with Supabase project ${project}`);
     res.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     logger.error("Error setting Supabase app project:", error);
     res.status(500).json({ error: "Failed to set Supabase app project" });
   }
@@ -287,7 +287,7 @@ router.post("/supabase/unset-app-project", async (req, res) => {
     await db.update(apps).set({ supabaseProjectId: null }).where(eq(apps.id, app));
     logger.info(`Removed Supabase project association for app ${app}`);
     res.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     logger.error("Error unsetting Supabase app project:", error);
     res.status(500).json({ error: "Failed to unset Supabase app project" });
   }
@@ -333,6 +333,9 @@ router.post("/github/start-flow/:appId/stream", (req, res) => {
   const appId = parseInt(req.params.appId);
   try {
     // Set up SSE
+    const origin = req.headers.origin ?? "*";
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
@@ -348,7 +351,7 @@ router.post("/github/start-flow/:appId/stream", (req, res) => {
         appId,
         error: "Another connection process is already active.",
       });
-      return;
+      throw new Error("Another GitHub flow is already in progress.");
     }
 
     currentFlowState.set(appId, {
@@ -363,6 +366,12 @@ router.post("/github/start-flow/:appId/stream", (req, res) => {
       message: "Requesting device code from GitHub...",
     });
 
+    req.on("close", () => {
+      logger.log(`Client disconnected from github-flow ${appId} run stream.`);
+      currentFlowState.delete(appId);
+      res.end();
+    });
+
     fetch(GITHUB_DEVICE_CODE_URL, {
       method: "POST",
       headers: {
@@ -374,15 +383,15 @@ router.post("/github/start-flow/:appId/stream", (req, res) => {
         scope: GITHUB_SCOPES,
       }),
     })
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((errData) => {
+      .then((resp) => {
+        if (!resp.ok) {
+          return resp.json().then((errData) => {
             throw new Error(
-              `GitHub API Error: ${errData.error_description || res.statusText}`
+              `GitHub API Error: ${errData.error_description || resp.statusText}`
             );
           });
         }
-        return res.json();
+        return resp.json();
       })
       .then((data) => {
         logger.info("Received device code response");
@@ -415,13 +424,13 @@ router.post("/github/start-flow/:appId/stream", (req, res) => {
         stopPolling(appId); // Ensure polling stops on initial error
         currentFlowState.delete(appId); // Clear state on initial error
       });
-  } catch (error) {
+  } catch (error: any) {
     logger.info("Failed to start github flow");
     safeSend(res, "github:flow-error", {
       appId,
       error: "Error starting github flow",
     });
-  } finally {
+    currentFlowState.delete(appId);
     res.end();
   }
 });
@@ -674,7 +683,7 @@ router.post("/github/create-repo", async (req, res) => {
     // Store org, repo, and branch in the app's DB row (apps table)
     await updateAppGithubRepo({ appId, org: owner, repo, branch });
     res.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     logger.error("[GitHub Handler] Failed to create repo:", error);
     res.status(500).json({ error: error || "Failed to create repository." });
   }
@@ -795,17 +804,11 @@ router.post("/github/disconnect", async (req, res) => {
       })
       .where(eq(apps.id, appId));
     res.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     logger.error("Error disconnecting GitHub repo:", error);
     res.status(500).json({ error: "Failed to disconnect GitHub repo" });
   }
 });
-
-// function event.sender.send(channel: string, data: any) {
-//   if (currentFlowState?.window && !currentFlowState.window.isDestroyed()) {
-//     currentFlowState.window.webContents.send(channel, data);
-//   }
-// }
 
 export async function pollForAccessToken(res: Response, appId: number) {
   const existingFlow = currentFlowState.get(appId);
@@ -908,7 +911,7 @@ export async function pollForAccessToken(res: Response, appId: number) {
     } else {
       throw new Error(`Unknown response structure: ${JSON.stringify(data)}`);
     }
-  } catch (error) {
+  } catch (error: any) {
     logger.error("Error polling for GitHub access token:", error);
     safeSend(res, "github:flow-error", {
       appId,
@@ -1253,7 +1256,7 @@ router.post("/vercel/disconnect", async (req, res) => {
       })
       .where(eq(apps.id, appId));
     res.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     logger.error("Error disconnecting Vercel project:", error);
     res.status(500).json({ error: "Failed to disconnect Vercel project" });
   }

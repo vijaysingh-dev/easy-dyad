@@ -1,3 +1,4 @@
+import logger from "@/logger";
 import db from "@/db";
 import { eq } from "drizzle-orm";
 import {
@@ -88,7 +89,11 @@ export async function getLanguageModels({
   const provider = allProviders.find((p) => p.id === providerId);
 
   if (!provider) {
-    console.warn(`Provider with ID "${providerId}" not found.`);
+    logger.warn(`Provider with ID "${providerId}" not found.`);
+    return [];
+  }
+  if (provider.type === "local") {
+    logger.warn("Local models cannot be fetched");
     return [];
   }
 
@@ -120,10 +125,10 @@ export async function getLanguageModels({
       contextWindow: model.contextWindow ?? undefined,
       type: "custom",
     }));
-  } catch (error) {
-    console.error(
+  } catch (error: any) {
+    logger.error(
       `Error fetching custom models for provider "${providerId}" from DB:`,
-      error
+      error.message
     );
     // Continue with empty custom models array
   }

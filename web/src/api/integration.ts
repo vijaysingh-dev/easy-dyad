@@ -175,6 +175,7 @@ class IntegrationApiService {
       onGithubDeviceFlowSuccess,
       onGithubDeviceFlowError,
     });
+    eeziClient.eventSources["github"]?.close();
 
     const url = eeziClient.baseURL + `/integration/github/start-flow/${appId}/stream`;
     eeziClient.initGithubStreamSSE(url);

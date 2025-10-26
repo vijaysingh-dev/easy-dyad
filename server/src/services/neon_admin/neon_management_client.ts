@@ -73,8 +73,8 @@ export async function refreshNeonToken(): Promise<void> {
         tokenTimestamp: Math.floor(Date.now() / 1000), // Store current timestamp
       },
     });
-  } catch (error) {
-    logger.error("Error refreshing Neon token:", error);
+  } catch (error: any) {
+    logger.error("Error refreshing Neon token:", error.message);
     throw error;
   }
 }
@@ -223,8 +223,8 @@ export async function getNeonOrganizationId(): Promise<string> {
 
     // Return the first organization ID
     return response.data.organizations[0].id;
-  } catch (error) {
-    logger.error("Error fetching Neon organizations:", error);
+  } catch (error: any) {
+    logger.error("Error fetching Neon organizations:", error.message);
     throw new Error("Failed to fetch Neon organizations");
   }
 }

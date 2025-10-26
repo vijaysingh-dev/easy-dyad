@@ -180,7 +180,7 @@ export async function replaceTextAttachmentWithContent(
       return replacedText;
     }
     return text;
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error processing text file: ${error}`);
     return text;
   }
@@ -234,7 +234,7 @@ export async function prepareMessageWithAttachments(
         });
 
         logger.log(`Added image attachment: ${filePath}`);
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Error reading image file: ${error}`);
       }
     }

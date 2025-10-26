@@ -70,7 +70,7 @@ export async function updateDbPushEnvVar({
 
     const envFileContents = serializeEnvFile(envVars);
     await fs.promises.writeFile(getEnvFilePath({ appPath }), envFileContents);
-  } catch (error) {
+  } catch (error: any) {
     logger.error(
       `Failed to update DB push environment variable for app ${appPath}: ${error}`
     );

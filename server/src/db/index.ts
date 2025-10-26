@@ -38,8 +38,8 @@ export function initializeDatabase(): BetterSQLite3Database<typeof schema> & {
         fs.unlinkSync(dbPath);
       }
     }
-  } catch (error) {
-    logger.error("Error checking database file:", error);
+  } catch (error: any) {
+    logger.error("Error checking database file:", error.message);
   }
 
   ensureDir(getPath("userData"));

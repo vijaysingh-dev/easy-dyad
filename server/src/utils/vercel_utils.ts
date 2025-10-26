@@ -37,8 +37,8 @@ export async function getVercelTeamSlug(teamId: string): Promise<string | null> 
 
     // Return the team slug if available
     return data.slug || null;
-  } catch (error) {
-    logger.error("Error getting Vercel team slug:", error);
+  } catch (error: any) {
+    logger.error("Error getting Vercel team slug:", error.message);
     return null;
   }
 }

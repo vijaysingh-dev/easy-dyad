@@ -30,7 +30,7 @@ export async function restoreBranchForPreview({
         }),
       `Restore preview branch ${previewBranchId} for app ${appId}`
     );
-  } catch (error) {
+  } catch (error: any) {
     const errorMessage = getNeonErrorMessage(error);
     logger.error("Error in restoreBranchForPreview:", errorMessage);
     throw new Error(errorMessage);

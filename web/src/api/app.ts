@@ -126,6 +126,9 @@ class AppApiService {
 
   // Run an app
   public async runApp(appId: number, onOutput: (output: AppOutput) => void) {
+    eeziClient.appStreams.delete(appId);
+    eeziClient.eventSources["app"]?.close();
+
     eeziClient.appStreams.set(appId, { onOutput });
     const url = eeziClient.baseURL + `/app/run-app/${appId}`;
     eeziClient.initAppStreamSSE(url);
@@ -143,6 +146,10 @@ class AppApiService {
     onOutput: (output: AppOutput) => void,
     removeNodeModules?: boolean
   ) {
+    eeziClient.appStreams.delete(appId);
+    eeziClient.eventSources["app"]?.close();
+
+    console.log("Restarting app with removeNodeModules =", removeNodeModules);
     eeziClient.appStreams.set(appId, { onOutput });
     const url =
       eeziClient.baseURL +

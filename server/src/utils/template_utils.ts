@@ -49,8 +49,8 @@ export async function fetchApiTemplates(): Promise<Template[]> {
       // Cache the result
       apiTemplatesCache = convertedTemplates;
       return convertedTemplates;
-    } catch (error) {
-      logger.error("Failed to fetch API templates:", error);
+    } catch (error: any) {
+      logger.error("Failed to fetch API templates:", error.message);
       // Reset the promise so we can retry later
       apiTemplatesFetchPromise = null;
       return []; // Return empty array on error

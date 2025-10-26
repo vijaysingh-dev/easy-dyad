@@ -68,8 +68,8 @@ fixPath();
 router.get("/get-system-platform", async (req, res) => {
   try {
     res.send(platform());
-  } catch (error) {
-    logger.error("Error getting system platform:", error);
+  } catch (error: any) {
+    logger.error("Error getting system platform:", error.message);
     res
       .status(500)
       .json({ error: error instanceof Error ? error.message : "Unknown error" });
@@ -134,7 +134,7 @@ router.post("/create-app", async (req, res) => {
       })
       .where(eq(chats.id, chat.id));
 
-    res.json({ app, chatId: chat.id });
+    res.status(200).json({ app, chatId: chat.id });
   } catch (error: any) {
     logger.error("Error creating app:", error.message);
     res.status(500).json({ error: error.message });
@@ -174,8 +174,8 @@ router.post("/copy-app", async (req, res) => {
         }
         return true;
       });
-    } catch (error) {
-      logger.error("Failed to copy app directory:", error);
+    } catch (error: any) {
+      logger.error("Failed to copy app directory:", error.message);
       throw new Error("Failed to copy app directory.");
     }
 
@@ -218,9 +218,9 @@ router.post("/copy-app", async (req, res) => {
       })
       .returning();
 
-    res.json({ app: newDbApp });
+    res.status(200).json({ app: newDbApp });
   } catch (error: any) {
-    logger.error("Error copying app:", error);
+    logger.error("Error copying app:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -245,7 +245,7 @@ router.get("/get-app/:appId", async (req, res) => {
       // Normalize the path to use forward slashes so file tree (UI)
       // can parse it more consistently across platforms.
       files = files.map((path) => normalizePath(path));
-    } catch (error) {
+    } catch (error: any) {
       logger.error(`Error reading files for app ${appId}:`, error);
       // Return app even if files couldn't be read
     }
@@ -261,14 +261,14 @@ router.get("/get-app/:appId", async (req, res) => {
       vercelTeamSlug = await getVercelTeamSlug(app.vercelTeamId);
     }
 
-    res.json({
+    res.status(200).json({
       ...app,
       files,
       supabaseProjectName,
       vercelTeamSlug,
     });
   } catch (error: any) {
-    logger.error("Error getting app:", error);
+    logger.error("Error getting app:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -278,12 +278,12 @@ router.get("/list-apps", async (req, res) => {
     const allApps = await db.query.apps.findMany({
       orderBy: [desc(apps.createdAt)],
     });
-    res.json({
+    res.status(200).json({
       apps: allApps,
       appBasePath: getEeziAppPath(),
     });
   } catch (error: any) {
-    logger.error("Error getting all apps:", error);
+    logger.error("Error getting all apps:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -315,12 +315,12 @@ router.get("/read-app-file/:appId/:filePath", async (req, res) => {
     try {
       const contents = fs.readFileSync(fullPath, "utf-8");
       res.send(contents);
-    } catch (error) {
+    } catch (error: any) {
       logger.error(`Error reading file ${filePath} for app ${appId}:`, error);
       throw new Error("Failed to read file");
     }
   } catch (error: any) {
-    logger.error("Error reading app file:", error);
+    logger.error("Error reading app file:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -337,11 +337,17 @@ router.get("/run-app/:appId", async (req, res) => {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
+    req.on("close", () => {
+      logger.log(`Client disconnected from app ${appId} run stream.`);
+      res.end();
+    });
+
+    logger.log(`Running app ${appId}`);
     await withLock(appId, async () => {
       // Check if app is already running
       if (runningApps.has(appId)) {
         logger.debug(`App ${appId} is already running.`);
-        return;
+        throw new Error("App is already running");
       }
 
       const app = await db.query.apps.findFirst({
@@ -383,6 +389,7 @@ router.get("/run-app/:appId", async (req, res) => {
   } catch (error: any) {
     logger.error(`Error running app ${appId}:`, error);
     safeSend(res, "app:error", { appId, error: error.message });
+    runningApps.delete(appId);
     res.end();
   }
 });
@@ -453,6 +460,11 @@ router.get("/restart-app/:appId", async (req, res) => {
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
+
+    req.on("close", () => {
+      logger.log(`Client disconnected from app ${appId} restart stream.`);
+      res.end();
+    });
 
     logger.log(`Restarting app ${appId}`);
     await withLock(appId, async () => {
@@ -529,7 +541,7 @@ router.get("/restart-app/:appId", async (req, res) => {
         }); // This will handle starting either mode
 
         return;
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Error restarting app ${appId}:`, error);
         throw error;
       }
@@ -537,6 +549,7 @@ router.get("/restart-app/:appId", async (req, res) => {
   } catch (error: any) {
     logger.error(`Error restarting app ${appId}:`, error);
     safeSend(res, "app:error", { appId, error: error.message });
+    runningApps.delete(appId);
     res.end();
   }
 });
@@ -565,8 +578,8 @@ router.post("/edit-app-file", async (req, res) => {
         await storeDbTimestampAtCurrentVersion({
           appId: app.id,
         });
-      } catch (error) {
-        logger.error("Error storing Neon timestamp at current version:", error);
+      } catch (error: any) {
+        logger.error("Error storing Neon timestamp at current version:", error.message);
         throw new Error(
           "Could not store Neon timestamp at current version; database versioning functionality is not working: " +
             error
@@ -606,17 +619,17 @@ router.post("/edit-app-file", async (req, res) => {
           functionName: path.basename(path.dirname(filePath)),
           content: content,
         });
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Error deploying Supabase function ${filePath}:`, error);
-        res.json({
+        res.status(200).json({
           warning: `File saved, but failed to deploy Supabase function: ${filePath}: ${error}`,
         });
         return;
       }
     }
-    res.json({ success: true });
+    res.status(200).json({ success: true });
   } catch (error: any) {
-    logger.error("Error editing app file:", error);
+    logger.error("Error editing app file:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -670,7 +683,7 @@ router.delete("/delete-app/:appId", async (req, res) => {
     });
     res.send(result);
   } catch (error: any) {
-    logger.error("Error deleting app:", error);
+    logger.error("Error deleting app:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -700,9 +713,9 @@ router.get("/get-app-env-vars", async (req, res) => {
     const content = await fs.promises.readFile(envFilePath, "utf8");
     const envVars = parseEnvFile(content);
 
-    res.json(envVars);
-  } catch (error) {
-    console.error("Error getting app environment variables:", error);
+    res.status(200).json(envVars);
+  } catch (error: any) {
+    console.error("Error getting app environment variables:", error.message);
     res.status(500).json({
       error: `Failed to get environment variables: ${error instanceof Error ? error.message : "Unknown error"}`,
     });
@@ -729,9 +742,9 @@ router.post("/set-app-env-vars", async (req, res) => {
 
     // Write to .env.local file
     await fs.promises.writeFile(envFilePath, content, "utf8");
-    res.json({ success: true });
-  } catch (error) {
-    console.error("Error setting app environment variables:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    console.error("Error setting app environment variables:", error.message);
     res.status(500).json({
       error: `Failed to set environment variables: ${error instanceof Error ? error.message : "Unknown error"}`,
     });
@@ -774,9 +787,9 @@ router.post("/add-to-favorite", async (req, res) => {
         throw new Error(`Failed to toggle favorite status: ${error.message}`);
       }
     });
-    res.json(result);
+    res.status(200).json(result);
   } catch (error: any) {
-    logger.error("Error toggling favorite status:", error);
+    logger.error("Error toggling favorite status:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -895,7 +908,7 @@ router.post("/rename-app", async (req, res) => {
     });
     res.send(result);
   } catch (error: any) {
-    logger.error("Error renaming app:", error);
+    logger.error("Error renaming app:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -910,7 +923,7 @@ router.get("reset-all", async (req, res) => {
       try {
         const appInfo = runningApps.get(appId)!;
         await stopAppByInfo(appId, appInfo);
-      } catch (error) {
+      } catch (error: any) {
         ``;
         logger.error(`Error stopping app ${appId} during reset:`, error);
         // Continue with reset even if stopping fails
@@ -951,9 +964,9 @@ router.get("reset-all", async (req, res) => {
     }
     logger.log("all app files removed.");
     logger.log("reset all complete.");
-    res.json({ success: true });
+    res.status(200).json({ success: true });
   } catch (error: any) {
-    logger.error("Error resetting all apps and settings:", error);
+    logger.error("Error resetting all apps and settings:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -964,9 +977,9 @@ router.get("/get-app-version", async (req, res) => {
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-    res.json({ version: packageJson.version });
+    res.status(200).json({ version: packageJson.version });
   } catch (error: any) {
-    logger.error("Error getting app version:", error);
+    logger.error("Error getting app version:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -997,9 +1010,9 @@ router.post("/respond-to-app-input", async (req, res) => {
       logger.error(`Error sending response to app ${appId}:`, error);
       throw new Error(`Failed to send response to app: ${error.message}`);
     }
-    res.json({ success: true });
+    res.status(200).json({ success: true });
   } catch (error: any) {
-    logger.error("Error responding to app input:", error);
+    logger.error("Error responding to app input:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -1080,9 +1093,9 @@ router.post("/search-app", async (req, res) => {
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
-    res.json(uniqueApps);
+    res.status(200).json(uniqueApps);
   } catch (error: any) {
-    logger.error("Error searching apps:", error);
+    logger.error("Error searching apps:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -1090,9 +1103,9 @@ router.post("/search-app", async (req, res) => {
 router.get("/get-templates", async (req, res) => {
   try {
     const templates = await getAllTemplates();
-    res.json(templates);
-  } catch (error) {
-    logger.error("Error fetching templates:", error);
+    res.status(200).json(templates);
+  } catch (error: any) {
+    logger.error("Error fetching templates:", error.message);
     res.status(500).json(localTemplatesData);
   }
 });
@@ -1102,7 +1115,7 @@ router.get("/check-ai-rules", async (req, res) => {
   try {
     const appPath = req.query.path as string;
     await fsPromises.access(path.join(appPath, "AI_RULES.md"));
-    res.json({ exists: true });
+    res.status(200).json({ exists: true });
   } catch {
     res.status(404).json({ exists: false });
   }
@@ -1115,7 +1128,7 @@ router.get("/check-app-name", async (req, res) => {
     // Check filesystem
     const appPath = getEeziAppPath(appName);
     await fsPromises.access(appPath);
-    res.json({ exists: true });
+    res.status(200).json({ exists: true });
     return;
   } catch {
     logger.info("Path doesn't exist, continue checking database");
@@ -1126,7 +1139,7 @@ router.get("/check-app-name", async (req, res) => {
     where: eq(apps.name, appName),
   });
 
-  res.json({ exists: !!existingApp });
+  res.status(200).json({ exists: !!existingApp });
 });
 
 // Handler for importing an app
@@ -1203,9 +1216,9 @@ router.post("/import-app", async (req, res) => {
         appId: app.id,
       })
       .returning();
-    res.json({ appId: app.id, chatId: chat.id });
-  } catch (error) {
-    logger.error("Error importing app:", error);
+    res.status(200).json({ appId: app.id, chatId: chat.id });
+  } catch (error: any) {
+    logger.error("Error importing app:", error.message);
     res.status(500).json({ error: "Failed to import app" });
   }
 });
@@ -1242,9 +1255,9 @@ router.get("/get-app-upgrades", async (req, res) => {
       return { ...upgrade, isNeeded };
     });
 
-    res.json(upgradesWithStatus);
-  } catch (error) {
-    logger.error("Error fetching app upgrades:", error);
+    res.status(200).json(upgradesWithStatus);
+  } catch (error: any) {
+    logger.error("Error fetching app upgrades:", error.message);
     res.status(500).json({ error: "Failed to fetch app upgrades" });
   }
 });
@@ -1266,8 +1279,8 @@ router.post("/execute-app-upgrade", async (req, res) => {
     } else {
       throw new Error(`Unknown upgrade id: ${upgradeId}`);
     }
-  } catch (error) {
-    logger.error("Error executing app upgrade:", error);
+  } catch (error: any) {
+    logger.error("Error executing app upgrade:", error.message);
     res.status(500).json({ error: "Failed to execute app upgrade" });
   }
 });
@@ -1288,9 +1301,9 @@ router.get("/is-capacitor", async (req, res) => {
         `Capacitor requires Node.js v20 or higher, but you are using ${currentNodeVersion}. Please upgrade your Node.js and try again.`
       );
     }
-    res.json({ isCapacitor: isCapacitorInstalled(appPath) });
-  } catch (error) {
-    logger.error("Error checking if app is Capacitor:", error);
+    res.status(200).json({ isCapacitor: isCapacitorInstalled(appPath) });
+  } catch (error: any) {
+    logger.error("Error checking if app is Capacitor:", error.message);
     res.status(500).json({ error: "Failed to check if app is Capacitor" });
   }
 });
@@ -1322,9 +1335,9 @@ router.get("/sync-capacitor", async (req, res) => {
         LANG: "en_US.UTF-8",
       },
     });
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error syncing Capacitor:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    logger.error("Error syncing Capacitor:", error.message);
     res.status(500).json({ error: "Failed to sync Capacitor" });
   }
 });
@@ -1351,8 +1364,8 @@ router.get("/open-ios", async (req, res) => {
       successMessage: "iOS project opened successfully",
       errorPrefix: "Failed to open iOS project",
     });
-  } catch (error) {
-    logger.error("Error opening iOS project:", error);
+  } catch (error: any) {
+    logger.error("Error opening iOS project:", error.message);
     res.status(500).json({ error: "Failed to open iOS project" });
   }
 });
@@ -1380,8 +1393,8 @@ router.get("/open-android", async (req, res) => {
       successMessage: "Android project opened successfully",
       errorPrefix: "Failed to open Android project",
     });
-  } catch (error) {
-    logger.error("Error opening Android project:", error);
+  } catch (error: any) {
+    logger.error("Error opening Android project:", error.message);
     res.status(500).json({ error: "Failed to open Android project" });
   }
 });
@@ -1407,9 +1420,9 @@ router.get("/check-problems", async (req, res) => {
       appPath,
     });
 
-    res.json(problemReport);
-  } catch (error) {
-    logger.error("Error checking problems:", error);
+    res.status(200).json(problemReport);
+  } catch (error: any) {
+    logger.error("Error checking problems:", error.message);
     res.status(500).json({ error: "Failed to check problems" });
   }
 });
@@ -1422,9 +1435,9 @@ router.get("/get-system-debug-info", async (req, res) => {
       linesOfLogs: 20,
       level: "warn",
     });
-    res.json(result);
-  } catch (error) {
-    logger.error("Error getting system debug info:", error);
+    res.status(200).json(result);
+  } catch (error: any) {
+    logger.error("Error getting system debug info:", error.message);
     res.status(500).json({ error: "Failed to get system debug info" });
   }
 });
@@ -1483,12 +1496,12 @@ router.get("/get-chat-logs/:chatId", async (req, res) => {
       })
     ).formattedOutput;
 
-    res.json({
+    res.status(200).json({
       debugInfo,
       chat,
       codebase,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Failed to get chat logs:`, error);
     res.status(500).json({ error: "Failed to get chat logs" });
   }
@@ -1526,9 +1539,9 @@ router.post("/upload-to-signed-url", async (req, res) => {
     }
 
     logger.debug("Successfully uploaded data to signed URL");
-    res.json(await response.json());
-  } catch (error) {
-    logger.error("Error uploading to signed URL:", error);
+    res.status(200).json(await response.json());
+  } catch (error: any) {
+    logger.error("Error uploading to signed URL:", error.message);
     res.status(500).json({ error: "Failed to upload to signed URL" });
   }
 });
@@ -1537,7 +1550,7 @@ router.post("/upload-to-signed-url", async (req, res) => {
 router.get("/prompts", async (req, res) => {
   try {
     const rows = db.select().from(prompts).all();
-    res.json(
+    res.status(200).json(
       rows.map((r) => ({
         id: r.id!,
         title: r.title,
@@ -1547,8 +1560,8 @@ router.get("/prompts", async (req, res) => {
         updatedAt: r.updatedAt,
       }))
     );
-  } catch (error) {
-    logger.error("Error fetching prompts:", error);
+  } catch (error: any) {
+    logger.error("Error fetching prompts:", error.message);
     res.status(500).json({ error: "Failed to fetch prompts" });
   }
 });
@@ -1571,7 +1584,7 @@ router.post("/prompts", async (req, res) => {
     const id = Number(result.lastInsertRowid);
     const row = db.select().from(prompts).where(eq(prompts.id, id)).get();
     if (!row) throw new Error("Failed to fetch created prompt");
-    res.json({
+    res.status(200).json({
       id: row.id!,
       title: row.title,
       description: row.description ?? null,
@@ -1579,8 +1592,8 @@ router.post("/prompts", async (req, res) => {
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });
-  } catch (error) {
-    logger.error("Error creating prompt:", error);
+  } catch (error: any) {
+    logger.error("Error creating prompt:", error.message);
     res.status(500).json({ error: "Failed to create prompt" });
   }
 });
@@ -1600,9 +1613,9 @@ router.patch("/prompts", async (req, res) => {
       })
       .where(eq(prompts.id, id))
       .run();
-    res.json({ message: "Prompt updated successfully" });
-  } catch (error) {
-    logger.error("Error updating prompt:", error);
+    res.status(200).json({ message: "Prompt updated successfully" });
+  } catch (error: any) {
+    logger.error("Error updating prompt:", error.message);
     res.status(500).json({ error: "Failed to update prompt" });
   }
 });
@@ -1612,9 +1625,9 @@ router.delete("/prompts/:id", async (req, res) => {
     const id = parseInt(req.params.id);
     if (!id) throw new Error("Prompt id is required");
     db.delete(prompts).where(eq(prompts.id, id)).run();
-    res.json({ message: "Prompt deleted successfully" });
-  } catch (error) {
-    logger.error("Error deleting prompt:", error);
+    res.status(200).json({ message: "Prompt deleted successfully" });
+  } catch (error: any) {
+    logger.error("Error deleting prompt:", error.message);
     res.status(500).json({ error: "Failed to delete prompt" });
   }
 });
@@ -1691,8 +1704,8 @@ router.post("/portal/migrate-create", async (req, res) => {
         await storeDbTimestampAtCurrentVersion({
           appId: app.id,
         });
-      } catch (error) {
-        logger.error("Error storing Neon timestamp at current version:", error);
+      } catch (error: any) {
+        logger.error("Error storing Neon timestamp at current version:", error.message);
         throw new Error(
           "Could not store Neon timestamp at current version; database versioning functionality is not working: " +
             error
@@ -1714,13 +1727,13 @@ router.post("/portal/migrate-create", async (req, res) => {
       });
 
       logger.info(`Successfully committed migration changes: ${commitHash}`);
-      res.json({ output: migrationOutput });
+      res.status(200).json({ output: migrationOutput });
     } catch (gitError) {
       logger.error(`Migration created but failed to commit: ${gitError}`);
       throw new Error(`Migration created but failed to commit: ${gitError}`);
     }
   } catch (error: any) {
-    logger.error("Error during migrate:create:", error);
+    logger.error("Error during migrate:create:", error.message);
     res.status(500).json({ error: "Failed to create migration: " + error.message });
   }
 });

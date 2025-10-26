@@ -11,7 +11,7 @@ async function getPublishableKey({ projectId }: { projectId: string }) {
   let keys;
   try {
     keys = await supabase.getProjectApiKeys(projectId);
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(
       `Failed to fetch API keys for Supabase project "${projectId}". This could be due to: 1) Invalid project ID, 2) Network connectivity issues, or 3) Supabase API unavailability. Original error: ${error instanceof Error ? error.message : String(error)}`
     );

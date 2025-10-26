@@ -13,8 +13,8 @@ export function validateChatContext(chatContext: unknown): AppChatContext {
   try {
     // Validate that the contextPaths data matches the expected schema
     return AppChatContextSchema.parse(chatContext);
-  } catch (error) {
-    logger.warn("Invalid contextPaths data:", error);
+  } catch (error: any) {
+    logger.warn("Invalid contextPaths data:", error.message);
     // Return empty array as fallback if validation fails
     return {
       contextPaths: [],

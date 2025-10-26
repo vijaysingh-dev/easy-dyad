@@ -128,7 +128,7 @@ export abstract class BaseVirtualFileSystem {
       try {
         const content = fs.readFileSync(fromAbsolute, "utf8");
         this.virtualFiles.set(toNormalized, content);
-      } catch (error) {
+      } catch (error: any) {
         // If we can't read the source file, we'll let the consumer handle it
         console.warn(`Could not read source file for rename: ${fromPath}`, error);
       }

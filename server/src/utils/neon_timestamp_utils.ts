@@ -24,8 +24,8 @@ async function getLastUpdatedTimestampFromNeon({
     `;
 
     return current_timestamp;
-  } catch (error) {
-    logger.error("Error retrieving timestamp from Neon:", error);
+  } catch (error: any) {
+    logger.error("Error retrieving timestamp from Neon:", error.message);
     throw new Error(`Failed to retrieve timestamp from Neon: ${error}`);
   }
 }
@@ -116,8 +116,8 @@ export async function storeDbTimestampAtCurrentVersion({
     );
 
     return { timestamp: currentTimestamp };
-  } catch (error) {
-    logger.error("Error in storeDbTimestampAtCurrentVersion:", error);
+  } catch (error: any) {
+    logger.error("Error in storeDbTimestampAtCurrentVersion:", error.message);
     throw error;
   }
 }

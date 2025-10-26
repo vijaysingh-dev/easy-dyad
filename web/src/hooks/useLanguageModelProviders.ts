@@ -14,7 +14,7 @@ export function useLanguageModelProviders() {
   const queryResult = useQuery<LanguageModelProvider[], Error>({
     queryKey: ["languageModelProviders"],
     queryFn: async () => {
-      return api.mcp.getLanguageModelProviders();
+      return api.llm.getLanguageModelProviders();
     },
   });
 

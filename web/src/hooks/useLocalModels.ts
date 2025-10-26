@@ -18,7 +18,7 @@ export function useLocalModels() {
   const loadModels = useCallback(async () => {
     setLoading(true);
     try {
-      const modelList = await api.mcp.listLocalOllamaModels();
+      const modelList = await api.llm.listLocalOllamaModels();
       setModels(modelList);
       setError(null);
 

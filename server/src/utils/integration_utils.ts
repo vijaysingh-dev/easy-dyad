@@ -65,7 +65,7 @@ export async function getGithubUser(): Promise<GithubUser | null> {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!res.ok) return null;
-    const emails = await res.json();
+    const emails = await res.status(200).json();
     const email = emails.find((e: any) => e.primary)?.email;
     if (!email) return null;
 
@@ -95,8 +95,8 @@ export async function validateVercelToken(token: string): Promise<boolean> {
     const vercel = createVercelClient(token);
     await vercel.user.getAuthUser();
     return true;
-  } catch (error) {
-    logger.error("Error validating Vercel token:", error);
+  } catch (error: any) {
+    logger.error("Error validating Vercel token:", error.message);
     return false;
   }
 }
@@ -124,8 +124,8 @@ export async function getDefaultTeamId(token: string): Promise<string> {
     }
 
     throw new Error("No teams found for this user");
-  } catch (error) {
-    logger.error("Error getting default team ID:", error);
+  } catch (error: any) {
+    logger.error("Error getting default team ID:", error.message);
     throw new Error("Failed to get team information");
   }
 }
@@ -183,8 +183,8 @@ export async function detectFramework(
 
     // Default fallback
     return undefined;
-  } catch (error) {
-    logger.error("Error detecting framework:", error);
+  } catch (error: any) {
+    logger.error("Error detecting framework:", error.message);
     return undefined;
   }
 }

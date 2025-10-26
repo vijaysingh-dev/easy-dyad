@@ -86,8 +86,8 @@ export async function processFullResponseActions(
       await storeDbTimestampAtCurrentVersion({
         appId: chatWithApp.app.id,
       });
-    } catch (error) {
-      logger.error("Error creating Neon branch at current version:", error);
+    } catch (error: any) {
+      logger.error("Error creating Neon branch at current version:", error.message);
       throw new Error(
         "Could not create Neon branch; database versioning functionality is not working: " +
           error
@@ -146,14 +146,14 @@ export async function processFullResponseActions(
                 query.description
               );
               writtenFiles.push(migrationFilePath);
-            } catch (error) {
+            } catch (error: any) {
               errors.push({
                 message: `Failed to write SQL migration file for: ${query.description}`,
                 error: error,
               });
             }
           }
-        } catch (error) {
+        } catch (error: any) {
           errors.push({
             message: `Failed to execute SQL query: ${query.content}`,
             error: error,
@@ -171,7 +171,7 @@ export async function processFullResponseActions(
           message: message,
           appPath,
         });
-      } catch (error) {
+      } catch (error: any) {
         errors.push({
           message: `Failed to add dependencies: ${eeziAddDependencyPackages.join(", ")}`,
           error: error,
@@ -221,7 +221,7 @@ export async function processFullResponseActions(
             dir: appPath,
             filepath: filePath,
           });
-        } catch (error) {
+        } catch (error: any) {
           logger.warn(`Failed to git remove deleted file ${filePath}:`, error);
           // Continue even if remove fails as the file was still deleted
         }
@@ -234,7 +234,7 @@ export async function processFullResponseActions(
             supabaseProjectId: chatWithApp.app.supabaseProjectId!,
             functionName: getFunctionNameFromPath(filePath),
           });
-        } catch (error) {
+        } catch (error: any) {
           errors.push({
             message: `Failed to delete Supabase function: ${filePath}`,
             error: error,
@@ -270,7 +270,7 @@ export async function processFullResponseActions(
             dir: appPath,
             filepath: tag.from,
           });
-        } catch (error) {
+        } catch (error: any) {
           logger.warn(`Failed to git remove old file ${tag.from}:`, error);
           // Continue even if remove fails as the file was still renamed
         }
@@ -283,7 +283,7 @@ export async function processFullResponseActions(
             supabaseProjectId: chatWithApp.app.supabaseProjectId!,
             functionName: getFunctionNameFromPath(tag.from),
           });
-        } catch (error) {
+        } catch (error: any) {
           warnings.push({
             message: `Failed to delete Supabase function: ${tag.from} as part of renaming ${tag.from} to ${tag.to}`,
             error: error,
@@ -297,7 +297,7 @@ export async function processFullResponseActions(
             functionName: getFunctionNameFromPath(tag.to),
             content: await readFileFromFunctionPath(toPath),
           });
-        } catch (error) {
+        } catch (error: any) {
           errors.push({
             message: `Failed to deploy Supabase function: ${tag.to} as part of renaming ${tag.from} to ${tag.to}`,
             error: error,
@@ -323,7 +323,7 @@ export async function processFullResponseActions(
             logger.log(
               `Replaced file ID ${trimmedContent} with content from ${fileInfo.originalName}`
             );
-          } catch (error) {
+          } catch (error: any) {
             logger.error(
               `Failed to read uploaded file ${fileInfo.originalName}:`,
               error
@@ -351,7 +351,7 @@ export async function processFullResponseActions(
             functionName: path.basename(path.dirname(filePath)),
             content: content,
           });
-        } catch (error) {
+        } catch (error: any) {
           errors.push({
             message: `Failed to deploy Supabase function: ${filePath}`,
             error: error,
@@ -424,7 +424,7 @@ export async function processFullResponseActions(
           logger.log(
             `Amend commit with changes outside of eezi: ${uncommittedFiles.join(", ")}`
           );
-        } catch (error) {
+        } catch (error: any) {
           // Just log, but don't throw an error because the user can still
           // commit these changes outside of Eezi if needed.
           logger.error(
@@ -457,7 +457,7 @@ export async function processFullResponseActions(
       extraFilesError,
     };
   } catch (error: unknown) {
-    logger.error("Error processing files:", error);
+    logger.error("Error processing files:", error.message);
     return { error: (error as any).toString() };
   } finally {
     const appendedContent = `

@@ -61,12 +61,8 @@ export function defaultShouldRetryThisError(error: any): boolean {
 
   try {
     // Check status code
-    const statusCode =
-      error?.statusCode || error?.status || error?.response?.status;
-    if (
-      statusCode &&
-      (RETRYABLE_STATUS_CODES.has(statusCode) || statusCode >= 500)
-    ) {
+    const statusCode = error?.statusCode || error?.status || error?.response?.status;
+    if (statusCode && (RETRYABLE_STATUS_CODES.has(statusCode) || statusCode >= 500)) {
       return true;
     }
 
@@ -78,9 +74,7 @@ export function defaultShouldRetryThisError(error: any): boolean {
       JSON.stringify(error)
     ).toLowerCase();
 
-    return RETRYABLE_ERROR_PATTERNS.some((pattern) =>
-      errorString.includes(pattern),
-    );
+    return RETRYABLE_ERROR_PATTERNS.some((pattern) => errorString.includes(pattern));
   } catch {
     // If we can't parse the error, don't retry
     return false;
@@ -121,9 +115,7 @@ export class FallbackModel implements LanguageModelV2 {
     return this.getCurrentModel().provider;
   }
 
-  get supportedUrls():
-    | Record<string, RegExp[]>
-    | PromiseLike<Record<string, RegExp[]>> {
+  get supportedUrls(): Record<string, RegExp[]> | PromiseLike<Record<string, RegExp[]>> {
     return this.getCurrentModel().supportedUrls;
   }
 
@@ -150,13 +142,12 @@ export class FallbackModel implements LanguageModelV2 {
   }
 
   private switchToNextModel(): void {
-    this.currentModelIndex =
-      (this.currentModelIndex + 1) % this.settings.models.length;
+    this.currentModelIndex = (this.currentModelIndex + 1) % this.settings.models.length;
   }
 
   private async retry<T>(
     operation: (state: RetryState) => Promise<T>,
-    operationName: string,
+    operationName: string
   ): Promise<T> {
     const state: RetryState = {
       attemptNumber: 0,
@@ -173,7 +164,7 @@ export class FallbackModel implements LanguageModelV2 {
 
         try {
           return await operation(state);
-        } catch (error) {
+        } catch (error: any) {
           const err = error as Error;
           state.errors.push({ modelId: this.modelId, error: err });
 
@@ -190,7 +181,7 @@ export class FallbackModel implements LanguageModelV2 {
             if (state.attemptNumber >= this.maxRetries) {
               throw new Error(
                 `All ${this.settings.models.length} models failed for ${operationName}. ` +
-                  `Last error: ${err.message}`,
+                  `Last error: ${err.message}`
               );
             }
           }
@@ -202,9 +193,7 @@ export class FallbackModel implements LanguageModelV2 {
       }
 
       // Should never reach here, but just in case
-      throw new Error(
-        `Max retries (${this.maxRetries}) exceeded for ${operationName}`,
-      );
+      throw new Error(`Max retries (${this.maxRetries}) exceeded for ${operationName}`);
     } finally {
       this.isRetrying = false;
     }
@@ -221,11 +210,7 @@ export class FallbackModel implements LanguageModelV2 {
       const result = await this.getCurrentModel().doStream(options);
 
       // Create a wrapped stream that handles errors gracefully
-      const wrappedStream = this.createWrappedStream(
-        result.stream,
-        options,
-        retryState,
-      );
+      const wrappedStream = this.createWrappedStream(result.stream, options, retryState);
 
       return {
         ...result,
@@ -237,7 +222,7 @@ export class FallbackModel implements LanguageModelV2 {
   private createWrappedStream(
     originalStream: ReadableStream<LanguageModelV2StreamPart>,
     options: LanguageModelV2CallOptions,
-    retryState: RetryState,
+    retryState: RetryState
   ): ReadableStream<LanguageModelV2StreamPart> {
     let hasStreamedContent = false;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -245,11 +230,10 @@ export class FallbackModel implements LanguageModelV2 {
 
     return new ReadableStream<LanguageModelV2StreamPart>({
       async start(controller) {
-        let reader: ReadableStreamDefaultReader<LanguageModelV2StreamPart> | null =
-          null;
+        let reader: ReadableStreamDefaultReader<LanguageModelV2StreamPart> | null = null;
 
         const processStream = async (
-          stream: ReadableStream<LanguageModelV2StreamPart>,
+          stream: ReadableStream<LanguageModelV2StreamPart>
         ): Promise<void> => {
           reader = stream.getReader();
 
@@ -284,7 +268,7 @@ export class FallbackModel implements LanguageModelV2 {
 
         try {
           await processStream(originalStream);
-        } catch (error) {
+        } catch (error: any) {
           const err = error as Error;
 
           // Decide whether to retry
@@ -307,23 +291,20 @@ export class FallbackModel implements LanguageModelV2 {
 
             // Check if we've tried all models
             if (
-              retryState.modelsAttempted.size ===
-                fallbackModel.settings.models.length &&
+              retryState.modelsAttempted.size === fallbackModel.settings.models.length &&
               retryState.attemptNumber >= fallbackModel.maxRetries
             ) {
               controller.error(
                 new Error(
-                  `All models failed during streaming. Last error: ${err.message}`,
-                ),
+                  `All models failed during streaming. Last error: ${err.message}`
+                )
               );
               return;
             }
 
             try {
               // Create a new stream with the next model
-              const nextResult = await fallbackModel
-                .getCurrentModel()
-                .doStream(options);
+              const nextResult = await fallbackModel.getCurrentModel().doStream(options);
               await processStream(nextResult.stream);
             } catch (nextError) {
               // If the retry also fails, propagate the error

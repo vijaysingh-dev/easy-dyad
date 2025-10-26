@@ -7,9 +7,11 @@ import { parentPort, workerData } from "worker_threads";
 import http from "http";
 import https from "https";
 
-import { URL } from "url";
+import { URL, fileURLToPath } from "url";
 import fs from "fs";
 import path from "path";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /* ──────────────────────────── worker code ─────────────────────────────── */
 const LISTEN_HOST = "localhost";

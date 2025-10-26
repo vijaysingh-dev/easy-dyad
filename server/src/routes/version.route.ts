@@ -32,14 +32,14 @@ router.get("/get-app-version", async (req, res) => {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-  res.json({ version: packageJson.version });
+  res.status(200).json({ version: packageJson.version });
 });
 
 router.get("/does-release-note-exist", async (req, res) => {
   // For E2E tests, we don't want to check for release notes
   // or show release notes, as it interferes with the tests.
   if (IS_TEST_BUILD) {
-    res.json({ exists: false });
+    res.status(200).json({ exists: false });
     return;
   }
 
@@ -54,19 +54,19 @@ router.get("/does-release-note-exist", async (req, res) => {
     const response = await fetch(releaseNoteUrl, { method: "HEAD" }); // Use HEAD to check existence without downloading content
     if (response.ok) {
       logger.debug(`Release note found for version ${version} at ${releaseNoteUrl}`);
-      res.json({ exists: true, url: releaseNoteUrl });
+      res.status(200).json({ exists: true, url: releaseNoteUrl });
     } else if (response.status === 404) {
       logger.debug(`Release note not found for version ${version} at ${releaseNoteUrl}`);
-      res.json({ exists: false });
+      res.status(200).json({ exists: false });
     } else {
       // Log other non-404 errors but still treat as "not found" for the client,
       // as the primary goal is to check existence.
       logger.warn(
         `Unexpected status code ${response.status} when checking for release note: ${releaseNoteUrl}`
       );
-      res.json({ exists: false });
+      res.status(200).json({ exists: false });
     }
-  } catch (error) {
+  } catch (error: any) {
     logger.error(
       `Error fetching release note for version ${version} at ${releaseNoteUrl}:`,
       error
@@ -133,8 +133,8 @@ router.get("/list-versions/:appId", async (req, res) => {
         };
       }) satisfies Version[]
     );
-  } catch (error) {
-    logger.error("Error getting versions:", error);
+  } catch (error: any) {
+    logger.error("Error getting versions:", error.message);
     res.status(500).json({ error: "Failed to retrieve versions" });
   }
 });
@@ -164,15 +164,15 @@ router.get("/get-current-branch/:appId", async (req, res) => {
         fullname: false,
       });
 
-      res.json({
+      res.status(200).json({
         branch: currentBranch || "<no-branch>",
       });
     } catch (error: any) {
       logger.error(`Error getting current branch for app ${appId}:`, error);
       throw new Error(`Failed to get current branch: ${error.message}`);
     }
-  } catch (error) {
-    logger.error("Error getting current branch:", error);
+  } catch (error: any) {
+    logger.error("Error getting current branch:", error.message);
     res.status(500).json({ error: "Failed to get current branch" });
   }
 });
@@ -305,11 +305,11 @@ router.post("/revert-version", async (req, res) => {
                 `Delete preserve branch ${preserveBranchId} for app ${appId}`,
                 { retryBranchWithChildError: true }
               );
-            } catch (error) {
+            } catch (error: any) {
               const errorMessage = getNeonErrorMessage(error);
               logger.error("Error in deleteProjectBranch:", errorMessage);
             }
-          } catch (error) {
+          } catch (error: any) {
             const errorMessage = getNeonErrorMessage(error);
             logger.error("Error in restoreBranchForCheckout:", errorMessage);
             warningMessage = `Could not restore database because of error: ${errorMessage}`;
@@ -330,8 +330,8 @@ router.post("/revert-version", async (req, res) => {
       return { successMessage };
     });
     res.send(result);
-  } catch (error) {
-    logger.error("Error reverting version:", error);
+  } catch (error: any) {
+    logger.error("Error reverting version:", error.message);
     res.status(500).json({ error: "Failed to revert version" });
   }
 });
@@ -407,8 +407,8 @@ router.post("/checkout-version", async (req, res) => {
       });
     });
     res.send(result);
-  } catch (error) {
-    logger.error("Error checking out version:", error);
+  } catch (error: any) {
+    logger.error("Error checking out version:", error.message);
     res.status(500).json({ error: "Failed to checkout version" });
   }
 });

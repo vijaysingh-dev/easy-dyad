@@ -451,7 +451,7 @@ async function executeAppInDocker({
       });
       stopContainer.on("error", () => resolve()); // Container might not exist
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.info(`Docker container ${containerName} not found. Ignoring error: ${error}`);
   }
 
@@ -466,7 +466,7 @@ RUN npm install -g pnpm
 
     try {
       await fsPromises.writeFile(dockerfilePath, dockerfileContent, "utf-8");
-    } catch (error) {
+    } catch (error: any) {
       logger.error(`Failed to create Dockerfile for app ${appId}:`, error);
       throw new Error(`Failed to create Dockerfile: ${error}`);
     }

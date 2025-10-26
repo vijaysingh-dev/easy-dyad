@@ -526,7 +526,7 @@ export const readAiRules = async (eeziAppPath: string) => {
   try {
     const aiRules = await fs.promises.readFile(aiRulesPath, "utf8");
     return aiRules;
-  } catch (error) {
+  } catch (error: any) {
     logger.info(`Error reading AI_RULES.md, fallback to default AI rules: ${error}`);
     return DEFAULT_AI_RULES;
   }

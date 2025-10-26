@@ -43,6 +43,7 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
 
   // Find the specific provider data from the fetched list
   const providerData = allProviders?.find((p) => p.id === provider);
+  console.log("Provider Data:", providerData);
   useEffect(() => {
     const layoutMainContentContainer = document.getElementById(
       "layout-main-content-container"
@@ -127,6 +128,7 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
             ...settings?.providerSettings?.[provider],
             apiKey: {
               value,
+              encryptionType: "aes-256-gcm",
             },
           },
         },
@@ -262,7 +264,7 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
       </div>
     );
   }
-
+  console.log("isConfigured:", isConfigured);
   return (
     <div className="min-h-screen px-8 py-4">
       <div className="max-w-4xl mx-auto">

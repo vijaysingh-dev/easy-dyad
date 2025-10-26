@@ -132,8 +132,8 @@ export function readSettings(): UserSettings {
     const validatedSettings = UserSettingsSchema.parse(combinedSettings);
 
     return validatedSettings;
-  } catch (error) {
-    logger.error("Error reading settings:", error);
+  } catch (error: any) {
+    logger.error("Error reading settings:", error.message);
     return DEFAULT_SETTINGS;
   }
 }
@@ -183,8 +183,8 @@ export function writeSettings(settings: Partial<UserSettings>): void {
     }
     const validatedSettings = UserSettingsSchema.parse(newSettings);
     fs.writeFileSync(filePath, JSON.stringify(validatedSettings, null, 2));
-  } catch (error) {
-    logger.error("Error writing settings:", error);
+  } catch (error: any) {
+    logger.error("Error writing settings:", error.message);
   }
 }
 

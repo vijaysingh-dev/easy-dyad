@@ -14,9 +14,9 @@ type ConsentDecision = "accept-once" | "accept-always" | "decline";
 router.get("/list-servers", async (req, res) => {
   try {
     const result = await db.select().from(mcpServers);
-    res.json(result);
-  } catch (error) {
-    logger.error("Error listing mcp servers:", error);
+    res.status(200).json(result);
+  } catch (error: any) {
+    logger.error("Error listing mcp servers:", error.message);
     res.status(500).json({ error: "Failed to list mcp servers" });
   }
 });
@@ -36,9 +36,9 @@ router.post("/create-server", async (req, res) => {
         enabled: !!enabled,
       })
       .returning();
-    res.json(result[0]);
-  } catch (error) {
-    logger.error("Error creating mcp server:", error);
+    res.status(200).json(result[0]);
+  } catch (error: any) {
+    logger.error("Error creating mcp server:", error.message);
     res.status(500).json({ error: "Failed to create mcp server" });
   }
 });
@@ -67,9 +67,9 @@ router.patch("/update-server", async (req, res) => {
     } catch {
       logger.warn(`No existing MCP client to dispose for server ID ${id}`);
     }
-    res.json(result[0]);
-  } catch (error) {
-    logger.error("Error updating mcp server:", error);
+    res.status(200).json(result[0]);
+  } catch (error: any) {
+    logger.error("Error updating mcp server:", error.message);
     res.status(500).json({ error: "Failed to update mcp server" });
   }
 });
@@ -83,9 +83,9 @@ router.delete("/delete-server/:id", async (req, res) => {
       logger.warn(`No existing MCP client to dispose for server ID ${id}`);
     }
     await db.delete(mcpServers).where(eq(mcpServers.id, id));
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error deleting mcp server:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    logger.error("Error deleting mcp server:", error.message);
     res.status(500).json({ error: "Failed to delete mcp server" });
   }
 });
@@ -103,9 +103,9 @@ router.get("/list-tools/:serverId", async (req, res) => {
         consent: await getStoredConsent(serverId, name),
       }))
     );
-    res.json(tools);
-  } catch (error) {
-    logger.error("Failed to list tools", error);
+    res.status(200).json(tools);
+  } catch (error: any) {
+    logger.error("Failed to list tools", error.message);
     res.status(500).json({ error: "Failed to list tools" });
   }
 });
@@ -113,9 +113,9 @@ router.get("/list-tools/:serverId", async (req, res) => {
 router.get("/get-tool-consents", async (req, res) => {
   try {
     const result = await db.select().from(mcpToolConsents);
-    res.json(result);
-  } catch (error) {
-    logger.error("Error fetching tool consents:", error);
+    res.status(200).json(result);
+  } catch (error: any) {
+    logger.error("Error fetching tool consents:", error.message);
     res.status(500).json({ error: "Failed to fetch tool consents" });
   }
 });
@@ -143,7 +143,7 @@ router.post("/set-tool-consent", async (req, res) => {
           )
         )
         .returning();
-      res.json(result[0]);
+      res.status(200).json(result[0]);
     } else {
       const result = await db
         .insert(mcpToolConsents)
@@ -153,10 +153,10 @@ router.post("/set-tool-consent", async (req, res) => {
           consent: consent,
         })
         .returning();
-      res.json(result[0]);
+      res.status(200).json(result[0]);
     }
-  } catch (error) {
-    logger.info("Error setting tool consent:", error);
+  } catch (error: any) {
+    logger.info("Error setting tool consent:", error.message);
     res.status(500).json({ error: "Failed to set tool consent" });
   }
 });

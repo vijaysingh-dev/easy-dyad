@@ -44,7 +44,6 @@ class EeziClient {
     chat?: EventSource;
     app?: EventSource;
     help?: EventSource;
-    mcp?: EventSource;
     github?: EventSource;
   } = {};
 
@@ -127,6 +126,7 @@ class EeziClient {
           ?.onOutput({ appId, type, message, timestamp: Date.now() });
       } else if (data.eventType === "app:error") {
         console.error(`[app] Error for app ${data.appId}:`, data.error);
+        this.appStreams.delete(data.appId);
       } else {
         console.warn("[app] Unknown event type:", data.eventType);
       }
@@ -137,18 +137,12 @@ class EeziClient {
   public initHelpStreamSSE(url: string) {
     this.initEventSource("help", url, (data) => {
       switch (data.eventType) {
-        case "help:chat:response:chunk": {
+        case "help:chat:chunk": {
           const { sessionId, delta } = data;
           this.helpStreams.get(sessionId)?.onChunk(delta);
           break;
         }
-        case "help:chat:response:end": {
-          const { sessionId } = data;
-          this.helpStreams.get(sessionId)?.onEnd();
-          this.helpStreams.delete(sessionId);
-          break;
-        }
-        case "help:chat:response:error": {
+        case "help:chat:error": {
           const { sessionId, error } = data;
           this.helpStreams.get(sessionId)?.onError(error);
           this.helpStreams.delete(sessionId);
@@ -156,17 +150,6 @@ class EeziClient {
         }
         default:
           console.warn("[help] Unknown event type:", data.eventType);
-      }
-    });
-  }
-
-  // MCP Stream
-  public initMcpStreamSSE(key: string) {
-    this.initEventSource("mcp", key, (data) => {
-      if (data.eventType === "mcp:tool-consent-request") {
-        this.mcpConsentHandlers.get("consent")?.(data.payload);
-      } else {
-        console.warn("[mcp] Unknown event type:", data.eventType);
       }
     });
   }
@@ -180,6 +163,7 @@ class EeziClient {
         this.githubStreams.get(data.appId)?.onGithubDeviceFlowSuccess(data);
       } else if (data.eventType == "github:flow-error") {
         this.githubStreams.get(data.appId)?.onGithubDeviceFlowError(data);
+        this.githubStreams.delete(data.appId);
       } else {
         console.warn("[github] Unknown event type:", data.eventType);
       }
@@ -201,9 +185,6 @@ class EeziClient {
         break;
       case "help":
         this.initHelpStreamSSE(url);
-        break;
-      case "mcp":
-        this.initMcpStreamSSE(url);
         break;
       case "github":
         this.initGithubStreamSSE(url);

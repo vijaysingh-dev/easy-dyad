@@ -46,7 +46,7 @@ export async function extractMentionedAppsCodebases(
       });
 
       logger.log(`Extracted codebase for mentioned app: ${app.name}`);
-    } catch (error) {
+    } catch (error: any) {
       logger.error(`Error extracting codebase for app ${app.name}:`, error);
       // Continue with other apps even if one fails
     }

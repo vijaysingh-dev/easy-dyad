@@ -10,13 +10,17 @@ export const userSettingsAtom = atom<UserSettings | null>(null);
 // Atom for storing allow-listed environment variables
 export const envVarsAtom = atom<Record<string, string | undefined>>({});
 
-export const refreshCounterAtom = atom(0);
 export const settingsDataAtom = atom(async (get) => {
-  get(refreshCounterAtom); // dependency
+  const currentSettings = get(userSettingsAtom);
+  const currentEnvVars = get(envVarsAtom);
+  if (currentSettings && Object.keys(currentEnvVars).length > 0) {
+    return { settings: currentSettings, envVars: currentEnvVars };
+  }
   const [settings, envVars] = await Promise.all([
     api.settings.getUserSettings(),
     api.settings.getEnvVars(),
   ]);
+
   processSettingsForTelemetry(settings);
   return { settings, envVars };
 });

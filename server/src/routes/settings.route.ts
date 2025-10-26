@@ -77,9 +77,9 @@ router.get("/get-user-budget", async (req, res) => {
 router.get("/get-user-settings", async (_req, res) => {
   try {
     const settings = readSettings();
-    res.json(settings);
-  } catch (error) {
-    logger.error("Error getting user settings:", error);
+    res.status(200).json(settings);
+  } catch (error: any) {
+    logger.error("Error getting user settings:", error.message);
     res.status(500).json({ error: "Failed to get user settings" });
   }
 });
@@ -91,9 +91,9 @@ router.patch("/set-user-settings", async (req, res) => {
     // Update settings file
     writeSettings(settings);
     // Return full updated settings
-    res.json(readSettings());
-  } catch (error) {
-    logger.error("Error updating user settings:", error);
+    res.status(200).json(readSettings());
+  } catch (error: any) {
+    logger.error("Error updating user settings:", error.message);
     res.status(500).json({ error: "Failed to update user settings" });
   }
 });
@@ -108,9 +108,9 @@ router.get("/get-env-vars", async (_req, res) => {
         envVars[provider.envVarName] = getEnvVar(provider.envVarName);
       }
     }
-    res.json(envVars);
-  } catch (error) {
-    logger.error("Error getting env vars:", error);
+    res.status(200).json(envVars);
+  } catch (error: any) {
+    logger.error("Error getting env vars:", error.message);
     res.status(500).json({ error: "Failed to get env vars" });
   }
 });
@@ -140,9 +140,9 @@ router.get("/nodejs-status", async (_req, res) => {
         nodeDownloadUrl = "https://nodejs.org/dist/v22.14.0/node-v22.14.0-x64.msi";
       }
     }
-    res.json({ nodeVersion, pnpmVersion, nodeDownloadUrl });
-  } catch (error) {
-    logger.error("Error getting Node.js status:", error);
+    res.status(200).json({ nodeVersion, pnpmVersion, nodeDownloadUrl });
+  } catch (error: any) {
+    logger.error("Error getting Node.js status:", error.message);
     res.status(500).json({ error: "Failed to get Node.js status" });
   }
 });
@@ -160,9 +160,9 @@ router.post("/reload-env-path", async (_req, res) => {
     }
     logger.debug("Reloaded env path, now:", process.env.PATH);
 
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Error reloading env path:", error);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    logger.error("Error reloading env path:", error.message);
     res.status(500).json({ error: "Failed to reload env path" });
   }
 });
