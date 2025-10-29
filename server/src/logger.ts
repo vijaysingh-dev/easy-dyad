@@ -1,19 +1,40 @@
 import winston from "winston";
 import path from "path";
+import fs from "fs";
 
 const PROJECT_ROOT = path.resolve("server/src");
+
+const LOG_DIR = path.join(path.resolve(), "..", "logs");
+if (!fs.existsSync(LOG_DIR)) {
+  fs.mkdirSync(LOG_DIR, { recursive: true });
+}
 
 const winstonLogger = winston.createLogger({
   level: process.env.NODE_ENV === "production" ? "info" : "debug",
   format: winston.format.combine(
-    winston.format.timestamp(),
+    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
     winston.format.printf(({ level, timestamp, message, caller }) => {
       const lvl = level.toUpperCase().padEnd(5);
       const fileStr = caller ? `${caller} - ` : "";
       return `${lvl} ${timestamp} | ${fileStr}${message}`;
     })
   ),
-  transports: [new winston.transports.Console()],
+  transports: [
+    new winston.transports.Console(),
+
+    new winston.transports.File({
+      filename: path.join(LOG_DIR, "error.log"),
+      level: "error",
+      maxsize: 5 * 1024 * 1024, // 5MB per file
+      maxFiles: 5,
+    }),
+
+    new winston.transports.File({
+      filename: path.join(LOG_DIR, "combined.log"),
+      maxsize: 10 * 1024 * 1024, // 10MB per file
+      maxFiles: 5,
+    }),
+  ],
 });
 
 const formatMsg = (msg: any, args: any[]) =>

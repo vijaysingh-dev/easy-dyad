@@ -11,8 +11,8 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 import { cn } from "@shared/utils";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { isPreviewOpenAtom } from "@/atoms/viewAtoms";
-import { useChats } from "@/hooks/useChats";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
+import { useChats } from "@/hooks/useChats";
 
 export default function ChatPage() {
   let { id: chatId } = useSearch({ from: "/chat" });

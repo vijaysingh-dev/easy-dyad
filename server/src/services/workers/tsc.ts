@@ -9,7 +9,7 @@ import {
   getEeziWriteTags,
 } from "@/utils/eezi_tag_parser";
 import { getTypeScriptCachePath } from "@/services/paths";
-import { WorkerInput, WorkerOutput } from "@shared/tscTypes";
+import { WorkerInput, WorkerOutput } from "./tsc_types";
 import { ProblemReport } from "@shared/eeziTypes";
 
 export async function generateProblemReport({

@@ -177,7 +177,7 @@ class IntegrationApiService {
     });
     eeziClient.eventSources["github"]?.close();
 
-    const url = eeziClient.baseURL + `/integration/github/start-flow/${appId}/stream`;
+    const url = eeziClient.baseURL + `/integration/github/${appId}/start-flow`;
     eeziClient.initGithubStreamSSE(url);
   }
   // --- End GitHub Repo Management ---

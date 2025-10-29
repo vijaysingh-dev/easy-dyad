@@ -1,31 +1,50 @@
 import { useState, useEffect, useCallback } from "react";
 import type { ProposalResult } from "@shared/schemas"; // Import Proposal type
+import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { proposalResultAtom } from "@/atoms/proposalAtoms";
-import { useAtom } from "jotai";
+import { atom, useAtom, useSetAtom } from "jotai";
 import api from "@/api";
 
+const proposalAtom = atom(async (get) => {
+  const chatId = get(selectedChatIdAtom);
+  if (chatId === null) return null;
+  return await api.chat.getProposal(chatId);
+});
+
 export function useProposal(chatId?: number | undefined) {
+  const setSelectedChatId = useSetAtom(selectedChatIdAtom);
   const [proposalResult, setProposalResult] = useAtom(proposalResultAtom);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const fetchProposal = useCallback(
+
+  const [proposalData] = useAtom(proposalAtom);
+  useEffect(() => {
+    const fetchProposal = async () => {
+      try {
+        setIsLoading(true);
+        if (chatId === undefined) return;
+        setSelectedChatId(chatId);
+        setProposalResult(proposalData);
+      } catch (err: any) {
+        console.error("Error fetching proposal:", err);
+        setError(err.message || "Failed to fetch proposal");
+        setProposalResult(null); // Clear proposal data on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProposal();
+  }, [chatId, setSelectedChatId]);
+
+  const refreshProposal = useCallback(
     async (overrideChatId?: number) => {
       chatId = overrideChatId ?? chatId;
-      if (chatId === undefined) {
-        setProposalResult(null);
-        setIsLoading(false);
-        setError(null);
-        return;
-      }
-      setIsLoading(true);
-      setError(null);
+      if (chatId === undefined) return;
+      setSelectedChatId(chatId);
       try {
+        setIsLoading(true);
         const result = (await api.chat.getProposal(chatId)) as ProposalResult | null;
-        if (result) {
-          setProposalResult(result);
-        } else {
-          setProposalResult(null); // Explicitly set to null if API returns null
-        }
+        setProposalResult(result);
       } catch (err: any) {
         console.error("Error fetching proposal:", err);
         setError(err.message || "Failed to fetch proposal");
@@ -34,22 +53,13 @@ export function useProposal(chatId?: number | undefined) {
         setIsLoading(false);
       }
     },
-    [chatId] // Only depend on chatId, setProposalResult is stable
-  ); // Depend on chatId
-
-  useEffect(() => {
-    fetchProposal();
-
-    // Cleanup function if needed (e.g., for aborting requests)
-    // return () => {
-    //   // Abort logic here
-    // };
-  }, [fetchProposal]); // Re-run effect if fetchProposal changes (due to chatId change)
+    [chatId, setSelectedChatId]
+  );
 
   return {
     proposalResult: proposalResult,
     isLoading,
     error,
-    refreshProposal: fetchProposal, // Expose the refresh function
+    refreshProposal,
   };
 }

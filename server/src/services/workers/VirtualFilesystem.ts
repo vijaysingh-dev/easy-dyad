@@ -6,8 +6,17 @@ import {
   SyncVirtualFileSystem,
   VirtualChanges,
   VirtualFile,
-} from "@shared/tscTypes";
-import { normalizePath } from "@/services/paths";
+} from "./tsc_types";
+
+/**
+ * Normalize the path to use forward slashes instead of backslashes.
+ * This is important to prevent weird Git issues, particularly on Windows.
+ * @param path Source path.
+ * @returns Normalized path.
+ */
+export function normalizePath(path: string): string {
+  return path.replace(/\\/g, "/");
+}
 
 export interface AsyncFileSystemDelegate {
   fileExists?: (fileName: string) => Promise<boolean>;

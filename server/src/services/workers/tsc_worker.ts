@@ -8,8 +8,8 @@ import {
   SyncVirtualFileSystem,
   WorkerInput,
   WorkerOutput,
-} from "@shared/tscTypes";
-import { SyncVirtualFileSystemImpl } from "@/services/VirtualFilesystem";
+} from "./tsc_types";
+import { SyncVirtualFileSystemImpl } from "./VirtualFilesystem";
 
 function loadLocalTypeScript(appPath: string): typeof import("typescript") {
   try {

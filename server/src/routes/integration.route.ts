@@ -256,7 +256,6 @@ router.post("/neon/create-project", async (req, res) => {
 // --- End Neon Management ---
 
 // --- Supabase Management ---
-
 router.get("/supabase/list-projects", async (req, res) => {
   try {
     const supabase = await getSupabaseClient();
@@ -292,11 +291,11 @@ router.post("/supabase/unset-app-project", async (req, res) => {
     res.status(500).json({ error: "Failed to unset Supabase app project" });
   }
 });
-
 // --- End Supabase Management ---
 
-// --- GitHub Repo Management ---
-
+// ----------------------------------------------------------------
+// GitHub Repo Management
+// ----------------------------------------------------------------
 // GitHub Device Flow Constants
 // TODO: Fetch this securely, e.g., from environment variables or a config file
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || "Ov23liWV2HdC0RBLecWx";
@@ -329,7 +328,7 @@ interface DeviceFlowState {
 // For simplicity, let's assume only one flow can happen at a time for now.
 const currentFlowState = new Map<number, DeviceFlowState>();
 
-router.post("/github/start-flow/:appId/stream", (req, res) => {
+router.get("/github/:appId/start-flow", (req, res) => {
   const appId = parseInt(req.params.appId);
   try {
     // Set up SSE
@@ -372,6 +371,7 @@ router.post("/github/start-flow/:appId/stream", (req, res) => {
       res.end();
     });
 
+    logger.info("Requesting device code from GitHub:", GITHUB_DEVICE_CODE_URL);
     fetch(GITHUB_DEVICE_CODE_URL, {
       method: "POST",
       headers: {

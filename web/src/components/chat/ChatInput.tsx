@@ -528,26 +528,26 @@ function KeepGoingButton() {
   );
 }
 
-export function mapActionToButton(action: SuggestedAction) {
+export function mapActionToButton(index: number, action: SuggestedAction) {
   switch (action.id) {
     case "summarize-in-new-chat":
-      return <SummarizeInNewChatButton />;
+      return <SummarizeInNewChatButton key={index} />;
     case "refactor-file":
-      return <RefactorFileButton path={action.path} />;
+      return <RefactorFileButton path={action.path} key={index} />;
     case "write-code-properly":
-      return <WriteCodeProperlyButton />;
+      return <WriteCodeProperlyButton key={index} />;
     case "rebuild":
-      return <RebuildButton />;
+      return <RebuildButton key={index} />;
     case "restart":
-      return <RestartButton />;
+      return <RestartButton key={index} />;
     case "refresh":
-      return <RefreshButton />;
+      return <RefreshButton key={index} />;
     case "keep-going":
-      return <KeepGoingButton />;
+      return <KeepGoingButton key={index} />;
     default:
       console.error(`Unsupported action: ${action.id}`);
       return (
-        <Button variant="outline" size="sm" disabled key={action.id}>
+        <Button variant="outline" size="sm" disabled key={index}>
           Unsupported: {action.id}
         </Button>
       );
@@ -558,7 +558,7 @@ function ActionProposalActions({ proposal }: { proposal: ActionProposal }) {
   return (
     <div className="border-b border-border p-2 pb-0 flex items-center justify-between">
       <div className="flex items-center space-x-2 overflow-x-auto pb-2">
-        {proposal.actions.map((action) => mapActionToButton(action))}
+        {proposal.actions.map((action, index) => mapActionToButton(index, action))}
       </div>
     </div>
   );

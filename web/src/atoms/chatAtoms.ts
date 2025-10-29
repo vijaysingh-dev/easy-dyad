@@ -1,5 +1,5 @@
-import type { Message } from "@shared/eeziTypes";
 import { atom } from "jotai";
+import type { Message } from "@shared/eeziTypes";
 import type { ChatSummary } from "@shared/schemas";
 
 // Per-chat atoms implemented with maps keyed by chatId

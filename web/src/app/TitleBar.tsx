@@ -5,7 +5,7 @@ import { useRouter, useLocation } from "@tanstack/react-router";
 import { useSettings } from "@/hooks/useSettings";
 import { Button } from "@/components/ui/button";
 // @ts-ignore
-import logo from "../../assets/logo.svg";
+import logo from "../../assets/icon/eezi.png";
 import { providerSettingsRoute } from "@/routes/settings/providers/$provider";
 import { cn } from "@shared/utils";
 import { useDeepLink } from "@/contexts/DeepLinkContext";

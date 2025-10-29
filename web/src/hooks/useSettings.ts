@@ -1,47 +1,113 @@
 import { useEffect, useState, useCallback } from "react";
-import { useAtomValue, useSetAtom, useAtom } from "jotai";
-import {
-  settingsDataAtom,
-  userSettingsAtom,
-  envVarsAtom,
-  processSettingsForTelemetry,
-} from "@/atoms/settingsAtom";
+import { atom, useAtom } from "jotai";
 import { usePostHog } from "posthog-js/react";
-import { appVersionAtom } from "@/atoms/appAtoms";
+import { appVersionAtom, userSettingsAtom, envVarsAtom } from "@/atoms/appAtoms";
 import { type UserSettings } from "@shared/schemas";
 import api from "@/api";
 
+const TELEMETRY_CONSENT_KEY = "eeziTelemetryConsent";
+const TELEMETRY_USER_ID_KEY = "eeziTelemetryUserId";
+
+export function isTelemetryOptedIn() {
+  return localStorage.getItem(TELEMETRY_CONSENT_KEY) === "opted_in";
+}
+export function getTelemetryUserId(): string | null {
+  return localStorage.getItem(TELEMETRY_USER_ID_KEY);
+}
+
+function processSettingsForTelemetry(settings: UserSettings) {
+  if (settings.telemetryConsent) {
+    localStorage.setItem(TELEMETRY_CONSENT_KEY, settings.telemetryConsent);
+  } else {
+    localStorage.removeItem(TELEMETRY_CONSENT_KEY);
+  }
+
+  if (settings.telemetryUserId) {
+    localStorage.setItem(TELEMETRY_USER_ID_KEY, settings.telemetryUserId);
+  } else {
+    localStorage.removeItem(TELEMETRY_USER_ID_KEY);
+  }
+}
+
 let isInitialLoadTracked = false;
+function trackInitialLoad(
+  settings: UserSettings,
+  appVersion: string | null,
+  posthog: ReturnType<typeof usePostHog>
+) {
+  if (isInitialLoadTracked || !appVersion) return;
+  posthog.capture("app:initial-load", {
+    isPro: Boolean(settings.providerSettings?.auto?.apiKey?.value),
+    appVersion,
+  });
+  isInitialLoadTracked = true;
+}
+
+export const settingsDataAtom = atom(async (get) => {
+  const [settings, envVars] = await Promise.all([
+    api.settings.getUserSettings(),
+    api.settings.getEnvVars(),
+  ]);
+  return { settings, envVars };
+});
 
 export function useSettings() {
-  // 🧠 Load only once globally (cached by Jotai)
-  const [data] = useAtom(settingsDataAtom);
-
-  const setUserSettings = useSetAtom(userSettingsAtom);
-  const setEnvVars = useSetAtom(envVarsAtom);
-  const appVersion = useAtomValue(appVersionAtom);
   const posthog = usePostHog();
+
+  const [appVersion] = useAtom(appVersionAtom);
+  const [data] = useAtom(settingsDataAtom);
+  const [settings, setSettingsAtom] = useAtom(userSettingsAtom);
+  const [envVars, setEnvVarsAtom] = useAtom(envVarsAtom);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  // Run initial load once
   useEffect(() => {
-    if (!isInitialLoadTracked && data?.settings && appVersion) {
-      posthog.capture("app:initial-load", {
-        isPro: Boolean(data.settings.providerSettings?.auto?.apiKey?.value),
-        appVersion,
-      });
-      isInitialLoadTracked = true;
+    const loadSettings = async () => {
+      setLoading(true);
+      try {
+        setSettingsAtom(data.settings);
+        setEnvVarsAtom(data.envVars);
+        trackInitialLoad(data.settings, appVersion, posthog);
+        setError(null);
+      } catch (err) {
+        console.error("Error loading settings:", err);
+        setError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadSettings();
+  }, [appVersion, data, posthog, setSettingsAtom, setEnvVarsAtom]);
+
+  const refreshSettings = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [fetchedSettings, fetchedEnvVars] = await Promise.all([
+        api.settings.getUserSettings(),
+        api.settings.getEnvVars(),
+      ]);
+
+      processSettingsForTelemetry(fetchedSettings);
+      setSettingsAtom(fetchedSettings);
+      setEnvVarsAtom(fetchedEnvVars);
+      setError(null);
+    } catch (err) {
+      console.error("Error refreshing settings:", err);
+      setError(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      setLoading(false);
     }
-  }, [data?.settings, appVersion, posthog]);
+  }, [appVersion, setSettingsAtom, setEnvVarsAtom]);
 
   const updateSettings = useCallback(
     async (newSettings: Partial<UserSettings>) => {
       setLoading(true);
       try {
         const updatedSettings = await api.settings.setUserSettings(newSettings);
+        setSettingsAtom(updatedSettings);
         processSettingsForTelemetry(updatedSettings);
-        setUserSettings(updatedSettings);
         setError(null);
         return updatedSettings;
       } catch (err) {
@@ -53,29 +119,12 @@ export function useSettings() {
         setLoading(false);
       }
     },
-    [setUserSettings]
+    [setSettingsAtom]
   );
 
-  const refreshSettings = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [settings, envVars] = await Promise.all([
-        api.settings.getUserSettings(),
-        api.settings.getEnvVars(),
-      ]);
-      processSettingsForTelemetry(settings);
-      setUserSettings(settings);
-      setEnvVars(envVars);
-    } catch (err) {
-      console.error("Error refreshing settings:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [setUserSettings, setEnvVars]);
-
   return {
-    settings: data?.settings ?? null,
-    envVars: data?.envVars ?? {},
+    settings,
+    envVars,
     loading,
     error,
     updateSettings,

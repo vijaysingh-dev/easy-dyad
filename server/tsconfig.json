@@ -12,5 +12,5 @@
       "@eezi-sh/*": ["../../packages/@eezi-sh/*"]
     }
   },
-  "include": ["src", "../shared", "../packages"]
+  "include": ["drizzle", "src", "worker", "../shared", "../packages"]
 }

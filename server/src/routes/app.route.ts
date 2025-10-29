@@ -49,7 +49,7 @@ import { validateChatContext } from "@/utils/context_paths_utils";
 import { storeDbTimestampAtCurrentVersion } from "@/utils/neon_timestamp_utils";
 import { isServerFunction } from "@/services/supabase/supabase_utils";
 import { readSettings } from "@/services/settings";
-import { generateProblemReport } from "@/services/processors/tsc";
+import { generateProblemReport } from "@/services/workers/tsc";
 import {
   deploySupabaseFunctions,
   getSupabaseProjectName,
@@ -713,6 +713,7 @@ router.get("/get-app-env-vars", async (req, res) => {
     const content = await fs.promises.readFile(envFilePath, "utf8");
     const envVars = parseEnvFile(content);
 
+    logger.info(`Fetched ${envVars.length} env vars for app ${appId}`);
     res.status(200).json(envVars);
   } catch (error: any) {
     console.error("Error getting app environment variables:", error.message);

@@ -1,4 +1,15 @@
-import { ProblemReport } from "./eeziTypes";
+export interface Problem {
+  file: string;
+  line: number;
+  column: number;
+  message: string;
+  code: number;
+  snippet: string;
+}
+
+export interface ProblemReport {
+  problems: Problem[];
+}
 
 export interface SyncVirtualFileSystem {
   fileExists: (fileName: string) => boolean;

@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import eeziComponentTagger from "@eezi-sh/react-vite-component-tagger";
+import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
@@ -8,10 +8,10 @@ export default defineConfig(() => ({
     host: "::",
     port: 8080,
   },
-  plugins: [eeziComponentTagger(), react()],
+  plugins: [dyadComponentTagger(), react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve("./src"),
     },
   },
 }));

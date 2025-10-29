@@ -30,9 +30,9 @@ import { createProblemFixPrompt } from "@shared/problem_prompt";
 import { parseAppMentions } from "@shared/parse_mention_apps";
 import { processFullResponseActions } from "@/services/processors/response_processor";
 import { executeAddDependency } from "@/services/processors/executeAddDependency";
-import { generateProblemReport } from "@/services/processors/tsc";
+import { generateProblemReport } from "@/services/workers/tsc";
 import { getEeziAppPath } from "@/services/paths";
-import { AsyncVirtualFileSystem } from "@/services/VirtualFilesystem";
+import { AsyncVirtualFileSystem } from "@/services/workers/VirtualFilesystem";
 import { readSettings } from "@/services/settings";
 
 import { withLock } from "@/utils/lock_utils";

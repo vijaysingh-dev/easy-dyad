@@ -7,7 +7,7 @@ import { IS_TEST_BUILD } from "@/config";
 import { glob } from "glob";
 import { readSettings } from "@/services/settings";
 import { AppChatContext } from "@shared/schemas";
-import { AsyncVirtualFileSystem } from "@/services/VirtualFilesystem";
+import { AsyncVirtualFileSystem } from "@/services/workers/VirtualFilesystem";
 
 // File extensions to include in the extraction
 const ALLOWED_EXTENSIONS = [

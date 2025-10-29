@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { appBasePathAtom, appsListAtom, selectedAppIdAtom } from "@/atoms/appAtoms";
