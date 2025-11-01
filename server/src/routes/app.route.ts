@@ -15,8 +15,10 @@ import { createFromTemplate } from "@/utils/createFromTemplate";
 import {
   getApp,
   copyDir,
+  getAppVersion,
   cleanUpPort,
   executeApp,
+  stopRunningApp,
   getSystemDebugInfo,
   isComponentTaggerUpgradeNeeded,
   applyComponentTagger,
@@ -27,7 +29,6 @@ import {
 import {
   runningApps,
   processCounter,
-  removeAppIfCurrentProcess,
   stopAppByInfo,
   removeDockerVolumesForApp,
 } from "@/utils/process_manager";
@@ -64,6 +65,11 @@ const router = Router();
 // Needed, otherwise electron in MacOS/Linux will not be able
 // to find node/pnpm.
 fixPath();
+
+router.get("/get-app-version", async (req, res) => {
+  const version = getAppVersion();
+  res.status(200).json({ version });
+});
 
 router.get("/get-system-platform", async (req, res) => {
   try {
@@ -339,6 +345,7 @@ router.get("/run-app/:appId", async (req, res) => {
 
     req.on("close", () => {
       logger.log(`Client disconnected from app ${appId} run stream.`);
+      stopRunningApp(appId);
       res.end();
     });
 
@@ -400,48 +407,8 @@ router.post("/stop-app", async (req, res): Promise<void> => {
     logger.log(
       `Attempting to stop app ${appId}. Current running apps: ${runningApps.size}`
     );
-    const result = await withLock(appId, async () => {
-      const appInfo = runningApps.get(appId);
-
-      if (!appInfo) {
-        logger.log(
-          `App ${appId} not found in running apps map. Assuming already stopped.`
-        );
-        return;
-      }
-
-      const { process, processId } = appInfo;
-      logger.log(
-        `Found running app ${appId} with processId ${processId} (PID: ${process.pid}). Attempting to stop.`
-      );
-
-      // Check if the process is already exited or closed
-      if (process.exitCode !== null || process.signalCode !== null) {
-        logger.log(
-          `Process for app ${appId} (PID: ${process.pid}) already exited (code: ${process.exitCode}, signal: ${process.signalCode}). Cleaning up map.`
-        );
-        runningApps.delete(appId); // Ensure cleanup if somehow missed
-        return;
-      }
-
-      try {
-        await stopAppByInfo(appId, appInfo);
-
-        // Now, safely remove the app from the map *after* confirming closure
-        removeAppIfCurrentProcess(appId, process);
-
-        return;
-      } catch (error: any) {
-        logger.error(
-          `Error stopping app ${appId} (PID: ${process.pid}, processId: ${processId}):`,
-          error
-        );
-        // Attempt cleanup even if an error occurred during the stop process
-        removeAppIfCurrentProcess(appId, process);
-        throw new Error(`Failed to stop app ${appId}: ${error.message}`);
-      }
-    });
-    res.send(result);
+    await stopRunningApp(appId);
+    res.send({ success: true });
   } catch (error: any) {
     logger.error(`Error in stop-app route:`, error);
     res.status(500).json({ error: error.message });
@@ -463,6 +430,7 @@ router.get("/restart-app/:appId", async (req, res) => {
 
     req.on("close", () => {
       logger.log(`Client disconnected from app ${appId} restart stream.`);
+      stopRunningApp(appId);
       res.end();
     });
 
@@ -968,19 +936,6 @@ router.get("reset-all", async (req, res) => {
     res.status(200).json({ success: true });
   } catch (error: any) {
     logger.error("Error resetting all apps and settings:", error.message);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.get("/get-app-version", async (req, res) => {
-  try {
-    // Read version from package.json at project root
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-    res.status(200).json({ version: packageJson.version });
-  } catch (error: any) {
-    logger.error("Error getting app version:", error.message);
     res.status(500).json({ error: error.message });
   }
 });

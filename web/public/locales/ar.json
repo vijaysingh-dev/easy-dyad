@@ -1,0 +1,11 @@
+{
+  "Your Apps": "تطبيقاتك",
+  "No apps found.": "لم يتم العثور على أي تطبيقات.",
+  "Search Apps": "البحث في التطبيقات",
+  "(no app selected)": "(لم يتم اختيار أي تطبيق)",
+  "app_selected": "التطبيق:  {{appName}}",
+  "Pro": "احترافي",
+  "Pro (off)": "احترافي (مغلق)",
+  "count_credits": "{{count}} رصيد",
+  "Note: there is a slight delay in updating the credit status.": "ملاحظة: هناك تأخير طفيف في تحديث حالة الرصيد."
+}

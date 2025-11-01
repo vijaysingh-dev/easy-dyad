@@ -1,7 +1,7 @@
 import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
-import "./styles/globals.css";
+import "./globals.css";
 
 // import { PostHogProvider } from "posthog-js/react";
 // import posthog from "posthog-js";
@@ -12,7 +12,7 @@ import {
   MutationCache,
 } from "@tanstack/react-query";
 import { showError } from "@/components/Toast";
-import { getTelemetryUserId, isTelemetryOptedIn } from "./atoms/settingsAtom";
+import { getTelemetryUserId, isTelemetryOptedIn } from "./hooks/useSettings";
 
 // @ts-ignore
 console.log("Running in mode:", import.meta.env.MODE);

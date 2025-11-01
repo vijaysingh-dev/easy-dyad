@@ -19,7 +19,7 @@ import { NEON_TEMPLATE_IDS, Template } from "@shared/templates";
 import { useRouter } from "@tanstack/react-router";
 
 import { Loader2 } from "lucide-react";
-import { neonTemplateHook } from "@/client_logic/template_hook";
+import { neonTemplateHook } from "@/lib/template_hook";
 import { showError } from "./Toast";
 
 interface CreateAppDialogProps {

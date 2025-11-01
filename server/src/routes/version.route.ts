@@ -27,14 +27,6 @@ import { Version } from "@shared/eeziTypes";
 
 const router = Router();
 
-router.get("/get-app-version", async (req, res) => {
-  // Read version from package.json at project root
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-  res.status(200).json({ version: packageJson.version });
-});
-
 router.get("/does-release-note-exist", async (req, res) => {
   // For E2E tests, we don't want to check for release notes
   // or show release notes, as it interferes with the tests.

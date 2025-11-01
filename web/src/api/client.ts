@@ -57,7 +57,13 @@ class EeziClient {
     url: string,
     onData: (data: any) => void
   ) {
-    if (this.eventSources[key]) return; // already connected
+    const existing = this.eventSources[key];
+    if (existing && existing.readyState !== EventSource.CLOSED) {
+      console.info(`[${key}] SSE already connected`);
+      return;
+    } // already connected
+
+    console.log(`[${key}] Initializing SSE connection to:`, url);
     const es = new EventSource(url);
     this.eventSources[key] = es;
 

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSetAtom } from "jotai";
-import { activeCheckoutCounterAtom } from "@/store/appAtoms";
+import { activeCheckoutCounterAtom } from "@/atoms/checkoutAtoms";
 import api from "@/api";
 
 interface CheckoutVersionVariables {

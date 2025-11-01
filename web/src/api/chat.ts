@@ -58,13 +58,13 @@ class ChatApiService {
   }
 
   public async deleteChat(chatId: number) {
-    const { data } = await Api.delete(`/chat/delete-chat/:${chatId}`);
+    const { data } = await Api.delete(`/chat/delete-chat/${chatId}`);
     return data;
   }
 
   public async deleteMessages(chatId: number) {
     // await this.ipcRenderer.invoke("delete-messages", chatId);
-    const { data } = await Api.delete(`/chat/delete-messages/:${chatId}`);
+    const { data } = await Api.delete(`/chat/delete-messages/${chatId}`);
     return data;
   }
 
@@ -72,7 +72,7 @@ class ChatApiService {
   public async searchChats(appId: number, query: string): Promise<ChatSearchResult[]> {
     try {
       const config: AxiosRequestConfig = { params: { query } };
-      const { data } = await Api.get(`/chat/search-chats/:${appId}`, { config });
+      const { data } = await Api.get(`/chat/search-chats/${appId}`, { config });
       return ChatSearchResultsSchema.parse(data);
     } catch (error) {
       showError(error);

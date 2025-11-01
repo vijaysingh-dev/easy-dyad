@@ -1,0 +1,11 @@
+{
+  "Your Apps": "Your Apps",
+  "No apps found.": "No apps found.",
+  "Search Apps": "Search Apps",
+  "(no app selected)": "(no app selected)",
+  "app_selected": "App: {{appName}}",
+  "Pro": "Pro",
+  "Pro (off)": "Pro (off)",
+  "count_credits": "{{count}} credits",
+  "Note: there is a slight delay in updating the credit status.": "Note: there is a slight delay in updating the credit status."
+}

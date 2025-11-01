@@ -1,9 +1,6 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@plugin "@tailwindcss/typography";
 
 /* Load Geist Font */
-
 @font-face {
   font-family: "Geist Mono";
   src: url("/node_modules/geist/dist/fonts/geist-mono/GeistMono-Regular.ttf")
@@ -58,14 +55,6 @@
 }
 
 @custom-variant dark (&:is(.dark *));
-
-.app-region-drag {
-  app-region: drag;
-}
-
-.no-app-region-drag {
-  app-region: no-drag;
-}
 
 .h-screenish {
   height: calc(100vh - 64px);

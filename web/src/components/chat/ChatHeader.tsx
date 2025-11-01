@@ -6,6 +6,7 @@ import { useVersions } from "@/hooks/useVersions";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import { useRouter } from "@tanstack/react-router";
+import { isAnyCheckoutVersionInProgressAtom } from "@/atoms/checkoutAtoms";
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { useChats } from "@/hooks/useChats";
 import { showError, showSuccess } from "@/components/Toast";
@@ -14,7 +15,6 @@ import { useStreamChat } from "@/hooks/useStreamChat";
 import { useCurrentBranch } from "@/hooks/useCurrentBranch";
 import { useCheckoutVersion } from "@/hooks/useCheckoutVersion";
 import { useRenameBranch } from "@/hooks/useRenameBranch";
-import { isAnyCheckoutVersionInProgressAtom } from "@/store/appAtoms";
 import { LoadingBar } from "../ui/LoadingBar";
 import api from "@/api";
 

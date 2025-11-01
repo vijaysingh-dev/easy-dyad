@@ -12,7 +12,7 @@ import { useStreamChat } from "@/hooks/useStreamChat";
 import { HomeChatInput } from "@/components/chat/HomeChatInput";
 import { usePostHog } from "posthog-js/react";
 import { PrivacyBanner } from "@/components/TelemetryBanner";
-import { INSPIRATION_PROMPTS } from "@/prompts/inspiration_prompts";
+import { INSPIRATION_PROMPTS } from "@/lib/inspiration_prompts";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +29,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import type { FileAttachment } from "@shared/eeziTypes";
 import { NEON_TEMPLATE_IDS } from "@shared/templates";
-import { neonTemplateHook } from "@/client_logic/template_hook";
+import { neonTemplateHook } from "@/lib/template_hook";
 import { ProBanner } from "@/components/ProBanner";
 import api from "@/api";
 

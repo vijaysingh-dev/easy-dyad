@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError } from "@/components/Toast";
+import { useLoadApps } from "@/hooks/useLoadApps";
 import type { CreateAppParams, CreateAppResult } from "@shared/eeziTypes";
 import api from "@/api";
 
 export function useCreateApp() {
   const queryClient = useQueryClient();
+  const { refreshApps } = useLoadApps();
 
   const mutation = useMutation<CreateAppResult, Error, CreateAppParams>({
     mutationFn: async (params: CreateAppParams) => {
@@ -24,7 +26,9 @@ export function useCreateApp() {
   });
 
   const createApp = async (params: CreateAppParams): Promise<CreateAppResult> => {
-    return mutation.mutateAsync(params);
+    const result = mutation.mutateAsync(params);
+    await refreshApps();
+    return result;
   };
 
   return {

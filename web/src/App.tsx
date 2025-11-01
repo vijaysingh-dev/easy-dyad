@@ -4,6 +4,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { showMcpConsentToast } from "./components/Toast";
 import { router } from "./router";
 import api from "./api";
+import "./lib/i18n";
 
 export default function App() {
   useEffect(() => {

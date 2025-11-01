@@ -15,6 +15,7 @@ import { readSettings } from "@/services/settings";
 import {
   runningApps,
   processCounter,
+  stopAppByInfo,
   removeAppIfCurrentProcess,
 } from "@/utils/process_manager";
 import { startProxy } from "@/utils/start_proxy_server";
@@ -22,6 +23,7 @@ import { gitAddAll, gitCommit } from "@/utils/git_utils";
 import { simpleSpawn } from "@/utils/simpleSpawn";
 import { runShellCommand } from "@/utils/runShellCommand";
 import { safeSend } from "@/utils/safe_sender";
+import { withLock } from "@/utils/lock_utils";
 import { Worker } from "worker_threads";
 import { LargeLanguageModel } from "@shared/schemas";
 
@@ -43,8 +45,18 @@ export async function copyDir(
     },
   });
 }
+
+export function getAppVersion(): string {
+  // Read version from package.json at project root
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+  return packageJson.version;
+}
+
 const DEFAULT_COMMAND =
   "(pnpm install && pnpm run dev --port 32100) || (npm install --legacy-peer-deps && npm run dev -- --port 32100)";
+
 function getCommand({
   installCommand,
   startCommand,
@@ -126,7 +138,7 @@ export async function getSystemDebugInfo({
   // Get logs from electron-log
   let logs = "";
   try {
-    const fileTransport = log.transports.find(
+    const fileTransport = logger.transports.find(
       (t) => t instanceof winston.transports.File
     ) as winston.transports.FileTransportInstance;
 
@@ -182,6 +194,50 @@ export async function cleanUpPort(port: number) {
   } else {
     await killProcessOnPort(port);
   }
+}
+
+export async function stopRunningApp(appId: number): Promise<void> {
+  return withLock(appId, async () => {
+    const appInfo = runningApps.get(appId);
+
+    if (!appInfo) {
+      logger.log(
+        `App ${appId} not found in running apps map. Assuming already stopped.`
+      );
+      return;
+    }
+
+    const { process, processId } = appInfo;
+    logger.log(
+      `Found running app ${appId} with processId ${processId} (PID: ${process.pid}). Attempting to stop.`
+    );
+
+    // Check if the process is already exited or closed
+    if (process.exitCode !== null || process.signalCode !== null) {
+      logger.log(
+        `Process for app ${appId} (PID: ${process.pid}) already exited (code: ${process.exitCode}, signal: ${process.signalCode}). Cleaning up map.`
+      );
+      runningApps.delete(appId); // Ensure cleanup if somehow missed
+      return;
+    }
+
+    try {
+      await stopAppByInfo(appId, appInfo);
+
+      // Now, safely remove the app from the map *after* confirming closure
+      removeAppIfCurrentProcess(appId, process);
+
+      return;
+    } catch (error: any) {
+      logger.error(
+        `Error stopping app ${appId} (PID: ${process.pid}, processId: ${processId}):`,
+        error
+      );
+      // Attempt cleanup even if an error occurred during the stop process
+      removeAppIfCurrentProcess(appId, process);
+      throw new Error(`Failed to stop app ${appId}: ${error.message}`);
+    }
+  });
 }
 
 let proxyWorker: Worker | null = null;

@@ -29,5 +29,5 @@ export const userSettingsAtom = atom<UserSettings | null>(null);
 export const envVarsAtom = atom<Record<string, string | undefined>>({});
 
 export const appVersionAtom = atom(async (get) => {
-  return await api.version.getAppVersion();
+  return await api.app.getAppVersion();
 });

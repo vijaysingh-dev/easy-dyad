@@ -60,6 +60,7 @@ export default function AppDetailsPage() {
   // Get the appId from search params and find the corresponding app
   const appId = search.appId ? Number(search.appId) : null;
   const selectedApp = appId ? appsList.find((app) => app.id === appId) : null;
+  console.log("AppId", appId, "appsList", appsList, "selectedApp", selectedApp);
 
   const handleDeleteApp = async () => {
     if (!appId) return;

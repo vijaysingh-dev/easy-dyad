@@ -196,6 +196,7 @@ router.post("/create-chat/", async (req, res) => {
 router.delete("/delete-chat/:chatId", async (req, res) => {
   try {
     const chatId = parseInt(req.params.chatId);
+    logger.info("Trying to delte chat:", chatId);
     await db.delete(chats).where(eq(chats.id, chatId));
     res.status(200).json({ success: true });
   } catch (error: any) {

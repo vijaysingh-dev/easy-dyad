@@ -15,13 +15,15 @@ import { useMemo, useState } from "react";
 import { AppSearchDialog } from "./AppSearchDialog";
 import { useAddAppToFavorite } from "@/hooks/useAddAppToFavorite";
 import { AppItem } from "./appItem";
+import { useI18n } from "@/lib/i18n";
+
 export function AppList({ show }: { show?: boolean }) {
+  const { t, dir } = useI18n();
   const navigate = useNavigate();
   const [selectedAppId, setSelectedAppId] = useAtom(selectedAppIdAtom);
   const setSelectedChatId = useSetAtom(selectedChatIdAtom);
   const { apps, loading, error } = useLoadApps();
-  const { toggleFavorite, isLoading: isFavoriteLoading } =
-    useAddAppToFavorite();
+  const { toggleFavorite, isLoading: isFavoriteLoading } = useAddAppToFavorite();
   // search dialog state
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
 
@@ -34,18 +36,12 @@ export function AppList({ show }: { show?: boolean }) {
         matchedChatTitle: null,
         matchedChatMessage: null,
       })),
-    [apps],
+    [apps]
   );
 
-  const favoriteApps = useMemo(
-    () => apps.filter((app) => app.isFavorite),
-    [apps],
-  );
+  const favoriteApps = useMemo(() => apps.filter((app) => app.isFavorite), [apps]);
 
-  const nonFavoriteApps = useMemo(
-    () => apps.filter((app) => !app.isFavorite),
-    [apps],
-  );
+  const nonFavoriteApps = useMemo(() => apps.filter((app) => !app.isFavorite), [apps]);
 
   if (!show) {
     return null;
@@ -62,7 +58,7 @@ export function AppList({ show }: { show?: boolean }) {
   };
 
   const handleNewApp = () => {
-    navigate({ to: "/" });
+    navigate({ to: "/hub" });
     // We'll eventually need a create app workflow
   };
 
@@ -77,7 +73,7 @@ export function AppList({ show }: { show?: boolean }) {
         className="overflow-y-auto h-[calc(100vh-112px)]"
         data-testid="app-list-container"
       >
-        <SidebarGroupLabel>Your Apps</SidebarGroupLabel>
+        <SidebarGroupLabel dir={dir}>{t("Your Apps")}</SidebarGroupLabel>
         <SidebarGroupContent>
           <div className="flex flex-col space-y-2">
             <Button
@@ -99,17 +95,11 @@ export function AppList({ show }: { show?: boolean }) {
             </Button>
 
             {loading ? (
-              <div className="py-2 px-4 text-sm text-gray-500">
-                Loading apps...
-              </div>
+              <div className="py-2 px-4 text-sm text-gray-500">Loading apps...</div>
             ) : error ? (
-              <div className="py-2 px-4 text-sm text-red-500">
-                Error loading apps
-              </div>
+              <div className="py-2 px-4 text-sm text-red-500">Error loading apps</div>
             ) : apps.length === 0 ? (
-              <div className="py-2 px-4 text-sm text-gray-500">
-                No apps found
-              </div>
+              <div className="py-2 px-4 text-sm text-gray-500">No apps found</div>
             ) : (
               <SidebarMenu className="space-y-1" data-testid="app-list">
                 <SidebarGroupLabel>Favorite apps</SidebarGroupLabel>

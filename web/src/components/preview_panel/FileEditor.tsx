@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useQueryClient } from "@tanstack/react-query";
 import { useSettings } from "@/hooks/useSettings";
 import { useCheckProblems } from "@/hooks/useCheckProblems";
-import { getLanguage } from "@/utils/get_language";
+import { getLanguage } from "@/lib/get_language";
 import api from "@/api";
 
 interface FileEditorProps {

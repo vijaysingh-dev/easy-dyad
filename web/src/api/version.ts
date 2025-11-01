@@ -9,11 +9,6 @@ class VersionApiService {
     const { data } = await Api.get("/version/does-release-note-exist", { config });
     return data;
   }
-  // Get the main app version
-  public async getAppVersion() {
-    const { data } = await Api.get("/version/get-app-version");
-    return data.version as string;
-  }
 
   // List all versions (commits) of an app
   public async listVersions(appId: number) {

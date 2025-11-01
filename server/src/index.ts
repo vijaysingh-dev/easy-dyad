@@ -12,6 +12,9 @@ import llmRoutes from "./routes/llm.route";
 import settingsRoutes from "./routes/settings.route";
 import versionRoutes from "./routes/version.route";
 
+import { runningApps } from "./utils/process_manager";
+import { stopRunningApp } from "./utils/app_utils";
+
 initializeDatabase();
 
 const app = express();
@@ -23,6 +26,7 @@ app.use(
     credentials: true,
   })
 );
+app.disable("etag");
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan(NODE_ENV === "production" ? "combined" : "dev"));
 
@@ -41,7 +45,36 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ error: err?.message ?? "Internal Server Error" });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Server listening on http://localhost:${PORT}`);
 });
+
+async function shutdown() {
+  console.log("\nGracefully shutting down...");
+  try {
+    for (const appId of runningApps.keys())
+      try {
+        await stopRunningApp(appId);
+      } catch (err) {
+        console.error(err);
+      }
+
+    server.close(() => {
+      console.log("Express server closed.");
+      process.exit(0);
+    });
+
+    setTimeout(() => {
+      console.warn("Force exiting...");
+      process.exit(1);
+    }, 5000);
+  } catch (err) {
+    console.error("Error during shutdown:", err);
+    process.exit(1);
+  }
+}
+
+// Catch Ctrl+C and termination signals
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);

@@ -61,6 +61,12 @@ class AppApiService {
     );
   }
 
+  // Get the main app version
+  public async getAppVersion() {
+    const { data } = await Api.get("/app/get-app-version");
+    return data.version as string;
+  }
+
   public async showItemInFolder(fullPath: string): Promise<void> {
     const { data } = await Api.post("/app/show-item-in-folder", { fullPath });
     return data;
@@ -148,12 +154,12 @@ class AppApiService {
   ) {
     eeziClient.appStreams.delete(appId);
     eeziClient.eventSources["app"]?.close();
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    console.log("Restarting app with removeNodeModules =", removeNodeModules);
     eeziClient.appStreams.set(appId, { onOutput });
     const url =
       eeziClient.baseURL +
-      `/app/restart-app/${appId}/?removeNodeModules=${!!removeNodeModules}`;
+      `/app/restart-app/${appId}?removeNodeModules=${!!removeNodeModules}`;
     eeziClient.initAppStreamSSE(url);
   }
 
@@ -241,12 +247,6 @@ class AppApiService {
       showError(error);
       throw error;
     }
-  }
-
-  // Get the main app version
-  public async getAppVersion() {
-    const { data } = await Api.get("/app/get-app-version");
-    return data.version as string;
   }
 
   public async checkAppName(params: { appName: string }) {

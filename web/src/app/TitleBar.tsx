@@ -11,35 +11,24 @@ import { cn } from "@shared/utils";
 import { useDeepLink } from "@/contexts/DeepLinkContext";
 import { useEffect, useState } from "react";
 import { EeziProSuccessDialog } from "@/components/EeziProSuccessDialog";
-import { useTheme } from "@/contexts/ThemeContext";
 import { useUserBudgetInfo } from "@/hooks/useUserBudgetInfo";
 import { UserBudgetInfo } from "@shared/eeziTypes";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ActionHeader } from "@/components/preview_panel/ActionHeader";
-import api from "@/api";
+import i18n, { useI18n } from "@/lib/i18n";
+import { toArabicDigits } from "@/lib/utils";
+
+const displayCount = (count: number) =>
+  i18n.language === "ar" ? toArabicDigits(count) : count.toString();
 
 export const TitleBar = () => {
-  const [selectedAppId] = useAtom(selectedAppIdAtom);
+  const { t, dir } = useI18n();
   const { apps } = useLoadApps();
   const { navigate } = useRouter();
   const location = useLocation();
   const { settings, refreshSettings } = useSettings();
+  const [selectedAppId] = useAtom(selectedAppIdAtom);
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
-  const [showWindowControls, setShowWindowControls] = useState(false);
-
-  useEffect(() => {
-    // Check if we're running on Windows
-    const checkPlatform = async () => {
-      try {
-        const platform = await api.app.getSystemPlatform();
-        setShowWindowControls(platform !== "darwin");
-      } catch (error) {
-        console.error("Failed to get platform info:", error);
-      }
-    };
-
-    checkPlatform();
-  }, []);
 
   const showEeziProSuccessDialog = () => {
     setIsSuccessDialogOpen(true);
@@ -58,12 +47,18 @@ export const TitleBar = () => {
 
   // Get selected app name
   const selectedApp = apps.find((app) => app.id === selectedAppId);
-  const displayText = selectedApp ? `App: ${selectedApp.name}` : "(no app selected)";
+  const displayText = selectedApp
+    ? t("app_selected", { appName: selectedApp.name })
+    : t("(no app selected)");
 
   const handleAppClick = () => {
     if (selectedApp) {
       navigate({ to: "/app-details", search: { appId: selectedApp.id } });
     }
+  };
+
+  const toggleLanguage = () => {
+    i18n.changeLanguage(i18n.language === "en" ? "ar" : "en");
   };
 
   const isEeziPro = !!settings?.providerSettings?.auto?.apiKey?.value;
@@ -72,10 +67,9 @@ export const TitleBar = () => {
   return (
     <>
       <div className="@container z-11 w-full h-11 bg-(--sidebar) absolute top-0 left-0 app-region-drag flex items-center">
-        <div className={`${showWindowControls ? "pl-2" : "pl-18"}`}></div>
-
-        <img src={logo} alt="Eezi Logo" className="w-6 h-6 mr-0.5" />
+        <img src={logo} alt="Eezi Logo" className="w-6 h-6 pl-18 mr-0.5" />
         <Button
+          dir={dir}
           data-testid="title-bar-app-name-button"
           variant="outline"
           size="sm"
@@ -95,7 +89,25 @@ export const TitleBar = () => {
           </div>
         )}
 
-        {showWindowControls && <WindowsControls />}
+        <button
+          onClick={toggleLanguage}
+          className="m-5 flex border border-primary/30 rounded-md overflow-hidden text-sm font-medium transition-all bg-white"
+        >
+          <span
+            className={`px-3 py-1 transition-all duration-300 ${
+              i18n.language === "en" ? "bg-[#8777DA] text-white" : "text-primary"
+            }`}
+          >
+            EN
+          </span>
+          <span
+            className={`px-3 py-1 transition-all duration-300 ${
+              i18n.language === "ar" ? "bg-[#8777DA] text-white" : "text-primary"
+            }`}
+          >
+            AR
+          </span>
+        </button>
       </div>
 
       <EeziProSuccessDialog
@@ -106,87 +118,13 @@ export const TitleBar = () => {
   );
 };
 
-function WindowsControls() {
-  const { isDarkMode } = useTheme();
-
-  const minimizeWindow = () => {
-    api.app.minimizeWindow();
-  };
-
-  const maximizeWindow = () => {
-    api.app.maximizeWindow();
-  };
-
-  const closeWindow = () => {
-    api.app.closeWindow();
-  };
-
-  return (
-    <div className="ml-auto flex no-app-region-drag">
-      <button
-        className="w-10 h-10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-        onClick={minimizeWindow}
-        aria-label="Minimize"
-      >
-        <svg
-          width="12"
-          height="1"
-          viewBox="0 0 12 1"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect width="12" height="1" fill={isDarkMode ? "#ffffff" : "#000000"} />
-        </svg>
-      </button>
-      <button
-        className="w-10 h-10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-        onClick={maximizeWindow}
-        aria-label="Maximize"
-      >
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 12 12"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect
-            x="0.5"
-            y="0.5"
-            width="11"
-            height="11"
-            stroke={isDarkMode ? "#ffffff" : "#000000"}
-          />
-        </svg>
-      </button>
-      <button
-        className="w-10 h-10 flex items-center justify-center hover:bg-red-500 transition-colors"
-        onClick={closeWindow}
-        aria-label="Close"
-      >
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 12 12"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M1 1L11 11M1 11L11 1"
-            stroke={isDarkMode ? "#ffffff" : "#000000"}
-            strokeWidth="1.5"
-          />
-        </svg>
-      </button>
-    </div>
-  );
-}
-
 export function EeziProButton({ isEeziProEnabled }: { isEeziProEnabled: boolean }) {
+  const { t, dir } = useI18n();
   const { navigate } = useRouter();
   const { userBudget } = useUserBudgetInfo();
   return (
     <Button
+      dir={dir}
       data-testid="title-bar-eezi-pro-button"
       onClick={() => {
         navigate({
@@ -201,22 +139,29 @@ export function EeziProButton({ isEeziProEnabled }: { isEeziProEnabled: boolean 
       )}
       size="sm"
     >
-      {isEeziProEnabled ? "Pro" : "Pro (off)"}
+      {isEeziProEnabled ? t("Pro") : t("Pro (off)")}
       {userBudget && isEeziProEnabled && <AICreditStatus userBudget={userBudget} />}
     </Button>
   );
 }
 
 export function AICreditStatus({ userBudget }: { userBudget: UserBudgetInfo }) {
+  const { t, dir } = useI18n();
   const remaining = Math.round(userBudget.totalCredits - userBudget.usedCredits);
+
   return (
     <Tooltip>
       <TooltipTrigger>
-        <div className="text-xs pl-1 mt-0.5">{remaining} credits</div>
+        <div dir={dir} className="text-xs pl-1 mt-0.5">
+          {t("count_credits", { count: remaining }).replace(
+            remaining.toString(),
+            displayCount(remaining)
+          )}
+        </div>
       </TooltipTrigger>
       <TooltipContent>
-        <div>
-          <p>Note: there is a slight delay in updating the credit status.</p>
+        <div dir={dir}>
+          {t("Note: there is a slight delay in updating the credit status.")}
         </div>
       </TooltipContent>
     </Tooltip>
