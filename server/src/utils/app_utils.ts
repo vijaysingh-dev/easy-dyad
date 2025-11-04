@@ -873,7 +873,9 @@ export async function applyCapacitor({
 
   // Initialize Capacitor
   await simpleSpawn({
-    command: `npx cap init "${appName}" "com.example.${appName.toLowerCase().replace(/[^a-z0-9]/g, "")}" --web-dir=dist`,
+    command: `npx cap init "${appName}" "com.example.${appName
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")}" --web-dir=dist`,
     cwd: appPath,
     successMessage: "Capacitor initialized successfully",
     errorPrefix: "Failed to initialize Capacitor",

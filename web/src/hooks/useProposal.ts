@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { ProposalResult } from "@shared/schemas"; // Import Proposal type
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { proposalResultAtom } from "@/atoms/proposalAtoms";
-import { atom, useAtom, useSetAtom } from "jotai";
+import { atom, useAtom } from "jotai";
 import api from "@/api";
 
 const proposalAtom = atom(async (get) => {
@@ -12,7 +12,6 @@ const proposalAtom = atom(async (get) => {
 });
 
 export function useProposal(chatId?: number | undefined) {
-  const setSelectedChatId = useSetAtom(selectedChatIdAtom);
   const [proposalResult, setProposalResult] = useAtom(proposalResultAtom);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +22,6 @@ export function useProposal(chatId?: number | undefined) {
       try {
         setIsLoading(true);
         if (chatId === undefined) return;
-        setSelectedChatId(chatId);
         setProposalResult(proposalData);
       } catch (err: any) {
         console.error("Error fetching proposal:", err);
@@ -34,13 +32,12 @@ export function useProposal(chatId?: number | undefined) {
       }
     };
     fetchProposal();
-  }, [chatId, setSelectedChatId]);
+  }, [chatId, proposalData, setProposalResult]);
 
   const refreshProposal = useCallback(
     async (overrideChatId?: number) => {
       chatId = overrideChatId ?? chatId;
       if (chatId === undefined) return;
-      setSelectedChatId(chatId);
       try {
         setIsLoading(true);
         const result = (await api.chat.getProposal(chatId)) as ProposalResult | null;
@@ -53,11 +50,11 @@ export function useProposal(chatId?: number | undefined) {
         setIsLoading(false);
       }
     },
-    [chatId, setSelectedChatId]
+    [chatId, setProposalResult]
   );
 
   return {
-    proposalResult: proposalResult,
+    proposalResult,
     isLoading,
     error,
     refreshProposal,

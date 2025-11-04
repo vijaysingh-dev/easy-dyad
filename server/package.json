@@ -25,6 +25,7 @@
     "@ai-sdk/provider-utils": "^3.0.15",
     "@ai-sdk/xai": "^2.0.30",
     "@dyad-sh/supabase-management-js": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.20.2",
     "@neondatabase/api-client": "^2.2.0",
     "@neondatabase/serverless": "^1.0.2",
     "@openrouter/ai-sdk-provider": "^1.2.0",

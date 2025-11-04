@@ -21,6 +21,7 @@ import { ChatList } from "./ChatList";
 import { AppList } from "./AppList";
 import { HelpDialog } from "./HelpDialog"; // Import the new dialog
 import { SettingsList } from "./SettingsList";
+import { useI18n } from "@/lib/i18n";
 
 // Menu items.
 const items = [
@@ -61,6 +62,7 @@ type HoverState =
   | "no-hover";
 
 export function AppSidebar() {
+  const { t, dir } = useI18n();
   const { state, toggleSidebar } = useSidebar(); // retrieve current sidebar state
   const [hoverState, setHoverState] = useState<HoverState>("no-hover");
   const expandedByHover = useRef(false);
@@ -144,12 +146,13 @@ export function AppSidebar() {
           <SidebarMenuItem>
             {/* Change button to open dialog instead of linking */}
             <SidebarMenuButton
+              dir={dir}
               size="sm"
               className="font-medium w-14 flex flex-col items-center gap-1 h-14 mb-2 rounded-2xl"
               onClick={() => setIsHelpDialogOpen(true)} // Open dialog on click
             >
               <HelpCircle className="h-5 w-5" />
-              <span className={"text-xs"}>Help</span>
+              <span className={"text-xs"}>{t("Help")}</span>
             </SidebarMenuButton>
             <HelpDialog
               isOpen={isHelpDialogOpen}
@@ -165,6 +168,7 @@ export function AppSidebar() {
 }
 
 function AppIcons({ onHoverChange }: { onHoverChange: (state: HoverState) => void }) {
+  const { t, dir } = useI18n();
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
 
@@ -202,7 +206,9 @@ function AppIcons({ onHoverChange }: { onHoverChange: (state: HoverState) => voi
                   >
                     <div className="flex flex-col items-center gap-1">
                       <item.icon className="h-5 w-5" />
-                      <span className={"text-xs"}>{item.title}</span>
+                      <span dir={dir} className={"text-xs"}>
+                        {t(`sidebar.${item.title.toLowerCase()}`)}
+                      </span>
                     </div>
                   </Link>
                 </SidebarMenuButton>

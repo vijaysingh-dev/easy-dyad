@@ -1,13 +1,3 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-/**
- * Generates a cute app name.
- */
 export function generateCuteAppName(): string {
   const adjectives = [
     "happy",
@@ -199,8 +189,7 @@ export function generateCuteAppName(): string {
     "cheer",
   ];
 
-  const randomAdjective =
-    adjectives[Math.floor(Math.random() * adjectives.length)];
+  const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
   const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
   const randomVerb = verbs[Math.floor(Math.random() * verbs.length)];
   return `${randomAdjective}-${randomAnimal}-${randomVerb}`;

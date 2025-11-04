@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useRunApp } from "@/hooks/useRunApp";
 import { useShortcut } from "@/hooks/useShortcut";
-import { cn } from "@shared/utils";
+import { cn } from "@/lib/utils";
 import api from "@/api";
 
 interface ErrorBannerProps {
@@ -111,8 +111,8 @@ const ErrorBanner = ({ error, onDismiss, onAIFix }: ErrorBannerProps) => {
             {isDockerError
               ? "Make sure Docker Desktop is running and try restarting the app."
               : error.source === "eezi-app"
-                ? "Try restarting the Eezi app or restarting your computer to see if that fixes the error."
-                : "Check if restarting the app fixes the error."}
+              ? "Try restarting the Eezi app or restarting your computer to see if that fixes the error."
+              : "Check if restarting the app fixes the error."}
           </span>
         </div>
       </div>

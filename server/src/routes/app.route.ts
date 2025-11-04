@@ -82,6 +82,21 @@ router.get("/get-system-platform", async (req, res) => {
   }
 });
 
+router.get("/list-apps", async (req, res) => {
+  try {
+    const allApps = await db.query.apps.findMany({
+      orderBy: [desc(apps.createdAt)],
+    });
+    res.status(200).json({
+      apps: allApps,
+      appBasePath: getEeziAppPath(),
+    });
+  } catch (error: any) {
+    logger.error("Error getting all apps:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post("/create-app", async (req, res) => {
   try {
     const { name } = req.body;
@@ -275,21 +290,6 @@ router.get("/get-app/:appId", async (req, res) => {
     });
   } catch (error: any) {
     logger.error("Error getting app:", error.message);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.get("/list-apps", async (req, res) => {
-  try {
-    const allApps = await db.query.apps.findMany({
-      orderBy: [desc(apps.createdAt)],
-    });
-    res.status(200).json({
-      apps: allApps,
-      appBasePath: getEeziAppPath(),
-    });
-  } catch (error: any) {
-    logger.error("Error getting all apps:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -686,7 +686,9 @@ router.get("/get-app-env-vars", async (req, res) => {
   } catch (error: any) {
     console.error("Error getting app environment variables:", error.message);
     res.status(500).json({
-      error: `Failed to get environment variables: ${error instanceof Error ? error.message : "Unknown error"}`,
+      error: `Failed to get environment variables: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
     });
   }
 });
@@ -715,7 +717,9 @@ router.post("/set-app-env-vars", async (req, res) => {
   } catch (error: any) {
     console.error("Error setting app environment variables:", error.message);
     res.status(500).json({
-      error: `Failed to set environment variables: ${error instanceof Error ? error.message : "Unknown error"}`,
+      error: `Failed to set environment variables: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
     });
   }
 });

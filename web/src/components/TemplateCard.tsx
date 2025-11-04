@@ -4,7 +4,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { CommunityCodeConsentDialog } from "./CommunityCodeConsentDialog";
 import type { Template } from "@/shared/templates";
 import { Button } from "./ui/button";
-import { cn } from "@shared/utils";
+import { cn } from "@/lib/utils";
 import { showWarning } from "./Toast";
 import api from "@/api";
 

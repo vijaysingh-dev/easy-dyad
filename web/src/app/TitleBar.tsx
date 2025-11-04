@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 // @ts-ignore
 import logo from "../../assets/icon/eezi.png";
 import { providerSettingsRoute } from "@/routes/settings/providers/$provider";
-import { cn } from "@shared/utils";
+import { cn } from "@/lib/utils";
 import { useDeepLink } from "@/contexts/DeepLinkContext";
 import { useEffect, useState } from "react";
 import { EeziProSuccessDialog } from "@/components/EeziProSuccessDialog";

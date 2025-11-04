@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 
 import { formatDistanceToNow } from "date-fns";
+import { ar, enUS } from "date-fns/locale";
 import { PlusCircle, MoreVertical, Trash2, Edit3, Search } from "lucide-react";
 import { useAtom } from "jotai";
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
@@ -28,9 +29,11 @@ import { DeleteChatDialog } from "@/components/chat/DeleteChatDialog";
 
 import { ChatSearchDialog } from "./ChatSearchDialog";
 import { useSelectChat } from "@/hooks/useSelectChat";
+import i18n, { useI18n } from "@/lib/i18n";
 import api from "@/api";
 
 export function ChatList({ show }: { show?: boolean }) {
+  const { t, dir } = useI18n();
   const navigate = useNavigate();
   const [selectedChatId, setSelectedChatId] = useAtom(selectedChatIdAtom);
   const [selectedAppId] = useAtom(selectedAppIdAtom);
@@ -157,94 +160,111 @@ export function ChatList({ show }: { show?: boolean }) {
         <SidebarGroupContent>
           <div className="flex flex-col space-y-4">
             <Button
+              dir={dir}
               onClick={handleNewChat}
               variant="outline"
               className="flex items-center justify-start gap-2 mx-2 py-3"
             >
               <PlusCircle size={16} />
-              <span>New Chat</span>
+              <span>{t("New Chat")}</span>
             </Button>
             <Button
+              dir={dir}
               onClick={() => setIsSearchDialogOpen(!isSearchDialogOpen)}
               variant="outline"
               className="flex items-center justify-start gap-2 mx-2 py-3"
               data-testid="search-chats-button"
             >
               <Search size={16} />
-              <span>Search chats</span>
+              <span>{t("Search Chats")}</span>
             </Button>
 
             {loading ? (
-              <div className="py-3 px-4 text-sm text-gray-500">Loading chats...</div>
+              <div className="py-3 px-4 text-sm text-gray-500">
+                {t("Loading chats...")}
+              </div>
             ) : chats.length === 0 ? (
-              <div className="py-3 px-4 text-sm text-gray-500">No chats found</div>
+              <div className="py-3 px-4 text-sm text-gray-500">
+                {t("No chats found")}
+              </div>
             ) : (
               <SidebarMenu className="space-y-1">
-                {chats.map((chat) => (
-                  <SidebarMenuItem key={chat.id} className="mb-1">
-                    <div className="flex w-[175px] items-center">
-                      <Button
-                        variant="ghost"
-                        onClick={() =>
-                          handleChatClick({
-                            chatId: chat.id,
-                            appId: chat.appId,
-                          })
-                        }
-                        className={`justify-start w-full text-left py-3 pr-1 hover:bg-sidebar-accent/80 ${
-                          selectedChatId === chat.id
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                            : ""
-                        }`}
-                      >
-                        <div className="flex flex-col w-full">
-                          <span className="truncate">{chat.title || "New Chat"}</span>
-                          <span className="text-xs text-gray-500">
-                            {formatDistanceToNow(new Date(chat.createdAt), {
-                              addSuffix: true,
-                            })}
-                          </span>
-                        </div>
-                      </Button>
-
-                      {selectedChatId === chat.id && (
-                        <DropdownMenu
-                          modal={false}
-                          onOpenChange={(open) => setIsDropdownOpen(open)}
+                {chats.map((chat) => {
+                  const relative = formatDistanceToNow(new Date(chat.createdAt), {
+                    addSuffix: true,
+                    locale: i18n.language === "ar" ? ar : enUS,
+                  });
+                  return (
+                    <SidebarMenuItem key={chat.id} className="mb-1">
+                      <div className="flex w-[175px] items-center">
+                        <Button
+                          variant="ghost"
+                          onClick={() =>
+                            handleChatClick({
+                              chatId: chat.id,
+                              appId: chat.appId,
+                            })
+                          }
+                          className={`justify-start w-full text-left py-3 pr-1 hover:bg-sidebar-accent/80 ${
+                            selectedChatId === chat.id
+                              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                              : ""
+                          }`}
                         >
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="ml-1 w-4"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="space-y-1 p-2">
-                            <DropdownMenuItem
-                              onClick={() => handleRenameChat(chat.id, chat.title || "")}
-                              className="px-3 py-2"
-                            >
-                              <Edit3 className="mr-2 h-4 w-4" />
-                              <span>Rename Chat</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleDeleteChatClick(chat.id, chat.title || "New Chat")
-                              }
-                              className="px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 focus:bg-red-50 dark:focus:bg-red-950/50"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              <span>Delete Chat</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </div>
-                  </SidebarMenuItem>
-                ))}
+                          <div className="flex flex-col w-full">
+                            <span className="truncate">
+                              {chat.title || t("New Chat")}
+                            </span>
+                            <span className="text-xs text-gray-500">{relative}</span>
+                          </div>
+                        </Button>
+
+                        {selectedChatId === chat.id && (
+                          <DropdownMenu
+                            modal={false}
+                            onOpenChange={(open) => setIsDropdownOpen(open)}
+                          >
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="ml-1 w-4"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="space-y-1 p-2">
+                              <DropdownMenuItem
+                                dir={dir}
+                                onClick={() =>
+                                  handleRenameChat(chat.id, chat.title || "")
+                                }
+                                className="px-3 py-2"
+                              >
+                                <Edit3 className="mr-2 h-4 w-4" />
+                                <span>{t("Rename Chat")}</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                dir={dir}
+                                onClick={() =>
+                                  handleDeleteChatClick(
+                                    chat.id,
+                                    chat.title || t("New Chat")
+                                  )
+                                }
+                                className="px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 focus:bg-red-50 dark:focus:bg-red-950/50"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                <span>{t("Delete Chat")}</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             )}
           </div>

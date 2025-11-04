@@ -5,14 +5,10 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSettings } from "@/hooks/useSettings";
 import type { ChatMode } from "@shared/schemas";
-import { cn } from "@shared/utils";
+import { cn } from "@/lib/utils";
 import { detectIsMac } from "@/hooks/useChatModeToggle";
 
 export function ChatModeSelector() {
@@ -48,7 +44,7 @@ export function ChatModeSelector() {
               "h-6 w-fit px-1.5 py-0 text-xs-sm font-medium shadow-none gap-0.5",
               selectedMode === "build"
                 ? "bg-background hover:bg-muted/50 focus:bg-muted/50"
-                : "bg-primary/10 hover:bg-primary/20 focus:bg-primary/20 text-primary border-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30 dark:focus:bg-primary/30",
+                : "bg-primary/10 hover:bg-primary/20 focus:bg-primary/20 text-primary border-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30 dark:focus:bg-primary/30"
             )}
             size="sm"
           >
@@ -68,9 +64,7 @@ export function ChatModeSelector() {
         <SelectItem value="build">
           <div className="flex flex-col items-start">
             <span className="font-medium">Build</span>
-            <span className="text-xs text-muted-foreground">
-              Generate and edit code
-            </span>
+            <span className="text-xs text-muted-foreground">Generate and edit code</span>
           </div>
         </SelectItem>
         <SelectItem value="ask">

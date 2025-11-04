@@ -1,4 +1,4 @@
-import { cn } from "@shared/utils";
+import { cn } from "@/lib/utils";
 import React from "react";
 
 export const LoadingBar: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
@@ -7,13 +7,11 @@ export const LoadingBar: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
       key="loading-bar"
       className={cn(
         "relative w-full h-1 bg-primary/20 overflow-hidden",
-        isVisible ? "" : "invisible",
+        isVisible ? "" : "invisible"
       )}
     >
       <div
-        className={cn(
-          "absolute top-0 left-0 h-full w-1/2 bg-primary animate-marquee",
-        )}
+        className={cn("absolute top-0 left-0 h-full w-1/2 bg-primary animate-marquee")}
       />
     </div>
   );

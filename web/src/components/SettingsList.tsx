@@ -1,5 +1,5 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@shared/utils";
+import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 import { useScrollAndNavigateTo } from "@/hooks/useScrollAndNavigateTo";
 import { useAtom } from "jotai";
@@ -34,7 +34,7 @@ export function SettingsList({ show }: { show: boolean }) {
           }
         }
       },
-      { rootMargin: "-20% 0px -80% 0px", threshold: 0 },
+      { rootMargin: "-20% 0px -80% 0px", threshold: 0 }
     );
 
     for (const section of SETTINGS_SECTIONS) {
@@ -70,7 +70,7 @@ export function SettingsList({ show }: { show: boolean }) {
                 "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
                 activeSection === section.id
                   ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
-                  : "hover:bg-sidebar-accent",
+                  : "hover:bg-sidebar-accent"
               )}
             >
               {section.label}

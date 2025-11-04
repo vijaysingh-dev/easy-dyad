@@ -1,5 +1,5 @@
 import { ChevronRight } from "lucide-react";
-import { cn } from "@shared/utils";
+import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
 
 type SetupProviderVariant = "google" | "openrouter" | "eezi";

@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { useLoadApps } from "@/hooks/useLoadApps";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppSearchDialog } from "./AppSearchDialog";
 import { useAddAppToFavorite } from "@/hooks/useAddAppToFavorite";
 import { AppItem } from "./appItem";
@@ -77,32 +77,38 @@ export function AppList({ show }: { show?: boolean }) {
         <SidebarGroupContent>
           <div className="flex flex-col space-y-2">
             <Button
+              dir={dir}
               onClick={handleNewApp}
               variant="outline"
               className="flex items-center justify-start gap-2 mx-2 py-2"
             >
               <PlusCircle size={16} />
-              <span>New App</span>
+              <span>{t("New App")}</span>
             </Button>
             <Button
+              dir={dir}
               onClick={() => setIsSearchDialogOpen(!isSearchDialogOpen)}
               variant="outline"
               className="flex items-center justify-start gap-2 mx-2 py-3"
               data-testid="search-apps-button"
             >
               <Search size={16} />
-              <span>Search Apps</span>
+              <span>{t("Search Apps")}</span>
             </Button>
 
             {loading ? (
-              <div className="py-2 px-4 text-sm text-gray-500">Loading apps...</div>
+              <div className="py-2 px-4 text-sm text-gray-500">
+                {t("Loading apps...")}
+              </div>
             ) : error ? (
-              <div className="py-2 px-4 text-sm text-red-500">Error loading apps</div>
+              <div className="py-2 px-4 text-sm text-red-500">
+                {t("Error loading apps")}
+              </div>
             ) : apps.length === 0 ? (
-              <div className="py-2 px-4 text-sm text-gray-500">No apps found</div>
+              <div className="py-2 px-4 text-sm text-gray-500">{t("No apps found")}</div>
             ) : (
               <SidebarMenu className="space-y-1" data-testid="app-list">
-                <SidebarGroupLabel>Favorite apps</SidebarGroupLabel>
+                <SidebarGroupLabel dir={dir}>{t("Favorite apps")}</SidebarGroupLabel>
                 {favoriteApps.map((app) => (
                   <AppItem
                     key={app.id}
@@ -113,7 +119,7 @@ export function AppList({ show }: { show?: boolean }) {
                     isFavoriteLoading={isFavoriteLoading}
                   />
                 ))}
-                <SidebarGroupLabel>Other apps</SidebarGroupLabel>
+                <SidebarGroupLabel dir={dir}>{t("Other apps")}</SidebarGroupLabel>
                 {nonFavoriteApps.map((app) => (
                   <AppItem
                     key={app.id}

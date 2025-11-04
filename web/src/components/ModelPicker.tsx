@@ -22,7 +22,7 @@ import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";
 import { useSettings } from "@/hooks/useSettings";
 import { PriceBadge } from "@/components/PriceBadge";
 import { TURBO_MODELS } from "@shared/constants";
-import { cn } from "@shared/utils";
+import { cn } from "@/lib/utils";
 
 export function ModelPicker() {
   const { settings, updateSettings } = useSettings();
@@ -271,7 +271,7 @@ export function ModelPicker() {
               });
               const provider = providers?.find((p) => p.id === providerId);
               const providerDisplayName =
-                provider?.id === "auto" ? "Eezi Turbo" : (provider?.name ?? providerId);
+                provider?.id === "auto" ? "Eezi Turbo" : provider?.name ?? providerId;
               return (
                 <DropdownMenuSub key={providerId}>
                   <DropdownMenuSubTrigger className="w-full font-normal">

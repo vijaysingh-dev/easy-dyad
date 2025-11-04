@@ -24,7 +24,7 @@ i18n
     },
   });
 
-  function applyDirection(language: string) {
+function applyDirection(language: string) {
   const isRTL = language === "ar";
   const html = document.documentElement;
   html.dir = isRTL ? "rtl" : "ltr";

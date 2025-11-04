@@ -22,7 +22,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { cn } from "../../../shared/utils";
+import { cn } from "@/lib/utils";
 import { NodeSystemInfo } from "@shared/eeziTypes";
 import { usePostHog } from "posthog-js/react";
 import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";
@@ -160,8 +160,8 @@ export function SetupBanner() {
               nodeCheckError
                 ? "bg-red-50 dark:bg-red-900/30"
                 : isNodeSetupComplete
-                  ? "bg-green-50 dark:bg-green-900/30"
-                  : "bg-yellow-50 dark:bg-yellow-900/30"
+                ? "bg-green-50 dark:bg-green-900/30"
+                : "bg-yellow-50 dark:bg-yellow-900/30"
             )}
           >
             <AccordionTrigger className="px-4 py-3 transition-colors w-full hover:no-underline">

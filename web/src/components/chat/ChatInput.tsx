@@ -106,7 +106,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
   const { proposal, messageId } = proposalResult ?? {};
   useChatModeToggle();
 
-  const lastMessage = (chatId ? (messagesById.get(chatId) ?? []) : []).at(-1);
+  const lastMessage = (chatId ? messagesById.get(chatId) ?? [] : []).at(-1);
   const disableSendButton =
     lastMessage?.role === "assistant" &&
     !lastMessage.approvalState &&
@@ -528,7 +528,7 @@ function KeepGoingButton() {
   );
 }
 
-export function mapActionToButton(index: number, action: SuggestedAction) {
+export function mapActionToButton(action: SuggestedAction, index: number) {
   switch (action.id) {
     case "summarize-in-new-chat":
       return <SummarizeInNewChatButton key={index} />;
@@ -558,7 +558,7 @@ function ActionProposalActions({ proposal }: { proposal: ActionProposal }) {
   return (
     <div className="border-b border-border p-2 pb-0 flex items-center justify-between">
       <div className="flex items-center space-x-2 overflow-x-auto pb-2">
-        {proposal.actions.map((action, index) => mapActionToButton(index, action))}
+        {proposal.actions.map((action, index) => mapActionToButton(action, index))}
       </div>
     </div>
   );

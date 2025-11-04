@@ -13,8 +13,7 @@ export function useCreateApp() {
       if (!params.name.trim()) {
         throw new Error("App name is required");
       }
-
-      return api.app.createApp(params);
+      return await api.app.createApp(params);
     },
     onSuccess: () => {
       // Invalidate apps list to trigger refetch
@@ -26,9 +25,7 @@ export function useCreateApp() {
   });
 
   const createApp = async (params: CreateAppParams): Promise<CreateAppResult> => {
-    const result = mutation.mutateAsync(params);
-    await refreshApps();
-    return result;
+    return await mutation.mutateAsync(params);
   };
 
   return {
