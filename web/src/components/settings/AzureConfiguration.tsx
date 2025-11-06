@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/accordion";
 import { CheckCircle2, Info, KeyRound } from "lucide-react";
 import type { AzureProviderSetting, UserSettings } from "@shared/schemas";
+import { useI18n } from "@/lib/i18n";
 
 interface AzureConfigurationProps {
   settings: UserSettings | null | undefined;
@@ -30,6 +31,7 @@ export function AzureConfiguration({
   const existingApiKey = existing.apiKey?.value ?? "";
   const existingResourceName = existing.resourceName ?? "";
 
+  const { t, dir } = useI18n();
   const [apiKey, setApiKey] = useState(existingApiKey);
   const [resourceName, setResourceName] = useState(existingResourceName);
   const [saving, setSaving] = useState(false);
@@ -88,7 +90,7 @@ export function AzureConfiguration({
 
       setSaved(true);
     } catch (e: any) {
-      setError(e?.message || "Failed to save Azure settings");
+      setError(e?.message || t("Failed to save Azure settings"));
     } finally {
       setSaving(false);
     }
@@ -98,9 +100,10 @@ export function AzureConfiguration({
     if (hasSavedSettings) {
       return {
         variant: "default" as const,
-        title: "Azure OpenAI Configured",
-        description:
-          "Eezi will use the credentials saved in Settings for Azure OpenAI models.",
+        title: t("Azure OpenAI Configured"),
+        description: t(
+          "Eezi will use the credentials saved in Settings for Azure OpenAI models."
+        ),
         icon: KeyRound,
         titleClassName: "",
         descriptionClassName: "",
@@ -110,9 +113,10 @@ export function AzureConfiguration({
     if (usingEnvironmentOnly) {
       return {
         variant: "default" as const,
-        title: "Using Environment Variables",
-        description:
-          "AZURE_API_KEY and AZURE_RESOURCE_NAME are set. Values saved below will override them.",
+        title: t("Using Environment Variables"),
+        description: t(
+          "AZURE_API_KEY and AZURE_RESOURCE_NAME are set. Values saved below will override them."
+        ),
         icon: Info,
         titleClassName: "",
         descriptionClassName: "",
@@ -121,9 +125,10 @@ export function AzureConfiguration({
     }
     return {
       variant: "destructive" as const,
-      title: "Azure OpenAI Configuration Required",
-      description:
-        "Provide your Azure resource name and API key below, or configure the AZURE_API_KEY and AZURE_RESOURCE_NAME environment variables.",
+      title: t("Azure OpenAI Configuration Required"),
+      description: t(
+        "Provide your Azure resource name and API key below, or configure the AZURE_API_KEY and AZURE_RESOURCE_NAME environment variables."
+      ),
       icon: Info,
       titleClassName: "text-red-800 dark:text-red-400",
       descriptionClassName: "text-red-800 dark:text-red-400",
@@ -164,9 +169,9 @@ export function AzureConfiguration({
             autoComplete="off"
           />
         </div>
-        <div>
+        <div dir={dir}>
           <label htmlFor="azure-api-key" className="block text-sm font-medium mb-1">
-            API Key
+            {t("API Key")}
           </label>
           <Input
             id="azure-api-key"
@@ -176,20 +181,20 @@ export function AzureConfiguration({
               setSaved(false);
               setError(null);
             }}
-            placeholder="Enter your Azure OpenAI API key"
+            placeholder={t("Enter your Azure OpenAI API key")}
             autoComplete="off"
             type="password"
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div dir={dir} className="flex items-center gap-2">
         <Button onClick={handleSave} disabled={saving || !hasUnsavedChanges}>
-          {saving ? "Saving..." : "Save Settings"}
+          {saving ? t("Saving...") : t("Save Settings")}
         </Button>
         {saved && !error && (
           <span className="flex items-center text-green-600 text-sm">
-            <CheckCircle2 className="h-4 w-4 mr-1" /> Saved
+            <CheckCircle2 className="h-4 w-4 mr-1" /> {t("Saved")}
           </span>
         )}
       </div>
@@ -197,18 +202,19 @@ export function AzureConfiguration({
       {!isConfigured && !error && (
         <Alert variant="default">
           <Info className="h-4 w-4" />
-          <AlertTitle>Configuration Needed</AlertTitle>
-          <AlertDescription>
-            Azure OpenAI requests require both a resource name and API key. Enter them
-            above or supply the environment variables instead.
+          <AlertTitle dir={dir}>{t("Configuration Needed")}</AlertTitle>
+          <AlertDescription dir={dir}>
+            {t(
+              "Azure OpenAI requests require both a resource name and API key. Enter them above or supply the environment variables instead."
+            )}
           </AlertDescription>
         </Alert>
       )}
 
       {error && (
-        <Alert variant="destructive">
-          <AlertTitle>Save Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+        <Alert dir={dir} variant="destructive">
+          <AlertTitle>{t("Save Error")}</AlertTitle>
+          <AlertDescription>{t("provided_value", { value: error })}</AlertDescription>
         </Alert>
       )}
 
@@ -222,18 +228,26 @@ export function AzureConfiguration({
           value="azure-env"
           className="border rounded-lg px-4 bg-background"
         >
-          <AccordionTrigger className="text-lg font-medium hover:no-underline cursor-pointer">
-            Environment Variables (optional)
+          <AccordionTrigger
+            dir={dir}
+            className="text-lg font-medium hover:no-underline cursor-pointer"
+          >
+            {t("Environment Variables (optional)")}
           </AccordionTrigger>
           <AccordionContent className="pt-4 space-y-4">
             <div className="space-y-3 text-sm">
               <div className="flex justify-between items-center p-3 bg-muted rounded border">
                 <code className="font-mono text-foreground">{AZURE_API_KEY_VAR}</code>
                 <span
+                  dir={dir}
                   data-testid="azure-api-key-status"
-                  className={`px-2 py-1 rounded text-xs font-medium ${envApiKey ? "bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400" : "bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400"}`}
+                  className={`px-2 py-1 rounded text-xs font-medium ${
+                    envApiKey
+                      ? "bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400"
+                      : "bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400"
+                  }`}
                 >
-                  {envApiKey ? "Set" : "Not Set"}
+                  {envApiKey ? t("Set") : t("Not Set")}
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-muted rounded border">
@@ -241,22 +255,28 @@ export function AzureConfiguration({
                   {AZURE_RESOURCE_NAME_VAR}
                 </code>
                 <span
+                  dir={dir}
                   data-testid="azure-resource-name-status"
-                  className={`px-2 py-1 rounded text-xs font-medium ${envResourceName ? "bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400" : "bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400"}`}
+                  className={`px-2 py-1 rounded text-xs font-medium ${
+                    envResourceName
+                      ? "bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400"
+                      : "bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400"
+                  }`}
                 >
-                  {envResourceName ? "Set" : "Not Set"}
+                  {envResourceName ? t("Set") : t("Not Set")}
                 </span>
               </div>
             </div>
             <div className="text-sm text-muted-foreground space-y-2">
-              <p>
-                You can continue to configure Azure via environment variables. If both
-                variables are present and no settings are saved, Eezi will use them
-                automatically.
+              <p dir={dir}>
+                {t(
+                  "You can continue to configure Azure via environment variables. If both variables are present and no settings are saved, Eezi will use them automatically."
+                )}
               </p>
-              <p>
-                Values saved in Settings take precedence over environment variables.
-                Restart Eezi after changing environment variables.
+              <p dir={dir}>
+                {t(
+                  "Values saved in Settings take precedence over environment variables. Restart Eezi after changing environment variables."
+                )}
               </p>
             </div>
           </AccordionContent>

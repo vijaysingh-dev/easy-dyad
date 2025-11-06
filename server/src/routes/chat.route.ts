@@ -444,6 +444,12 @@ const activeChatStreams = new Map<
 // Track partial responses for cancelled streams
 const partialResponses = new Map<number, string>();
 
+function cleanupChatStream(chatId: number) {
+  activeChatStreams.delete(chatId);
+  partialResponses.delete(chatId);
+  FileUploadsState.getInstance().clear(chatId);
+}
+
 // Ensure the temp directory exists for storing temporary files
 const TEMP_DIR = path.join(os.tmpdir(), "eezi-attachments");
 if (!fs.existsSync(TEMP_DIR)) {
@@ -494,8 +500,6 @@ router.get("/:chatId/stream", async (req, res) => {
     req.on("close", () => {
       logger.info("Client disconnected:", chatId);
       abortController.abort();
-      activeChatStreams.delete(chatId);
-      res.end();
     });
 
     // Get the chat to check for existing messages
@@ -639,8 +643,9 @@ router.get("/:chatId/stream", async (req, res) => {
         const selectedLineInSnippetIndex = selectedIndex - startIndex;
 
         if (snippetLines[selectedLineInSnippetIndex]) {
-          snippetLines[selectedLineInSnippetIndex] =
-            `${snippetLines[selectedLineInSnippetIndex]} // <-- EDIT HERE`;
+          snippetLines[
+            selectedLineInSnippetIndex
+          ] = `${snippetLines[selectedLineInSnippetIndex]} // <-- EDIT HERE`;
         }
 
         componentSnippet = snippetLines.join("\n");
@@ -1050,14 +1055,10 @@ This conversation includes one or more image attachments. When the user uploads 
             const requestIdPrefix = isEngineEnabled
               ? `[Request ID: ${eeziRequestId}] `
               : "";
-            res.write(
-              `data: ${JSON.stringify({
-                chatId: chatId,
-                type: "chat:response:error",
-                error: `Sorry, there was an error from the AI: ${requestIdPrefix}${message}`,
-              })}\n\n`
-            );
-            // Clean up the abort controller
+            safeSend(res, "chat:response:error", {
+              chatId: chatId,
+              error: `Sorry, there was an error from the AI: ${requestIdPrefix}${message}`,
+            });
             activeChatStreams.delete(chatId);
           },
           abortSignal: abortController.signal,
@@ -1182,7 +1183,9 @@ This conversation includes one or more image attachments. When the user uploads 
             !abortController.signal.aborted
           ) {
             logger.warn(
-              `Received unclosed eezi-write tag, attempting to continue, attempt #${continuationAttempts + 1}`
+              `Received unclosed eezi-write tag, attempting to continue, attempt #${
+                continuationAttempts + 1
+              }`
             );
             continuationAttempts++;
 
@@ -1234,11 +1237,15 @@ This conversation includes one or more image attachments. When the user uploads 
               autoFixAttempts < 2 &&
               !abortController.signal.aborted
             ) {
-              fullResponse += `<eezi-problem-report summary="${problemReport.problems.length} problems">
+              fullResponse += `<eezi-problem-report summary="${
+                problemReport.problems.length
+              } problems">
 ${problemReport.problems
   .map(
     (problem) =>
-      `<problem file="${escapeXml(problem.file)}" line="${problem.line}" column="${problem.column}" code="${problem.code}">${escapeXml(problem.message)}</problem>`
+      `<problem file="${escapeXml(problem.file)}" line="${problem.line}" column="${
+        problem.column
+      }" code="${problem.code}">${escapeXml(problem.message)}</problem>`
   )
   .join("\n")}
 </eezi-problem-report>`;
@@ -1425,6 +1432,7 @@ ${problemReport.problems
           updatedFiles: false,
         } satisfies ChatResponseEnd);
       }
+      cleanupChatStream(chatId);
     }
 
     // Clean up any temporary files
@@ -1433,15 +1441,12 @@ ${problemReport.problems
         try {
           // We don't immediately delete files because they might be needed for reference
           // Instead, schedule them for deletion after some time
-          setTimeout(
-            async () => {
-              if (fs.existsSync(filePath)) {
-                await unlink(filePath);
-                logger.log(`Deleted temporary file: ${filePath}`);
-              }
-            },
-            30 * 60 * 1000
-          ); // Delete after 30 minutes
+          setTimeout(async () => {
+            if (fs.existsSync(filePath)) {
+              await unlink(filePath);
+              logger.log(`Deleted temporary file: ${filePath}`);
+            }
+          }, 30 * 60 * 1000); // Delete after 30 minutes
         } catch (error: any) {
           logger.error(`Error scheduling file deletion: ${error}`);
         }
@@ -1453,11 +1458,7 @@ ${problemReport.problems
       chatId,
       error: `Sorry, there was an error processing your request: ${error}`,
     });
-    // Clean up the abort controller
-    activeChatStreams.delete(chatId);
-    // Clean up file uploads state on error
-    FileUploadsState.getInstance().clear(chatId);
-    res.end();
+    cleanupChatStream(chatId);
   }
 });
 
@@ -1465,10 +1466,8 @@ ${problemReport.problems
 router.delete("/:chatId/cancel", async (req, res) => {
   const chatId = parseInt(req.params.chatId);
   try {
-    const stream = activeChatStreams.get(chatId);
-    if (stream) {
-      stream.controller.abort();
-      activeChatStreams.delete(chatId);
+    if (activeChatStreams.has(chatId)) {
+      cleanupChatStream(chatId);
       logger.log(`Canceled active stream for chat ${chatId}`);
       res.status(200).json({ success: true });
     } else {
@@ -1533,8 +1532,6 @@ router.get("/help/:sessionId/stream", async (req, res) => {
     req.on("close", () => {
       logger.log(`Client disconnected from help ${sessionId} run stream.`);
       abortController.abort();
-      activeHelpStreams.delete(sessionId);
-      res.end();
     });
 
     // Append user message to session history
@@ -1622,7 +1619,6 @@ router.get("/help/:sessionId/stream", async (req, res) => {
     });
     // Clean up the abort controller
     activeHelpStreams.delete(sessionId);
-    res.end();
   }
 });
 
@@ -1746,15 +1742,12 @@ router.get("/get-proposal/:chatId", async (req, res) => {
         const actions: ActionProposal["actions"] = [];
         if (latestAssistantMessage?.content) {
           const writeTags = getEeziWriteTags(latestAssistantMessage.content);
-          const refactorTarget = writeTags.reduce(
-            (largest, tag) => {
-              const lineCount = tag.content.split("\n").length;
-              return lineCount > 500 && (!largest || lineCount > largest.lineCount)
-                ? { path: tag.path, lineCount }
-                : largest;
-            },
-            null as { path: string; lineCount: number } | null
-          );
+          const refactorTarget = writeTags.reduce((largest, tag) => {
+            const lineCount = tag.content.split("\n").length;
+            return lineCount > 500 && (!largest || lineCount > largest.lineCount)
+              ? { path: tag.path, lineCount }
+              : largest;
+          }, null as { path: string; lineCount: number } | null);
           if (refactorTarget) {
             actions.push({
               id: "refactor-file",

@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {} from "react";
+import { useI18n } from "@/lib/i18n";
 import api from "@/api";
 
 interface ProviderSettingsHeaderProps {
@@ -22,19 +22,6 @@ interface ProviderSettingsHeaderProps {
   onBackClick: () => void;
 }
 
-function getKeyButtonText({
-  isConfigured,
-  isEezi,
-}: {
-  isConfigured: boolean;
-  isEezi: boolean;
-}) {
-  if (isEezi) {
-    return isConfigured ? "Manage Eezi Pro Subscription" : "Setup Eezi Pro Subscription";
-  }
-  return isConfigured ? "Manage API Keys" : "Setup API Key";
-}
-
 export function ProviderSettingsHeader({
   providerDisplayName,
   isConfigured,
@@ -44,6 +31,7 @@ export function ProviderSettingsHeader({
   isEezi,
   onBackClick,
 }: ProviderSettingsHeaderProps) {
+  const { t, dir } = useI18n();
   const handleGetApiKeyClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (providerWebsiteUrl) {
@@ -51,13 +39,22 @@ export function ProviderSettingsHeader({
     }
   };
 
+  function getKeyButtonText() {
+    if (isEezi) {
+      return isConfigured
+        ? t("Manage Eezi Pro Subscription")
+        : t("Setup Eezi Pro Subscription");
+    }
+    return isConfigured ? t("Manage API Keys") : t("Setup API Key");
+  }
   const ConfigureButton = (
     <Button
+      dir={dir}
       onClick={handleGetApiKeyClick}
       className="mb-4 cursor-pointer py-5 w-full ring-4 ring-primary/60 shadow-lg shadow-primary/30 border-primary/60"
     >
       <KeyRound className="mr-2 h-4 w-4" />
-      {getKeyButtonText({ isConfigured, isEezi })}
+      {getKeyButtonText()}
       <ExternalLink className="ml-2 h-4 w-4" />
     </Button>
   );
@@ -65,19 +62,20 @@ export function ProviderSettingsHeader({
   return (
     <>
       <Button
+        dir={dir}
         onClick={onBackClick}
         variant="outline"
         size="sm"
         className="flex items-center gap-2 mb-4 bg-(--background-lightest) py-5"
       >
         <ArrowLeft className="h-4 w-4" />
-        Go Back
+        {t("Go Back")}
       </Button>
 
       <div className="mb-6">
         <div className="flex items-center mb-1">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mr-3">
-            Configure {providerDisplayName}
+            {t("configure_provider", { providerDisplayName })}
           </h1>
           {isLoading ? (
             <Skeleton className="h-6 w-6 rounded-full" />
@@ -95,9 +93,12 @@ export function ProviderSettingsHeader({
           </span>
         </div>
         {!isLoading && hasFreeTier && (
-          <span className="text-blue-600 mt-2 dark:text-blue-400 text-sm font-medium bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded-full inline-flex items-center">
+          <span
+            dir={dir}
+            className="text-blue-600 mt-2 dark:text-blue-400 text-sm font-medium bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded-full inline-flex items-center"
+          >
             <GiftIcon className="w-4 h-4 mr-1" />
-            Free tier available
+            {t("Free tier available")}
           </span>
         )}
       </div>
@@ -112,8 +113,8 @@ export function ProviderSettingsHeader({
               align="center"
               className="w-fit py-2 px-3 bg-background text-primary shadow-lg ring-1 ring-primary/40"
             >
-              <div className="text-sm font-semibold flex items-center gap-1">
-                <ArrowUp /> Create your API key with {providerDisplayName}
+              <div dir={dir} className="text-sm font-semibold flex items-center gap-1">
+                <ArrowUp /> {t("create_api_key", { providerDisplayName })}
               </div>
             </PopoverContent>
           </Popover>

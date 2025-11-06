@@ -20,6 +20,7 @@ import {
 import { ProviderSettingsHeader } from "./ProviderSettingsHeader";
 import { ApiKeyConfiguration } from "./ApiKeyConfiguration";
 import { ModelsSection } from "./ModelsSection";
+import { useI18n } from "@/lib/i18n";
 
 interface ProviderSettingsPageProps {
   provider: string;
@@ -43,7 +44,6 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
 
   // Find the specific provider data from the fetched list
   const providerData = allProviders?.find((p) => p.id === provider);
-  console.log("Provider Data:", providerData);
   useEffect(() => {
     const layoutMainContentContainer = document.getElementById(
       "layout-main-content-container"
@@ -58,6 +58,7 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
 
   const isEezi = provider === "auto";
 
+  const { t, dir } = useI18n();
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -66,7 +67,7 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
   // Use fetched data (or defaults for Eezi)
   const providerDisplayName = isEezi
     ? "Eezi"
-    : (providerData?.name ?? "Unknown Provider");
+    : providerData?.name ?? t("Unknown Provider");
   const providerWebsiteUrl = isEezi
     ? "https://academy.dyad.sh/settings"
     : providerData?.websiteUrl;
@@ -109,13 +110,13 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
     provider === "azure"
       ? isAzureConfigured
       : provider === "vertex"
-        ? isVertexConfigured
-        : isValidUserKey || hasEnvKey; // Configured if either is set
+      ? isVertexConfigured
+      : isValidUserKey || hasEnvKey; // Configured if either is set
 
   // --- Save Handler ---
   const handleSaveKey = async (value: string) => {
     if (!value.trim()) {
-      setSaveError("API Key cannot be empty.");
+      setSaveError(t("API Key cannot be empty."));
       return;
     }
     setIsSaving(true);
@@ -141,7 +142,7 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
       // Optionally show a success message
     } catch (error: any) {
       console.error("Error saving API key:", error);
-      setSaveError(error.message || "Failed to save API key.");
+      setSaveError(error.message || t("Failed to save API key."));
     } finally {
       setIsSaving(false);
     }
@@ -164,7 +165,7 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
       // Optionally show a success message
     } catch (error: any) {
       console.error("Error deleting API key:", error);
-      setSaveError(error.message || "Failed to delete API key.");
+      setSaveError(error.message || t("Failed to delete API key."));
     } finally {
       setIsSaving(false);
     }
@@ -213,22 +214,23 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
       <div className="min-h-screen px-8 py-4">
         <div className="max-w-4xl mx-auto">
           <Button
+            dir={dir}
             onClick={() => router.history.back()}
             variant="outline"
             size="sm"
             className="flex items-center gap-2 mb-4 bg-(--background-lightest) py-5"
           >
             <ArrowLeft className="h-4 w-4" />
-            Go Back
+            {t("Go Back")}
           </Button>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mr-3 mb-6">
-            Configure Provider
+            {t("Configure Provider")}
           </h1>
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Error Loading Provider Details</AlertTitle>
-            <AlertDescription>
-              Could not load provider data: {providersError.message}
+            <AlertTitle dir={dir}>{t("Error Loading Provider Details")}</AlertTitle>
+            <AlertDescription dir={dir}>
+              {t("provider_load_error", { message: providersError.message })}
             </AlertDescription>
           </Alert>
         </div>
@@ -242,22 +244,23 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
       <div className="min-h-screen px-8 py-4">
         <div className="max-w-4xl mx-auto">
           <Button
+            dir={dir}
             onClick={() => router.history.back()}
             variant="outline"
             size="sm"
             className="flex items-center gap-2 mb-4 bg-(--background-lightest) py-5"
           >
             <ArrowLeft className="h-4 w-4" />
-            Go Back
+            {t("Go Back")}
           </Button>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mr-3 mb-6">
-            Provider Not Found
+            {t("Provider Not Found")}
           </h1>
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              The provider with ID "{provider}" could not be found.
+            <AlertTitle dir={dir}>{t("Error")}</AlertTitle>
+            <AlertDescription dir={dir}>
+              {t("provider_not_found", { provider })}
             </AlertDescription>
           </Alert>
         </div>
@@ -284,9 +287,9 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
           </div>
         ) : settingsError ? (
           <Alert variant="destructive">
-            <AlertTitle>Error Loading Settings</AlertTitle>
-            <AlertDescription>
-              Could not load configuration data: {settingsError.message}
+            <AlertTitle dir={dir}>{t("Error Loading Settings")}</AlertTitle>
+            <AlertDescription dir={dir}>
+              {t("settings_load_error", { message: settingsError.message })}
             </AlertDescription>
           </Alert>
         ) : (
@@ -310,9 +313,11 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
         {isEezi && !settingsLoading && (
           <div className="mt-6 flex items-center justify-between p-4 bg-(--background-lightest) rounded-lg border">
             <div>
-              <h3 className="font-medium">Enable Eezi Pro</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Toggle to enable Eezi Pro
+              <h3 dir={dir} className="font-medium">
+                {t("Enable Eezi Pro")}
+              </h3>
+              <p dir={dir} className="text-sm text-gray-600 dark:text-gray-400">
+                {t("Toggle to enable Eezi Pro")}
               </p>
             </div>
             <Switch

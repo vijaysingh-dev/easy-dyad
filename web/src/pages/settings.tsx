@@ -25,9 +25,11 @@ import { ReleaseChannelSelector } from "@/components/ReleaseChannelSelector";
 import { NeonIntegration } from "@/components/NeonIntegration";
 import { RuntimeModeSelector } from "@/components/RuntimeModeSelector";
 import { ToolsMcpSettings } from "@/components/settings/ToolsMcpSettings";
+import { useI18n } from "@/lib/i18n";
 import api from "@/api";
 
 export default function SettingsPage() {
+  const {t, dir} = useI18n();
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [appVersion] = useAtom(appVersionAtom);
@@ -52,16 +54,17 @@ export default function SettingsPage() {
     <div className="min-h-screen px-8 py-4">
       <div className="max-w-5xl mx-auto">
         <Button
+          dir={dir}
           onClick={() => router.history.back()}
           variant="outline"
           size="sm"
           className="flex items-center gap-2 mb-4 bg-(--background-lightest) py-5"
         >
           <ArrowLeft className="h-4 w-4" />
-          Go Back
+          {t("Go Back")}
         </Button>
         <div className="flex justify-between mb-4">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t("Settings")}</h1>
         </div>
 
         <div className="space-y-6">

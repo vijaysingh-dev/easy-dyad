@@ -17,16 +17,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useI18n } from "@/lib/i18n";
 
 interface ModelsSectionProps {
   providerId: string;
 }
 
 export function ModelsSection({ providerId }: ModelsSectionProps) {
+  const { t, dir } = useI18n();
   const [isCustomModelDialogOpen, setIsCustomModelDialogOpen] = useState(false);
   const [isEditModelDialogOpen, setIsEditModelDialogOpen] = useState(false);
-  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] =
-    useState(false);
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState(false);
   const [modelToDelete, setModelToDelete] = useState<string | null>(null);
   const [modelToEdit, setModelToEdit] = useState<any | null>(null);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
@@ -80,9 +81,11 @@ export function ModelsSection({ providerId }: ModelsSectionProps) {
 
   return (
     <div className="mt-8 border-t pt-6">
-      <h2 className="text-2xl font-semibold mb-4">Models</h2>
-      <p className="text-muted-foreground mb-4">
-        Manage specific models available through this provider.
+      <h2 dir={dir} className="text-2xl font-semibold mb-4">
+        {t("Models")}
+      </h2>
+      <p dir={dir} className="text-muted-foreground mb-4">
+        {t("Manage the language models associated with this provider.")}
       </p>
 
       {/* Custom Models List Area */}
@@ -93,10 +96,12 @@ export function ModelsSection({ providerId }: ModelsSectionProps) {
         </div>
       )}
       {modelsError && (
-        <Alert variant="destructive" className="mt-4">
+        <Alert dir={dir} variant="destructive" className="mt-4">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error Loading Models</AlertTitle>
-          <AlertDescription>{modelsError.message}</AlertDescription>
+          <AlertTitle>{t("Error Loading Models")}</AlertTitle>
+          <AlertDescription>
+            {t("provided_value", { value: modelsError.message })}
+          </AlertDescription>
         </Alert>
       )}
       {!modelsLoading && !modelsError && models && models.length > 0 && (
@@ -166,24 +171,31 @@ export function ModelsSection({ providerId }: ModelsSectionProps) {
               )}
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-gray-500 dark:text-gray-400">
                 {model.contextWindow && (
-                  <span>
-                    Context: {model.contextWindow.toLocaleString()} tokens
+                  <span dir={dir}>
+                    {t("context_window", {
+                      context: model.contextWindow.toLocaleString(),
+                    })}
                   </span>
                 )}
                 {model.maxOutputTokens && (
-                  <span>
-                    Max Output: {model.maxOutputTokens.toLocaleString()} tokens
+                  <span dir={dir}>
+                    {t("max_output_tokens", {
+                      maxOutputTokens: model.maxOutputTokens.toLocaleString(),
+                    })}
                   </span>
                 )}
               </div>
               <div className="flex flex-wrap gap-x-2">
                 <span className="mt-2 inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
-                  {model.type === "cloud" ? "Built-in" : "Custom"}
+                  {model.type === "cloud" ? t("Built-in") : t("Custom")}
                 </span>
 
                 {model.tag && (
-                  <span className="mt-2 inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
-                    {model.tag}
+                  <span
+                    dir={dir}
+                    className="mt-2 inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300"
+                  >
+                    {t("provided_value", { value: model.tag })}
                   </span>
                 )}
               </div>
@@ -192,19 +204,20 @@ export function ModelsSection({ providerId }: ModelsSectionProps) {
         </div>
       )}
       {!modelsLoading && !modelsError && (!models || models.length === 0) && (
-        <p className="text-muted-foreground mt-4">
-          No custom models have been added for this provider yet.
+        <p dir={dir} className="text-muted-foreground mt-4">
+          {t("No custom models have been added for this provider yet.")}
         </p>
       )}
       {/* End Custom Models List Area */}
 
       {providerId !== "auto" && (
         <Button
+          dir={dir}
           onClick={() => setIsCustomModelDialogOpen(true)}
           variant="outline"
           className="mt-6"
         >
-          <PlusIcon className="mr-2 h-4 w-4" /> Add Custom Model
+          <PlusIcon className="mr-2 h-4 w-4" /> {t("Add Custom Model")}
         </Button>
       )}
 
@@ -237,27 +250,30 @@ export function ModelsSection({ providerId }: ModelsSectionProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Are you sure you want to delete this model?
+              {t("Are you sure you want to delete this model?")}
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              custom model "
+            <AlertDialogDescription dir={dir}>
+              {t(
+                "This action cannot be undone. This will permanently delete the custom model"
+              )}
+              "
               {modelToDelete
-                ? models?.find((m) => m.apiName === modelToDelete)
-                    ?.displayName || modelToDelete
+                ? models?.find((m) => m.apiName === modelToDelete)?.displayName ||
+                  modelToDelete
                 : ""}
               " (API Name: {modelToDelete}).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setModelToDelete(null)}>
-              Cancel
+            <AlertDialogCancel dir={dir} onClick={() => setModelToDelete(null)}>
+              {t("Cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
+              dir={dir}
               onClick={handleConfirmDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isDeleting ? "Deleting..." : "Yes, delete it"}
+              {isDeleting ? t("Deleting...") : t("Yes, delete it")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

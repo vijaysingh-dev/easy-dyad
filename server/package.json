@@ -11,6 +11,9 @@
     "start": "node dist/index.js"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/morgan": "^1.9.10",
     "typescript": "^5.9.3"
   },
   "dependencies": {
@@ -25,7 +28,7 @@
     "@ai-sdk/provider-utils": "^3.0.15",
     "@ai-sdk/xai": "^2.0.30",
     "@dyad-sh/supabase-management-js": "^1.0.0",
-    "@modelcontextprotocol/sdk": "^1.20.2",
+    "@modelcontextprotocol/sdk": "^1.17.5",
     "@neondatabase/api-client": "^2.2.0",
     "@neondatabase/serverless": "^1.0.2",
     "@openrouter/ai-sdk-provider": "^1.2.0",
@@ -47,5 +50,10 @@
     "tree-kill": "^1.2.2",
     "tsx": "^4.20.6",
     "winston": "^3.18.3"
+  },
+  "overrides": {
+    "@vercel/sdk": {
+      "@modelcontextprotocol/sdk": "^1.17.5"
+    }
   }
 }

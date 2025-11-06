@@ -6,16 +6,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info, CheckCircle2 } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
 import type { UserSettings, VertexProviderSetting } from "@shared/schemas";
+import { useI18n } from "@/lib/i18n";
 
 export function VertexConfiguration() {
+  const { t, dir } = useI18n();
   const { settings, updateSettings } = useSettings();
-  const existing =
-    (settings?.providerSettings?.vertex as VertexProviderSetting) ?? {};
+  const existing = (settings?.providerSettings?.vertex as VertexProviderSetting) ?? {};
 
   const [projectId, setProjectId] = useState(existing.projectId || "");
   const [location, setLocation] = useState(existing.location || "");
   const [serviceAccountKey, setServiceAccountKey] = useState(
-    existing.serviceAccountKey?.value || "",
+    existing.serviceAccountKey?.value || ""
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +37,7 @@ export function VertexConfiguration() {
         JSON.parse(serviceAccountKey);
       }
     } catch (e: any) {
-      setError("Service account JSON is invalid: " + e.message);
+      setError(t("Service account JSON is invalid: message", { message: e.message }));
       return;
     }
 
@@ -58,7 +59,7 @@ export function VertexConfiguration() {
       await updateSettings(settingsUpdate);
       setSaved(true);
     } catch (e: any) {
-      setError(e?.message || "Failed to save Vertex settings");
+      setError(e?.message || t("Failed to save Vertex settings"));
     } finally {
       setSaving(false);
     }
@@ -66,16 +67,16 @@ export function VertexConfiguration() {
 
   const isConfigured = Boolean(
     (projectId.trim() && location && serviceAccountKey) ||
-      (existing.projectId &&
-        existing.location &&
-        existing.serviceAccountKey?.value),
+      (existing.projectId && existing.location && existing.serviceAccountKey?.value)
   );
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Project ID</label>
+          <label dir={dir} className="block text-sm font-medium mb-1">
+            {t("Project ID")}
+          </label>
           <Input
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
@@ -83,56 +84,61 @@ export function VertexConfiguration() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Location</label>
+          <label dir={dir} className="block text-sm font-medium mb-1">
+            {t("Location")}
+          </label>
           <Input
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             placeholder="us-central1"
           />
-          <p className="mt-1 text-xs text-muted-foreground">
-            If you see a "model not found" error, try a different region. Some
-            partner models (MaaS) are only available in specific locations
-            (e.g., us-central1, us-west2).
+          <p dir={dir} className="mt-1 text-xs text-muted-foreground">
+            {t(
+              'If you see a "model not found" error, try a different region. Some partner models (MaaS) are only available in specific locations (e.g., us-central1, us-west2).'
+            )}
           </p>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Service Account JSON Key
+          <label dir={dir} className="block text-sm font-medium mb-1">
+            {t("Service Account Key JSON")}
           </label>
           <Textarea
             value={serviceAccountKey}
             onChange={(e) => setServiceAccountKey(e.target.value)}
-            placeholder="Paste the full JSON contents of your service account key here"
+            placeholder={t(
+              "Paste the full JSON contents of your service account key here"
+            )}
             className="min-h-40"
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div dir={dir} className="flex items-center gap-2">
         <Button onClick={onSave} disabled={saving}>
-          {saving ? "Saving..." : "Save Settings"}
+          {saving ? t("Saving...") : t("Save Settings")}
         </Button>
         {saved && !error && (
           <span className="flex items-center text-green-600 text-sm">
-            <CheckCircle2 className="h-4 w-4 mr-1" /> Saved
+            <CheckCircle2 className="h-4 w-4 mr-1" /> {t("Saved")}
           </span>
         )}
       </div>
 
       {!isConfigured && (
-        <Alert variant="default">
+        <Alert dir={dir} variant="default">
           <Info className="h-4 w-4" />
-          <AlertTitle>Configuration Required</AlertTitle>
+          <AlertTitle>{t("Configuration Required")}</AlertTitle>
           <AlertDescription>
-            Provide Project, Location, and a service account JSON key with
-            Vertex AI access.
+            {t(
+              "Provide Project, Location, and a service account JSON key with Vertex AI access."
+            )}
           </AlertDescription>
         </Alert>
       )}
 
       {error && (
-        <Alert variant="destructive">
-          <AlertTitle>Save Error</AlertTitle>
+        <Alert dir={dir} variant="destructive">
+          <AlertTitle>{t("Save Error")}</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}

@@ -1,5 +1,6 @@
 import { NODE_ENV, PORT, ALLOWED_ORIGINS } from "@/config";
 
+import logger from "./logger";
 import { initializeDatabase } from "@/db";
 import express, { type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
@@ -20,6 +21,11 @@ initializeDatabase();
 const app = express();
 
 const allowedOrigins = ALLOWED_ORIGINS?.split(",")?.filter(Boolean) ?? [];
+logger.info(
+  `Allowed origins: ${
+    allowedOrigins.length > 0 ? allowedOrigins.join(", ") : "All origins allowed"
+  }`
+);
 app.use(
   cors({
     origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
@@ -55,7 +61,7 @@ async function shutdown() {
   try {
     for (const appId of runningApps.keys())
       try {
-        await stopRunningApp(appId);
+        stopRunningApp(appId);
       } catch (err) {
         console.error(err);
       }

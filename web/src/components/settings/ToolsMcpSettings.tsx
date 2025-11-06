@@ -13,11 +13,12 @@ import {
 import { useMcp, type Transport } from "@/hooks/useMcp";
 import { showError, showSuccess } from "@/components/Toast";
 import { Edit2, Plus, Save, Trash2, X } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 type KeyValue = { key: string; value: string };
 
 function parseEnvJsonToArray(
-  envJson?: Record<string, string> | string | null,
+  envJson?: Record<string, string> | string | null
 ): KeyValue[] {
   if (!envJson) return [];
   try {
@@ -57,6 +58,8 @@ function EnvVarsEditor({
   isSaving: boolean;
 }) {
   const initial = useMemo(() => parseEnvJsonToArray(envJson), [envJson]);
+
+  const { t, dir } = useI18n();
   const [envVars, setEnvVars] = useState<KeyValue[]>(initial);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editingKeyValue, setEditingKeyValue] = useState("");
@@ -76,11 +79,11 @@ function EnvVarsEditor({
 
   const handleAdd = async () => {
     if (!newKey.trim() || !newValue.trim()) {
-      showError("Both key and value are required");
+      showError(t("Both key and value are required"));
       return;
     }
     if (envVars.some((e) => e.key === newKey.trim())) {
-      showError("Environment variable with this key already exists");
+      showError(t("Environment variable with this key already exists"));
       return;
     }
     const next = [...envVars, { key: newKey.trim(), value: newValue.trim() }];
@@ -88,7 +91,7 @@ function EnvVarsEditor({
     setNewKey("");
     setNewValue("");
     setIsAddingNew(false);
-    showSuccess("Environment variables saved");
+    showSuccess(t("Environment variables saved"));
   };
 
   const handleEdit = (kv: KeyValue) => {
@@ -100,27 +103,23 @@ function EnvVarsEditor({
   const handleSaveEdit = async () => {
     if (!editingKey) return;
     if (!editingKeyValue.trim() || !editingValue.trim()) {
-      showError("Both key and value are required");
+      showError(t("Both key and value are required"));
       return;
     }
-    if (
-      envVars.some(
-        (e) => e.key === editingKeyValue.trim() && e.key !== editingKey,
-      )
-    ) {
-      showError("Environment variable with this key already exists");
+    if (envVars.some((e) => e.key === editingKeyValue.trim() && e.key !== editingKey)) {
+      showError(t("Environment variable with this key already exists"));
       return;
     }
     const next = envVars.map((e) =>
       e.key === editingKey
         ? { key: editingKeyValue.trim(), value: editingValue.trim() }
-        : e,
+        : e
     );
     await saveAll(next);
     setEditingKey(null);
     setEditingKeyValue("");
     setEditingValue("");
-    showSuccess("Environment variables saved");
+    showSuccess(t("Environment variables saved"));
   };
 
   const handleCancelEdit = () => {
@@ -132,7 +131,7 @@ function EnvVarsEditor({
   const handleDelete = async (key: string) => {
     const next = envVars.filter((e) => e.key !== key);
     await saveAll(next);
-    showSuccess("Environment variables saved");
+    showSuccess(t("Environment variables saved"));
   };
 
   return (
@@ -140,7 +139,9 @@ function EnvVarsEditor({
       {isAddingNew ? (
         <div className="space-y-3 p-3 border rounded-md bg-muted/50">
           <div className="space-y-2">
-            <Label htmlFor={`env-new-key-${serverId}`}>Key</Label>
+            <Label dir={dir} htmlFor={`env-new-key-${serverId}`}>
+              {t("Key")}
+            </Label>
             <Input
               id={`env-new-key-${serverId}`}
               placeholder="e.g., PATH"
@@ -151,7 +152,9 @@ function EnvVarsEditor({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor={`env-new-value-${serverId}`}>Value</Label>
+            <Label dir={dir} htmlFor={`env-new-value-${serverId}`}>
+              {t("Value")}
+            </Label>
             <Input
               id={`env-new-value-${serverId}`}
               placeholder="e.g., /usr/local/bin"
@@ -162,14 +165,16 @@ function EnvVarsEditor({
           </div>
           <div className="flex gap-2">
             <Button
+              dir={dir}
               onClick={handleAdd}
               size="sm"
               disabled={disabled || isSaving}
             >
               <Save size={14} />
-              {isSaving ? "Saving..." : "Save"}
+              {isSaving ? t("Saving...") : t("Save")}
             </Button>
             <Button
+              dir={dir}
               onClick={() => {
                 setIsAddingNew(false);
                 setNewKey("");
@@ -179,26 +184,27 @@ function EnvVarsEditor({
               size="sm"
             >
               <X size={14} />
-              Cancel
+              {t("Cancel")}
             </Button>
           </div>
         </div>
       ) : (
         <Button
+          dir={dir}
           onClick={() => setIsAddingNew(true)}
           variant="outline"
           className="w-full"
           disabled={disabled}
         >
           <Plus size={14} />
-          Add Environment Variable
+          {t("Add Environment Variable")}
         </Button>
       )}
 
       <div className="space-y-2">
         {envVars.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            No environment variables configured
+          <p dir={dir} className="text-sm text-muted-foreground text-center py-4">
+            {t("No environment variables configured")}
           </p>
         ) : (
           envVars.map((kv) => (
@@ -233,11 +239,7 @@ function EnvVarsEditor({
                     >
                       <Save size={14} />
                     </Button>
-                    <Button
-                      onClick={handleCancelEdit}
-                      size="sm"
-                      variant="outline"
-                    >
+                    <Button onClick={handleCancelEdit} size="sm" variant="outline">
                       <X size={14} />
                     </Button>
                   </div>
@@ -246,8 +248,8 @@ function EnvVarsEditor({
                 <>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{kv.key}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {kv.value}
+                    <div dir={dir} className="text-xs text-muted-foreground truncate">
+                      {t("provide_value", { value: kv.value })}
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -292,6 +294,7 @@ export function ToolsMcpSettings() {
     updateServer,
     isUpdatingServer,
   } = useMcp();
+  const { t, dir } = useI18n();
   const [consents, setConsents] = useState<Record<string, any>>({});
   const [name, setName] = useState("");
   const [transport, setTransport] = useState<Transport>("stdio");
@@ -340,7 +343,7 @@ export function ToolsMcpSettings() {
   const onSetToolConsent = async (
     serverId: number,
     toolName: string,
-    consent: "ask" | "always" | "denied",
+    consent: "ask" | "always" | "denied"
   ) => {
     await updateToolConsent(serverId, toolName, consent);
     setConsents((prev) => ({ ...prev, [`${serverId}:${toolName}`]: consent }));
@@ -351,7 +354,7 @@ export function ToolsMcpSettings() {
       <div className="space-y-2">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label>Name</Label>
+            <Label dir={dir}>{t("Name")}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -359,32 +362,33 @@ export function ToolsMcpSettings() {
             />
           </div>
           <div>
-            <Label>Transport</Label>
+            <Label dir={dir}>{t("Transport")}</Label>
             <select
+              dir={dir}
               value={transport}
               onChange={(e) => setTransport(e.target.value as Transport)}
               className="w-full h-9 rounded-md border bg-transparent px-3 text-sm"
             >
-              <option value="stdio">stdio</option>
-              <option value="http">http</option>
+              <option value="stdio">{t("stdio")}</option>
+              <option value="http">{t("http")}</option>
             </select>
           </div>
           {transport === "stdio" && (
             <>
-              <div>
-                <Label>Command</Label>
+              <div dir={dir}>
+                <Label>{t("Command")}</Label>
                 <Input
                   value={command}
                   onChange={(e) => setCommand(e.target.value)}
-                  placeholder="node"
+                  placeholder={t("node")}
                 />
               </div>
-              <div>
-                <Label>Args</Label>
+              <div dir={dir}>
+                <Label>{t("Args")}</Label>
                 <Input
                   value={args}
                   onChange={(e) => setArgs(e.target.value)}
-                  placeholder="path/to/mcp-server.js --flag"
+                  placeholder={t("path/to/mcp-server.js --flag")}
                 />
               </div>
             </>
@@ -438,9 +442,7 @@ export function ToolsMcpSettings() {
             </div>
             {s.transport === "stdio" && (
               <div className="mt-3">
-                <div className="text-sm font-medium mb-2">
-                  Environment Variables
-                </div>
+                <div className="text-sm font-medium mb-2">Environment Variables</div>
                 <EnvVarsEditor
                   serverId={s.id}
                   envJson={s.envJson}
@@ -456,46 +458,51 @@ export function ToolsMcpSettings() {
               </div>
             )}
             <div className="mt-3 space-y-2">
-              {(toolsByServer[s.id] || []).map((t) => (
-                <div key={t.name} className="border rounded p-2">
-                  <div className="flex items-center gap-4">
-                    <div className="font-mono text-sm truncate">{t.name}</div>
+              {(toolsByServer[s.id] || []).map((tool) => (
+                <div key={tool.name} className="border rounded p-2">
+                  <div dir={dir} className="flex items-center gap-4">
+                    <div className="font-mono text-sm truncate">
+                      {t("provided_value", { value: tool.name })}
+                    </div>
                     <div className="flex items-center gap-2">
                       <Select
-                        value={consents[`${s.id}:${t.name}`] || "ask"}
+                        value={consents[`${s.id}:${tool.name}`] || t("ask")}
                         onValueChange={(v) =>
-                          onSetToolConsent(s.id, t.name, v as any)
+                          onSetToolConsent(s.id, tool.name, v as any)
                         }
                       >
                         <SelectTrigger className="w-[140px] h-8">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ask">Ask</SelectItem>
-                          <SelectItem value="always">Always allow</SelectItem>
-                          <SelectItem value="denied">Deny</SelectItem>
+                        <SelectContent dir={dir}>
+                          <SelectItem value="ask">{t("ask")}</SelectItem>
+                          <SelectItem value="always">{t("Always allow")}</SelectItem>
+                          <SelectItem value="denied">{t("Deny")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
-                  {t.description && (
-                    <div className="mt-1 text-xs max-w-[500px] text-muted-foreground truncate">
-                      {t.description}
+                  {tool.description && (
+                    <div
+                      dir={dir}
+                      className="mt-1 text-xs max-w-[500px] text-muted-foreground truncate"
+                    >
+                      {t("provided_value", { value: tool.description })}
                     </div>
                   )}
                 </div>
               ))}
               {(toolsByServer[s.id] || []).length === 0 && (
-                <div className="text-xs text-muted-foreground">
-                  No tools discovered.
+                <div dir={dir} className="text-xs text-muted-foreground">
+                  {t("No tools discovered.")}
                 </div>
               )}
             </div>
           </div>
         ))}
         {servers.length === 0 && (
-          <div className="text-sm text-muted-foreground">
-            No servers configured yet.
+          <div dir={dir} className="text-sm text-muted-foreground">
+            {t("No servers configured yet.")}
           </div>
         )}
       </div>

@@ -102,12 +102,14 @@ class EeziClient {
           const { chatId } = data;
           this.chatStreams.get(chatId)?.onEnd(data as ChatResponseEnd);
           this.chatStreams.delete(chatId);
+          this.eventSources["chat"]?.close();
           break;
         }
         case "chat:response:error": {
           const { chatId, error } = data;
           this.chatStreams.get(chatId)?.onError(error);
           this.chatStreams.delete(chatId);
+          this.eventSources["chat"]?.close();
           break;
         }
         case "mcp:tool-consent-request": {
@@ -133,6 +135,7 @@ class EeziClient {
       } else if (data.eventType === "app:error") {
         console.error(`[app] Error for app ${data.appId}:`, data.error);
         this.appStreams.delete(data.appId);
+        this.eventSources["app"]?.close();
       } else {
         console.warn("[app] Unknown event type:", data.eventType);
       }
@@ -152,6 +155,7 @@ class EeziClient {
           const { sessionId, error } = data;
           this.helpStreams.get(sessionId)?.onError(error);
           this.helpStreams.delete(sessionId);
+          this.eventSources["help"]?.close();
           break;
         }
         default:
@@ -170,6 +174,7 @@ class EeziClient {
       } else if (data.eventType == "github:flow-error") {
         this.githubStreams.get(data.appId)?.onGithubDeviceFlowError(data);
         this.githubStreams.delete(data.appId);
+        this.eventSources["github"]?.close();
       } else {
         console.warn("[github] Unknown event type:", data.eventType);
       }

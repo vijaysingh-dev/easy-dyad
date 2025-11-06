@@ -1,4 +1,4 @@
-import { atom, useAtom, useAtomValue } from "jotai";
+import { atom, useAtom } from "jotai";
 import { useEffect } from "react";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
 import { chatsAtom, chatsLoadingAtom } from "@/atoms/chatAtoms";

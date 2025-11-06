@@ -1,15 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { atom, useAtom } from "jotai";
+import { useAtom } from "jotai";
 import { appBasePathAtom, appsListAtom } from "@/atoms/appAtoms";
 import api from "@/api";
 
-export const loadedAppsAtom = atom(async (get) => {
-  return await api.app.listApps();
-});
-
 export function useLoadApps() {
-  const [loadedApps] = useAtom(loadedAppsAtom);
-
   const [apps, setApps] = useAtom(appsListAtom);
   const [, setAppBasePath] = useAtom(appBasePathAtom);
   const [loading, setLoading] = useState(true);
@@ -20,6 +14,7 @@ export function useLoadApps() {
     const loadApps = async () => {
       setLoading(true);
       try {
+        const loadedApps = await api.app.listApps();
         setApps(loadedApps.apps);
         setAppBasePath(loadedApps.appBasePath);
         setError(null);
@@ -31,7 +26,7 @@ export function useLoadApps() {
       }
     };
     loadApps();
-  }, [loadedApps, setApps, setAppBasePath]);
+  }, [setApps, setAppBasePath]);
 
   const refreshApps = useCallback(async () => {
     setLoading(true);

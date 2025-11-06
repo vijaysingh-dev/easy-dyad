@@ -180,7 +180,7 @@ class ChatApiService {
       : Promise.resolve([]);
 
     processAttachments
-      .then((fileDataArray) =>
+      .then((fileDataArray) => {
         Api.post(`/chat/${chatId}/start`, {
           prompt,
           redo,
@@ -197,13 +197,11 @@ class ChatApiService {
           .catch((err) => {
             showError(err);
             onError(String(err));
-            eeziClient.chatStreams.delete(chatId);
-          })
-      )
+          });
+      })
       .catch((err) => {
         showError(err);
         onError(String(err));
-        eeziClient.chatStreams.delete(chatId);
       });
   }
 

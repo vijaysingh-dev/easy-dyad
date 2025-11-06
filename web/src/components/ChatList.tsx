@@ -156,7 +156,7 @@ export function ChatList({ show }: { show?: boolean }) {
         className="overflow-y-auto h-[calc(100vh-112px)]"
         data-testid="chat-list-container"
       >
-        <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
+        <SidebarGroupLabel>{t("Recent Chats")}</SidebarGroupLabel>
         <SidebarGroupContent>
           <div className="flex flex-col space-y-4">
             <Button

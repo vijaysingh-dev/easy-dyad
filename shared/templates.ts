@@ -19,6 +19,7 @@ export interface ApiTemplate {
 }
 
 export const DEFAULT_TEMPLATE_ID = "react";
+
 export const DEFAULT_TEMPLATE = {
   id: "react",
   title: "React.js Template",

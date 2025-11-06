@@ -346,7 +346,6 @@ router.get("/run-app/:appId", async (req, res) => {
     req.on("close", () => {
       logger.log(`Client disconnected from app ${appId} run stream.`);
       stopRunningApp(appId);
-      res.end();
     });
 
     logger.log(`Running app ${appId}`);
@@ -396,8 +395,7 @@ router.get("/run-app/:appId", async (req, res) => {
   } catch (error: any) {
     logger.error(`Error running app ${appId}:`, error);
     safeSend(res, "app:error", { appId, error: error.message });
-    runningApps.delete(appId);
-    res.end();
+    await stopRunningApp(appId);
   }
 });
 
@@ -431,7 +429,6 @@ router.get("/restart-app/:appId", async (req, res) => {
     req.on("close", () => {
       logger.log(`Client disconnected from app ${appId} restart stream.`);
       stopRunningApp(appId);
-      res.end();
     });
 
     logger.log(`Restarting app ${appId}`);
@@ -517,8 +514,7 @@ router.get("/restart-app/:appId", async (req, res) => {
   } catch (error: any) {
     logger.error(`Error restarting app ${appId}:`, error);
     safeSend(res, "app:error", { appId, error: error.message });
-    runningApps.delete(appId);
-    res.end();
+    await stopRunningApp(appId);
   }
 });
 

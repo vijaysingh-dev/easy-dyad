@@ -360,15 +360,14 @@ router.get("/github/:appId/start-flow", (req, res) => {
       isPolling: false,
     });
 
-    safeSend(res, "github:flow-update", {
-      appId,
-      message: "Requesting device code from GitHub...",
-    });
-
     req.on("close", () => {
       logger.log(`Client disconnected from github-flow ${appId} run stream.`);
       currentFlowState.delete(appId);
-      res.end();
+    });
+
+    safeSend(res, "github:flow-update", {
+      appId,
+      message: "Requesting device code from GitHub...",
     });
 
     logger.info("Requesting device code from GitHub:", GITHUB_DEVICE_CODE_URL);
@@ -431,7 +430,6 @@ router.get("/github/:appId/start-flow", (req, res) => {
       error: "Error starting github flow",
     });
     currentFlowState.delete(appId);
-    res.end();
   }
 });
 
@@ -666,7 +664,9 @@ router.post("/github/create-repo", async (req, res) => {
               return JSON.stringify(err);
             })
             .join(", ");
-          errorMessage = `${data.message || "Repository creation failed"}: ${errorDetails}`;
+          errorMessage = `${
+            data.message || "Repository creation failed"
+          }: ${errorDetails}`;
         }
       } catch (jsonError) {
         // If response is not JSON, fall back to status text
@@ -1061,7 +1061,9 @@ router.post("/vercel/create-project", async (req, res) => {
     const detectedFramework = await detectFramework(getEeziAppPath(app.path));
 
     logger.info(
-      `Detected framework: ${detectedFramework || "none detected"} for app at ${app.path}`
+      `Detected framework: ${detectedFramework || "none detected"} for app at ${
+        app.path
+      }`
     );
 
     const vercel = createVercelClient(accessToken);
