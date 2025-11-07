@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useI18n } from "@/lib/i18n";
 import { useAtomValue, useSetAtom } from "jotai";
 import { chatMessagesByIdAtom, chatStreamCountByIdAtom } from "../atoms/chatAtoms";
 
@@ -18,6 +19,7 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ chatId, isPreviewOpen, onTogglePreview }: ChatPanelProps) {
+  const { t, dir } = useI18n();
   const messagesById = useAtomValue(chatMessagesByIdAtom);
   const setMessagesById = useSetAtom(chatMessagesByIdAtom);
   const [isVersionPaneOpen, setIsVersionPaneOpen] = useState(false);
@@ -83,10 +85,10 @@ export function ChatPanel({ chatId, isPreviewOpen, onTogglePreview }: ChatPanelP
   }, []);
 
   useEffect(() => {
-    const streamCount = chatId ? (streamCountById.get(chatId) ?? 0) : 0;
+    const streamCount = chatId ? streamCountById.get(chatId) ?? 0 : 0;
     console.log("streamCount - scrolling to bottom", streamCount);
     scrollToBottom();
-  }, [chatId, chatId ? (streamCountById.get(chatId) ?? 0) : 0]);
+  }, [chatId, chatId ? streamCountById.get(chatId) ?? 0 : 0]);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -121,7 +123,7 @@ export function ChatPanel({ chatId, isPreviewOpen, onTogglePreview }: ChatPanelP
     fetchChatMessages();
   }, [fetchChatMessages]);
 
-  const messages = chatId ? (messagesById.get(chatId) ?? []) : [];
+  const messages = chatId ? messagesById.get(chatId) ?? [] : [];
   // Auto-scroll effect when messages change
   useEffect(() => {
     if (!isUserScrolling && messagesContainerRef.current && messages.length > 0) {
@@ -135,7 +137,7 @@ export function ChatPanel({ chatId, isPreviewOpen, onTogglePreview }: ChatPanelP
   }, [messages, isUserScrolling]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" dir={dir}>
       <ChatHeader
         isVersionPaneOpen={isVersionPaneOpen}
         isPreviewOpen={isPreviewOpen}
@@ -160,7 +162,8 @@ export function ChatPanel({ chatId, isPreviewOpen, onTogglePreview }: ChatPanelP
                     size="icon"
                     className="rounded-full shadow-lg hover:shadow-xl transition-all border border-border/50 backdrop-blur-sm bg-background/95 hover:bg-accent"
                     variant="outline"
-                    title={"Scroll to bottom"}
+                    title={t("Scroll to bottom")}
+                    dir={dir}
                   >
                     <ArrowDown className="h-4 w-4" />
                   </Button>

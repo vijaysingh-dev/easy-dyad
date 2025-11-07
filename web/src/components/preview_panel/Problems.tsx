@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import { useAtom, useAtomValue } from "jotai";
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
@@ -23,21 +24,29 @@ interface ProblemItemProps {
 }
 
 const ProblemItem = ({ problem }: ProblemItemProps) => {
+  const { dir } = useI18n();
   return (
-    <div className="flex items-start gap-3 p-3 border-b border-border hover:bg-[var(--background-darkest)] transition-colors">
+    <div
+      dir={dir}
+      className="flex items-start gap-3 p-3 border-b border-border hover:bg-[var(--background-darkest)] transition-colors"
+    >
       <div className="flex-shrink-0 mt-0.5">
         <XCircle size={16} className="text-red-500" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <FileText size={14} className="text-muted-foreground flex-shrink-0" />
-          <span className="text-sm font-medium truncate">{problem.file}</span>
+          <span dir={dir} className="text-sm font-medium truncate">
+            {problem.file}
+          </span>
 
-          <span className="text-xs text-muted-foreground">
+          <span dir={dir} className="text-xs text-muted-foreground">
             {problem.line}:{problem.column}
           </span>
         </div>
-        <p className="text-sm text-foreground leading-relaxed">{problem.message}</p>
+        <p dir={dir} className="text-sm text-foreground leading-relaxed">
+          {problem.message}
+        </p>
       </div>
     </div>
   );
@@ -56,6 +65,7 @@ const RecheckButton = ({
   variant = "outline",
   className = "h-7 px-3 text-xs",
 }: RecheckButtonProps) => {
+  const { t, dir } = useI18n();
   const { checkProblems, isChecking } = useCheckProblems(appId);
   const [showingFeedback, setShowingFeedback] = useState(false);
 
@@ -75,6 +85,7 @@ const RecheckButton = ({
 
   return (
     <Button
+      dir={dir}
       size={size}
       variant={variant}
       onClick={handleRecheck}
@@ -86,7 +97,7 @@ const RecheckButton = ({
         size={14}
         className={`mr-1 ${isShowingChecking ? "animate-spin" : ""}`}
       />
-      {isShowingChecking ? "Checking..." : "Run checks"}
+      {isShowingChecking ? t("Checking...") : t("Run checks")}
     </Button>
   );
 };
@@ -97,6 +108,7 @@ interface ProblemsSummaryProps {
 }
 
 const ProblemsSummary = ({ problemReport, appId }: ProblemsSummaryProps) => {
+  const { t, dir } = useI18n();
   const { streamMessage } = useStreamChat();
   const { problems } = problemReport;
   const totalErrors = problems.length;
@@ -114,9 +126,12 @@ const ProblemsSummary = ({ problemReport, appId }: ProblemsSummaryProps) => {
 
   if (problems.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-32 text-center">
-        <p className="mt-6 text-sm font-medium text-muted-foreground mb-3">
-          No problems found
+      <div
+        dir={dir}
+        className="flex flex-col items-center justify-center h-32 text-center"
+      >
+        <p dir={dir} className="mt-6 text-sm font-medium text-muted-foreground mb-3">
+          {t("No problems found")}
         </p>
         <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mb-3">
           <Check size={20} className="text-green-600 dark:text-green-400" />
@@ -128,13 +143,16 @@ const ProblemsSummary = ({ problemReport, appId }: ProblemsSummaryProps) => {
   }
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-[var(--background-darkest)] border-b border-border">
+    <div
+      dir={dir}
+      className="flex items-center justify-between px-4 py-3 bg-[var(--background-darkest)] border-b border-border"
+    >
       <div className="flex items-center gap-4">
         {totalErrors > 0 && (
           <div className="flex items-center gap-2">
             <XCircle size={16} className="text-red-500" />
-            <span className="text-sm font-medium">
-              {totalErrors} {totalErrors === 1 ? "error" : "errors"}
+            <span dir={dir} className="text-sm font-medium">
+              {t("error count", { count: totalErrors })}
             </span>
           </div>
         )}
@@ -142,6 +160,7 @@ const ProblemsSummary = ({ problemReport, appId }: ProblemsSummaryProps) => {
       <div className="flex items-center gap-2">
         <RecheckButton appId={appId} />
         <Button
+          dir={dir}
           size="sm"
           variant="default"
           onClick={handleFixAll}
@@ -149,7 +168,7 @@ const ProblemsSummary = ({ problemReport, appId }: ProblemsSummaryProps) => {
           data-testid="fix-all-button"
         >
           <Wrench size={14} className="mr-1" />
-          Fix All
+          {t("Fix All")}
         </Button>
       </div>
     </div>
@@ -157,26 +176,33 @@ const ProblemsSummary = ({ problemReport, appId }: ProblemsSummaryProps) => {
 };
 
 export function Problems() {
+  const { dir } = useI18n();
   return (
-    <div data-testid="problems-pane">
+    <div dir={dir} data-testid="problems-pane">
       <_Problems />
     </div>
   );
 }
 
 export function _Problems() {
+  const { t, dir } = useI18n();
   const selectedAppId = useAtomValue(selectedAppIdAtom);
   const { problemReport } = useCheckProblems(selectedAppId);
 
   if (!selectedAppId) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center p-8">
+      <div
+        dir={dir}
+        className="flex flex-col items-center justify-center h-full text-center p-8"
+      >
         <div className="w-16 h-16 rounded-full bg-[var(--background-darkest)] flex items-center justify-center mb-4">
           <AlertTriangle size={24} className="text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-medium mb-2">No App Selected</h3>
-        <p className="text-sm text-muted-foreground max-w-md">
-          Select an app to view TypeScript problems and diagnostic information.
+        <h3 dir={dir} className="text-lg font-medium mb-2">
+          {t("No App Selected")}
+        </h3>
+        <p dir={dir} className="text-sm text-muted-foreground max-w-md">
+          {t("Select an app to view TypeScript problems and diagnostic information.")}
         </p>
       </div>
     );
@@ -184,13 +210,18 @@ export function _Problems() {
 
   if (!problemReport) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center p-8">
+      <div
+        dir={dir}
+        className="flex flex-col items-center justify-center h-full text-center p-8"
+      >
         <div className="w-16 h-16 rounded-full bg-[var(--background-darkest)] flex items-center justify-center mb-4">
           <AlertTriangle size={24} className="text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-medium mb-2">No Problems Report</h3>
-        <p className="text-sm text-muted-foreground max-w-md mb-4">
-          Run checks to scan your app for TypeScript errors and other problems.
+        <h3 dir={dir} className="text-lg font-medium mb-2">
+          {t("No Problems Report")}
+        </h3>
+        <p dir={dir} className="text-sm text-muted-foreground max-w-md mb-4">
+          {t("Run checks to scan your app for TypeScript errors and other problems.")}
         </p>
         <RecheckButton appId={selectedAppId} />
       </div>
@@ -198,7 +229,7 @@ export function _Problems() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div dir={dir} className="flex flex-col h-full">
       <ProblemsSummary problemReport={problemReport} appId={selectedAppId} />
       <div className="flex-1 overflow-y-auto">
         {problemReport.problems.map((problem, index) => (

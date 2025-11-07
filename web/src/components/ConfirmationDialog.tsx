@@ -1,4 +1,5 @@
 import React from "react";
+import { useI18n } from "@/lib/i18n";
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
@@ -21,20 +22,33 @@ export default function ConfirmationDialog({
   onConfirm,
   onCancel,
 }: ConfirmationDialogProps) {
+  const { t, dir } = useI18n();
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
+    <div className="fixed inset-0 z-50 overflow-y-auto" dir={dir}>
+      <div
+        className="flex min-h-screen items-center justify-center p-4 text-center sm:p-0"
+        dir={dir}
+      >
         <div
           className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
           onClick={onCancel}
         />
 
-        <div className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-          <div className="bg-white dark:bg-gray-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-            <div className="sm:flex sm:items-start">
-              <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+        <div
+          className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
+          dir={dir}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4"
+            dir={dir}
+          >
+            <div className="sm:flex sm:items-start" dir={dir}>
+              <div
+                className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10"
+                dir={dir}
+              >
                 <svg
                   className="h-6 w-6 text-red-600"
                   fill="none"
@@ -49,32 +63,40 @@ export default function ConfirmationDialog({
                   />
                 </svg>
               </div>
-              <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-                  {title}
+              <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left" dir={dir}>
+                <h3
+                  className="text-lg font-medium leading-6 text-gray-900 dark:text-white"
+                  dir={dir}
+                >
+                  {t(title)}
                 </h3>
-                <div className="mt-2">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {message}
+                <div className="mt-2" dir={dir}>
+                  <p className="text-sm text-gray-500 dark:text-gray-400" dir={dir}>
+                    {t(message)}
                   </p>
                 </div>
               </div>
             </div>
           </div>
-          <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+          <div
+            className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6"
+            dir={dir}
+          >
             <button
               type="button"
               className={`inline-flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-base font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm ${confirmButtonClass}`}
               onClick={onConfirm}
+              dir={dir}
             >
-              {confirmText}
+              {t(confirmText)}
             </button>
             <button
               type="button"
               className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
               onClick={onCancel}
+              dir={dir}
             >
-              {cancelText}
+              {t(cancelText)}
             </button>
           </div>
         </div>

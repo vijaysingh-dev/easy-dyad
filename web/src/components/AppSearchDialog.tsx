@@ -6,6 +6,7 @@ import {
   CommandGroup,
   CommandItem,
 } from "./ui/command";
+import { useI18n } from "@/lib/i18n";
 import { useState, useEffect } from "react";
 import { useSearchApps } from "@/hooks/useSearchApps";
 import type { AppSearchResult } from "@shared/schemas";
@@ -23,6 +24,7 @@ export function AppSearchDialog({
   onSelectApp,
   allApps,
 }: AppSearchDialogProps) {
+  const { t, dir } = useI18n();
   const [searchQuery, setSearchQuery] = useState<string>("");
   function useDebouncedValue<T>(value: T, delay: number): T {
     const [debounced, setDebounced] = useState<T>(value);
@@ -40,11 +42,7 @@ export function AppSearchDialog({
   const appsToShow: AppSearchResult[] =
     debouncedQuery.trim() === "" ? allApps : searchResults;
 
-  const commandFilter = (
-    value: string,
-    search: string,
-    keywords?: string[],
-  ): number => {
+  const commandFilter = (value: string, search: string, keywords?: string[]): number => {
     const q = search.trim().toLowerCase();
     if (!q) return 1;
     const v = (value || "").toLowerCase();
@@ -53,7 +51,7 @@ export function AppSearchDialog({
       return 100 - Math.max(0, v.indexOf(q));
     }
     const foundInKeywords = (keywords || []).some((k) =>
-      (k || "").toLowerCase().includes(q),
+      (k || "").toLowerCase().includes(q)
     );
     return foundInKeywords ? 50 : 0;
   };
@@ -61,7 +59,7 @@ export function AppSearchDialog({
   function getSnippet(
     text: string,
     query: string,
-    radius = 50,
+    radius = 50
   ): {
     before: string;
     match: string;
@@ -73,16 +71,14 @@ export function AppSearchDialog({
     const lowerQuery = q.toLowerCase();
     const idx = lowerText.indexOf(lowerQuery);
     if (idx === -1) {
-      const raw =
-        text.length > radius * 2 ? text.slice(0, radius * 2) + "…" : text;
+      const raw = text.length > radius * 2 ? text.slice(0, radius * 2) + "…" : text;
       return { before: "", match: "", after: "", raw };
     }
     const start = Math.max(0, idx - radius);
     const end = Math.min(text.length, idx + q.length + radius);
     const before = (start > 0 ? "…" : "") + text.slice(start, idx);
     const match = text.slice(idx, idx + q.length);
-    const after =
-      text.slice(idx + q.length, end) + (end < text.length ? "…" : "");
+    const after = text.slice(idx + q.length, end) + (end < text.length ? "…" : "");
     return { before, match, after, raw: before + match + after };
   }
 
@@ -105,16 +101,17 @@ export function AppSearchDialog({
       filter={commandFilter}
     >
       <CommandInput
-        placeholder="Search apps"
+        placeholder={t("Search Apps")}
         value={searchQuery}
         onValueChange={setSearchQuery}
         data-testid="app-search-input"
+        dir={dir}
       />
-      <CommandList data-testid="app-search-list">
-        <CommandEmpty data-testid="app-search-empty">
-          No results found.
+      <CommandList data-testid="app-search-list" dir={dir}>
+        <CommandEmpty data-testid="app-search-empty" dir={dir}>
+          {t("No results found.")}
         </CommandEmpty>
-        <CommandGroup heading="Apps" data-testid="app-search-group">
+        <CommandGroup heading={t("Apps")} data-testid="app-search-group" dir={dir}>
           {appsToShow.map((app) => {
             const isSearch = searchQuery.trim() !== "";
             let snippet = null;
@@ -126,17 +123,24 @@ export function AppSearchDialog({
             return (
               <CommandItem
                 key={app.id}
+                dir={dir}
                 onSelect={() => onSelectApp(app.id)}
                 value={app.name + (snippet ? ` ${snippet.raw}` : "")}
                 keywords={snippet ? [snippet.raw] : []}
                 data-testid={`app-search-item-${app.id}`}
               >
-                <div className="flex flex-col">
-                  <span>{app.name}</span>
+                <div className="flex flex-col" dir={dir}>
+                  <span dir={dir}>{app.name}</span>
                   {snippet && (
-                    <span className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                    <span
+                      className="text-xs text-muted-foreground mt-1 line-clamp-2"
+                      dir={dir}
+                    >
                       {snippet.before}
-                      <mark className="bg-transparent underline decoration-2 decoration-primary">
+                      <mark
+                        className="bg-transparent underline decoration-2 decoration-primary"
+                        dir={dir}
+                      >
                         {snippet.match}
                       </mark>
                       {snippet.after}

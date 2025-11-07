@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import React, { useEffect, useState } from "react";
 import {
   Tooltip,
@@ -17,6 +18,7 @@ interface TokenBarProps {
 }
 
 export function TokenBar({ chatId }: TokenBarProps) {
+  const { t, dir } = useI18n();
   const [inputValue] = useAtom(chatInputValueAtom);
   const { countTokens, result } = useCountTokens();
   const [error, setError] = useState<string | null>(null);
@@ -29,13 +31,13 @@ export function TokenBar({ chatId }: TokenBarProps) {
 
     const debounceTimer = setTimeout(() => {
       countTokens(chatId, inputValue).catch((err) => {
-        setError("Failed to count tokens");
+        setError(t("Failed to count tokens"));
         console.error("Token counting error:", err);
       });
     }, 500);
 
     return () => clearTimeout(debounceTimer);
-  }, [chatId, inputValue, countTokens, settings?.selectedModel]);
+  }, [chatId, inputValue, countTokens, settings?.selectedModel, t]);
 
   if (!chatId || !result) {
     return null;
@@ -61,15 +63,18 @@ export function TokenBar({ chatId }: TokenBarProps) {
   const inputPercent = (inputTokens / contextWindow) * 100;
 
   return (
-    <div className="px-4 pb-2 text-xs">
+    <div className="px-4 pb-2 text-xs" dir={dir}>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="w-full">
               <div className="flex justify-between mb-1 text-xs text-muted-foreground">
-                <span>Tokens: {totalTokens.toLocaleString()}</span>
-                <span>
-                  {Math.round(percentUsed)}% of {(contextWindow / 1000).toFixed(0)}K
+                <span dir={dir}>
+                  {t("Tokens:")} {totalTokens.toLocaleString()}
+                </span>
+                <span dir={dir}>
+                  {Math.round(percentUsed)}% {t("of")}{" "}
+                  {(contextWindow / 1000).toFixed(0)}K
                 </span>
               </div>
               <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden flex">
@@ -101,44 +106,50 @@ export function TokenBar({ chatId }: TokenBarProps) {
               </div>
             </div>
           </TooltipTrigger>
-          <TooltipContent side="top" className="w-64 p-2">
+          <TooltipContent side="top" className="w-64 p-2" dir={dir}>
             <div className="space-y-1">
-              <div className="font-medium">Token Usage Breakdown</div>
+              <div className="font-medium" dir={dir}>
+                {t("Token Usage Breakdown")}
+              </div>
               <div className="grid grid-cols-[20px_1fr_auto] gap-x-2 items-center">
                 <MessageSquare size={12} className="text-blue-500" />
-                <span>Message History</span>
-                <span>{messageHistoryTokens.toLocaleString()}</span>
+                <span dir={dir}>{t("Message History")}</span>
+                <span dir={dir}>{messageHistoryTokens.toLocaleString()}</span>
 
                 <Code size={12} className="text-green-500" />
-                <span>Codebase</span>
-                <span>{codebaseTokens.toLocaleString()}</span>
+                <span dir={dir}>{t("Codebase")}</span>
+                <span dir={dir}>{codebaseTokens.toLocaleString()}</span>
 
                 <ExternalLink size={12} className="text-orange-500" />
-                <span>Mentioned Apps</span>
-                <span>{mentionedAppsTokens.toLocaleString()}</span>
+                <span dir={dir}>{t("Mentioned Apps")}</span>
+                <span dir={dir}>{mentionedAppsTokens.toLocaleString()}</span>
 
                 <Bot size={12} className="text-purple-500" />
-                <span>System Prompt</span>
-                <span>{systemPromptTokens.toLocaleString()}</span>
+                <span dir={dir}>{t("System Prompt")}</span>
+                <span dir={dir}>{systemPromptTokens.toLocaleString()}</span>
 
                 <AlignLeft size={12} className="text-yellow-500" />
-                <span>Current Input</span>
-                <span>{inputTokens.toLocaleString()}</span>
+                <span dir={dir}>{t("Current Input")}</span>
+                <span dir={dir}>{inputTokens.toLocaleString()}</span>
               </div>
               <div className="pt-1 border-t border-border">
                 <div className="flex justify-between font-medium">
-                  <span>Total</span>
-                  <span>{totalTokens.toLocaleString()}</span>
+                  <span dir={dir}>{t("Total")}</span>
+                  <span dir={dir}>{totalTokens.toLocaleString()}</span>
                 </div>
               </div>
             </div>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      {error && <div className="text-red-500 text-xs mt-1">{error}</div>}
+      {error && (
+        <div className="text-red-500 text-xs mt-1" dir={dir}>
+          {error}
+        </div>
+      )}
       {(!settings?.enableProSmartFilesContextMode || !settings?.enableEeziPro) && (
-        <div className="text-xs text-center text-muted-foreground mt-2">
-          Optimize your tokens with{" "}
+        <div className="text-xs text-center text-muted-foreground mt-2" dir={dir}>
+          {t("Optimize your tokens with")}{" "}
           <a
             onClick={() =>
               settings?.enableEeziPro
@@ -148,8 +159,9 @@ export function TokenBar({ chatId }: TokenBarProps) {
                 : api.app.openExternalUrl("https://dyad.sh/pro#ai")
             }
             className="text-blue-500 dark:text-blue-400 cursor-pointer hover:underline"
+            dir={dir}
           >
-            Eezi Pro's Smart Context
+            {t("Eezi Pro's Smart Context")}
           </a>
         </div>
       )}

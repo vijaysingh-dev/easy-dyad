@@ -4,6 +4,7 @@ import { RefreshCw } from "lucide-react";
 import { useLoadApp } from "@/hooks/useLoadApp";
 import { useAtomValue } from "jotai";
 import { selectedFileAtom } from "@/atoms/viewAtoms";
+import { useI18n } from "@/lib/i18n";
 
 interface App {
   id?: number;
@@ -19,31 +20,40 @@ export interface CodeViewProps {
 export const CodeView = ({ loading, app }: CodeViewProps) => {
   const selectedFile = useAtomValue(selectedFileAtom);
   const { refreshApp } = useLoadApp(app?.id ?? null);
+  const { t, dir } = useI18n();
 
   if (loading) {
-    return <div className="text-center py-4">Loading files...</div>;
+    return (
+      <div dir={dir} className="text-center py-4">
+        {t("Loading files...")}
+      </div>
+    );
   }
 
   if (!app) {
     return (
-      <div className="text-center py-4 text-gray-500">No app selected</div>
+      <div dir={dir} className="text-center py-4 text-gray-500">
+        {t("No app selected")}
+      </div>
     );
   }
 
   if (app.files && app.files.length > 0) {
     return (
-      <div className="flex flex-col h-full">
+      <div dir={dir} className="flex flex-col h-full">
         {/* Toolbar */}
         <div className="flex items-center p-2 border-b space-x-2">
           <button
             onClick={() => refreshApp()}
             className="p-1 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading || !app.id}
-            title="Refresh Files"
+            title={t("Refresh Files")}
           >
             <RefreshCw size={16} />
           </button>
-          <div className="text-sm text-gray-500">{app.files.length} files</div>
+          <div dir={dir} className="text-sm text-gray-500">
+            {t("files count", { count: app.files.length })}
+          </div>
         </div>
 
         {/* Content */}
@@ -55,8 +65,8 @@ export const CodeView = ({ loading, app }: CodeViewProps) => {
             {selectedFile ? (
               <FileEditor appId={app.id ?? null} filePath={selectedFile.path} />
             ) : (
-              <div className="text-center py-4 text-gray-500">
-                Select a file to view
+              <div dir={dir} className="text-center py-4 text-gray-500">
+                {t("Select a file to view")}
               </div>
             )}
           </div>
@@ -65,5 +75,9 @@ export const CodeView = ({ loading, app }: CodeViewProps) => {
     );
   }
 
-  return <div className="text-center py-4 text-gray-500">No files found</div>;
+  return (
+    <div dir={dir} className="text-center py-4 text-gray-500">
+      {t("No files found")}
+    </div>
+  );
 };

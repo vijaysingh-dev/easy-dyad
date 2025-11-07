@@ -1,4 +1,5 @@
 import React from "react";
+import { useI18n } from "@/lib/i18n";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,27 +22,35 @@ export const CommunityCodeConsentDialog: React.FC<CommunityCodeConsentDialogProp
   onAccept,
   onCancel,
 }) => {
+  const { t, dir } = useI18n();
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Community Code Notice</AlertDialogTitle>
-          <AlertDialogDescription className="space-y-3">
-            <p>This code was created by a Eezi community member, not our core team.</p>
-            <p>
-              Community code can be very helpful, but since it's built independently, it
-              may have bugs, security risks, or could cause issues with your system. We
-              can't provide official support if problems occur.
+      <AlertDialogContent dir={dir}>
+        <AlertDialogHeader dir={dir}>
+          <AlertDialogTitle dir={dir}>{t("Community Code Notice")}</AlertDialogTitle>
+          <AlertDialogDescription className="space-y-3" dir={dir}>
+            <p dir={dir}>
+              {t("This code was created by a Eezi community member, not our core team.")}
             </p>
-            <p>
-              We recommend reviewing the code on GitHub first. Only proceed if you're
-              comfortable with these risks.
+            <p dir={dir}>
+              {t(
+                "Community code can be very helpful, but since it's built independently, it may have bugs, security risks, or could cause issues with your system. We can't provide official support if problems occur."
+              )}
+            </p>
+            <p dir={dir}>
+              {t(
+                "We recommend reviewing the code on GitHub first. Only proceed if you're comfortable with these risks."
+              )}
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={onCancel}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onAccept}>Accept</AlertDialogAction>
+        <AlertDialogFooter dir={dir}>
+          <AlertDialogCancel onClick={onCancel} dir={dir}>
+            {t("Cancel")}
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={onAccept} dir={dir}>
+            {t("Accept")}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

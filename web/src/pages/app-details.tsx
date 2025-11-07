@@ -26,9 +26,11 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useCheckName } from "@/hooks/useCheckName";
 import { AppUpgrades } from "@/components/AppUpgrades";
 import { CapacitorControls } from "@/components/CapacitorControls";
+import { useI18n } from "@/lib/i18n";
 import api from "@/api";
 
 export default function AppDetailsPage() {
+  const { t, dir } = useI18n();
   const navigate = useNavigate();
   const router = useRouter();
   const search = useSearch({ from: "/app-details" as const });
@@ -187,16 +189,19 @@ export default function AppDetailsPage() {
     return (
       <div className="relative min-h-screen p-8">
         <Button
+          dir={dir}
           onClick={() => router.history.back()}
           variant="outline"
           size="sm"
           className="absolute top-4 left-4 flex items-center gap-1 bg-(--background-lightest) py-5"
         >
           <ArrowLeft className="h-3 w-4" />
-          Back
+          {t("Back")}
         </Button>
         <div className="flex flex-col items-center justify-center h-full">
-          <h2 className="text-xl font-bold">App not found</h2>
+          <h2 dir={dir} className="text-xl font-bold">
+            {t("App not found")}
+          </h2>
         </div>
       </div>
     );
@@ -205,21 +210,29 @@ export default function AppDetailsPage() {
   const fullAppPath = appBasePath.replace("eezi-apps", selectedApp.path);
 
   return (
-    <div className="relative min-h-screen p-4 w-full" data-testid="app-details-page">
+    <div
+      dir={dir}
+      className="relative min-h-screen p-4 w-full"
+      data-testid="app-details-page"
+    >
       <Button
+        dir={dir}
         onClick={() => router.history.back()}
         variant="outline"
         size="sm"
         className="absolute top-4 left-4 flex items-center gap-1 bg-(--background-lightest) py-2"
       >
         <ArrowLeft className="h-3 w-4" />
-        Back
+        {t("Back")}
       </Button>
 
       <div className="w-full max-w-2xl mx-auto mt-10 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm relative">
         <div className="flex items-center mb-3">
-          <h2 className="text-2xl font-bold">{selectedApp.name}</h2>
+          <h2 dir={dir} className="text-2xl font-bold">
+            {t("App name", { name: selectedApp.name })}
+          </h2>
           <Button
+            dir={dir}
             variant="ghost"
             size="sm"
             className="ml-1 p-0.5 h-auto"
@@ -235,6 +248,7 @@ export default function AppDetailsPage() {
           <Popover>
             <PopoverTrigger asChild>
               <Button
+                dir={dir}
                 variant="ghost"
                 size="sm"
                 className="h-7 w-7 p-0"
@@ -246,28 +260,31 @@ export default function AppDetailsPage() {
             <PopoverContent className="w-40 p-2" align="end">
               <div className="flex flex-col space-y-0.5">
                 <Button
+                  dir={dir}
                   onClick={handleOpenRenameFolderDialog}
                   variant="ghost"
                   size="sm"
                   className="h-8 justify-start text-xs"
                 >
-                  Rename folder
+                  {t("Rename folder")}
                 </Button>
                 <Button
+                  dir={dir}
                   onClick={handleOpenCopyDialog}
                   variant="ghost"
                   size="sm"
                   className="h-8 justify-start text-xs"
                 >
-                  Copy app
+                  {t("Copy app")}
                 </Button>
                 <Button
+                  dir={dir}
                   onClick={() => setIsDeleteDialogOpen(true)}
                   variant="ghost"
                   size="sm"
                   className="h-8 justify-start text-xs"
                 >
-                  Delete
+                  {t("Delete")}
                 </Button>
               </div>
             </PopoverContent>
@@ -276,31 +293,43 @@ export default function AppDetailsPage() {
 
         <div className="grid grid-cols-2 gap-3 text-sm mb-4">
           <div>
-            <span className="block text-gray-500 dark:text-gray-400 mb-0.5 text-xs">
-              Created
+            <span
+              dir={dir}
+              className="block text-gray-500 dark:text-gray-400 mb-0.5 text-xs"
+            >
+              {t("Created")}
             </span>
-            <span>{new Date().toLocaleString()}</span>
+            <span dir={dir}>{new Date().toLocaleString()}</span>
           </div>
           <div>
-            <span className="block text-gray-500 dark:text-gray-400 mb-0.5 text-xs">
-              Last Updated
+            <span
+              dir={dir}
+              className="block text-gray-500 dark:text-gray-400 mb-0.5 text-xs"
+            >
+              {t("Last Updated")}
             </span>
-            <span>{new Date().toLocaleString()}</span>
+            <span dir={dir}>{new Date().toLocaleString()}</span>
           </div>
           <div className="col-span-2">
-            <span className="block text-gray-500 dark:text-gray-400 mb-0.5 text-xs">
-              Path
+            <span
+              dir={dir}
+              className="block text-gray-500 dark:text-gray-400 mb-0.5 text-xs"
+            >
+              {t("Path")}
             </span>
             <div className="flex items-center gap-1">
-              <span className="text-sm break-all">{fullAppPath}</span>
+              <span dir={dir} className="text-sm break-all">
+                {fullAppPath}
+              </span>
               <Button
+                dir={dir}
                 variant="ghost"
                 size="sm"
                 className="p-0.5 h-auto cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 onClick={() => {
                   api.app.showItemInFolder(fullAppPath);
                 }}
-                title="Show in folder"
+                title={t("Show in folder")}
               >
                 <Folder className="h-3.5 w-3.5" />
               </Button>
@@ -309,6 +338,7 @@ export default function AppDetailsPage() {
         </div>
         <div className="mt-4 flex flex-col gap-2">
           <Button
+            dir={dir}
             onClick={() => {
               if (!appId) {
                 console.error("No app id found");
@@ -319,7 +349,7 @@ export default function AppDetailsPage() {
             className="cursor-pointer w-full py-5 flex justify-center items-center gap-2"
             size="lg"
           >
-            Open in Chat
+            {t("Open in Chat")}
             <MessageCircle className="h-4 w-4" />
           </Button>
           <div className="border border-gray-200 rounded-md p-4">
@@ -334,25 +364,28 @@ export default function AppDetailsPage() {
         <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
           <DialogContent className="max-w-sm p-4">
             <DialogHeader className="pb-2">
-              <DialogTitle>Rename App</DialogTitle>
+              <DialogTitle dir={dir}>{t("Rename App")}</DialogTitle>
             </DialogHeader>
             <Input
+              dir={dir}
               value={newAppName}
               onChange={(e) => setNewAppName(e.target.value)}
-              placeholder="Enter new app name"
+              placeholder={t("Enter new app name")}
               className="my-2"
               autoFocus
             />
             <DialogFooter className="pt-2">
               <Button
+                dir={dir}
                 variant="outline"
                 onClick={() => setIsRenameDialogOpen(false)}
                 disabled={isRenaming}
                 size="sm"
               >
-                Cancel
+                {t("Cancel")}
               </Button>
               <Button
+                dir={dir}
                 onClick={() => {
                   setIsRenameDialogOpen(false);
                   setIsRenameConfirmDialogOpen(true);
@@ -360,7 +393,7 @@ export default function AppDetailsPage() {
                 disabled={isRenaming || !newAppName.trim()}
                 size="sm"
               >
-                Continue
+                {t("Continue")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -373,28 +406,31 @@ export default function AppDetailsPage() {
         >
           <DialogContent className="max-w-sm p-4">
             <DialogHeader className="pb-2">
-              <DialogTitle>Rename app folder</DialogTitle>
-              <DialogDescription className="text-xs">
-                This will change only the folder name, not the app name.
+              <DialogTitle dir={dir}>{t("Rename app folder")}</DialogTitle>
+              <DialogDescription dir={dir} className="text-xs">
+                {t("This will change only the folder name, not the app name.")}
               </DialogDescription>
             </DialogHeader>
             <Input
+              dir={dir}
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder="Enter new folder name"
+              placeholder={t("Enter new folder name")}
               className="my-2"
               autoFocus
             />
             <DialogFooter className="pt-2">
               <Button
+                dir={dir}
                 variant="outline"
                 onClick={() => setIsRenameFolderDialogOpen(false)}
                 disabled={isRenamingFolder}
                 size="sm"
               >
-                Cancel
+                {t("Cancel")}
               </Button>
               <Button
+                dir={dir}
                 onClick={handleRenameFolderOnly}
                 disabled={isRenamingFolder || !newFolderName.trim()}
                 size="sm"
@@ -421,10 +457,10 @@ export default function AppDetailsPage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Renaming...
+                    {t("Renaming...")}
                   </>
                 ) : (
-                  "Rename Folder"
+                  t("Rename Folder")
                 )}
               </Button>
             </DialogFooter>
@@ -438,55 +474,65 @@ export default function AppDetailsPage() {
         >
           <DialogContent className="max-w-sm p-4">
             <DialogHeader className="pb-2">
-              <DialogTitle className="text-base">
-                How would you like to rename "{selectedApp.name}"?
+              <DialogTitle dir={dir} className="text-base">
+                {t('How would you like to rename "name"?', { name: selectedApp.name })}
               </DialogTitle>
-              <DialogDescription className="text-xs">
-                Choose an option:
+              <DialogDescription dir={dir} className="text-xs">
+                {t("Choose an option:")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-2 my-2">
               <Button
+                dir={dir}
                 variant="outline"
                 className="w-full justify-start p-2 h-auto relative text-sm"
                 onClick={() => handleRenameApp(true)}
                 disabled={isRenaming}
               >
                 <div className="absolute top-1 right-1">
-                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-1.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 text-[10px]">
-                    Recommended
+                  <span
+                    dir={dir}
+                    className="bg-blue-100 text-blue-800 text-xs font-medium px-1.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 text-[10px]"
+                  >
+                    {t("Recommended")}
                   </span>
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-xs">Rename app and folder</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Renames the folder to match the new app name.
+                  <p dir={dir} className="font-medium text-xs">
+                    {t("Rename app and folder")}
+                  </p>
+                  <p dir={dir} className="text-xs text-gray-500 dark:text-gray-400">
+                    {t("Renames the folder to match the new app name.")}
                   </p>
                 </div>
               </Button>
 
               <Button
+                dir={dir}
                 variant="outline"
                 className="w-full justify-start p-2 h-auto text-sm"
                 onClick={() => handleRenameApp(false)}
                 disabled={isRenaming}
               >
                 <div className="text-left">
-                  <p className="font-medium text-xs">Rename app only</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    The folder name will remain the same.
+                  <p dir={dir} className="font-medium text-xs">
+                    {t("Rename app only")}
+                  </p>
+                  <p dir={dir} className="text-xs text-gray-500 dark:text-gray-400">
+                    {t("The folder name will remain the same.")}
                   </p>
                 </div>
               </Button>
             </div>
             <DialogFooter className="pt-2">
               <Button
+                dir={dir}
                 variant="outline"
                 onClick={() => setIsRenameConfirmDialogOpen(false)}
                 disabled={isRenaming}
                 size="sm"
               >
-                Cancel
+                {t("Cancel")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -497,23 +543,30 @@ export default function AppDetailsPage() {
           <Dialog open={isCopyDialogOpen} onOpenChange={setIsCopyDialogOpen}>
             <DialogContent className="max-w-md p-4">
               <DialogHeader className="pb-2">
-                <DialogTitle>Copy "{selectedApp.name}"</DialogTitle>
-                <DialogDescription className="text-sm">
-                  <p>Create a copy of this app.</p>
-                  <p>
-                    Note: this does not copy over the Supabase project or GitHub project.
+                <DialogTitle dir={dir}>
+                  {t('Copy "name"', { name: selectedApp.name })}
+                </DialogTitle>
+                <DialogDescription dir={dir} className="text-sm">
+                  <p dir={dir}>{t("Create a copy of this app.")}</p>
+                  <p dir={dir}>
+                    {t(
+                      "Note: this does not copy over the Supabase project or GitHub project."
+                    )}
                   </p>
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-3 my-2">
                 <div>
-                  <Label htmlFor="newAppName">New app name</Label>
+                  <Label dir={dir} htmlFor="newAppName">
+                    {t("New app name")}
+                  </Label>
                   <div className="relative mt-1">
                     <Input
+                      dir={dir}
                       id="newAppName"
                       value={newCopyAppName}
                       onChange={handleAppNameChange}
-                      placeholder="Enter new app name"
+                      placeholder={t("Enter new app name")}
                       className="pr-8"
                       disabled={copyAppMutation.isPending}
                     />
@@ -525,14 +578,20 @@ export default function AppDetailsPage() {
                   </div>
 
                   {nameExists && (
-                    <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-1">
-                      An app with this name already exists. Please choose another name.
+                    <p
+                      dir={dir}
+                      className="text-xs text-yellow-600 dark:text-yellow-500 mt-1"
+                    >
+                      {t(
+                        "An app with this name already exists. Please choose another name."
+                      )}
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
                   <Button
+                    dir={dir}
                     variant="outline"
                     className="w-full justify-start p-2 h-auto relative text-sm"
                     onClick={() => copyAppMutation.mutate({ withHistory: true })}
@@ -548,19 +607,25 @@ export default function AppDetailsPage() {
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
                     <div className="absolute top-1 right-1">
-                      <span className="bg-blue-100 text-blue-800 text-xs font-medium px-1.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 text-[10px]">
-                        Recommended
+                      <span
+                        dir={dir}
+                        className="bg-blue-100 text-blue-800 text-xs font-medium px-1.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 text-[10px]"
+                      >
+                        {t("Recommended")}
                       </span>
                     </div>
                     <div className="text-left">
-                      <p className="font-medium text-xs">Copy app with history</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Copies the entire app, including the Git version history.
+                      <p dir={dir} className="font-medium text-xs">
+                        {t("Copy app with history")}
+                      </p>
+                      <p dir={dir} className="text-xs text-gray-500 dark:text-gray-400">
+                        {t("Copies the entire app, including the Git version history.")}
                       </p>
                     </div>
                   </Button>
 
                   <Button
+                    dir={dir}
                     variant="outline"
                     className="w-full justify-start p-2 h-auto text-sm"
                     onClick={() => copyAppMutation.mutate({ withHistory: false })}
@@ -576,9 +641,11 @@ export default function AppDetailsPage() {
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
                     <div className="text-left">
-                      <p className="font-medium text-xs">Copy app without history</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Useful if the current app has a Git-related issue.
+                      <p dir={dir} className="font-medium text-xs">
+                        {t("Copy app without history")}
+                      </p>
+                      <p dir={dir} className="text-xs text-gray-500 dark:text-gray-400">
+                        {t("Useful if the current app has a Git-related issue.")}
                       </p>
                     </div>
                   </Button>
@@ -586,12 +653,13 @@ export default function AppDetailsPage() {
               </div>
               <DialogFooter className="pt-2">
                 <Button
+                  dir={dir}
                   variant="outline"
                   onClick={() => setIsCopyDialogOpen(false)}
                   disabled={copyAppMutation.isPending}
                   size="sm"
                 >
-                  Cancel
+                  {t("Cancel")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -602,22 +670,27 @@ export default function AppDetailsPage() {
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <DialogContent className="max-w-sm p-4">
             <DialogHeader className="pb-2">
-              <DialogTitle>Delete "{selectedApp.name}"?</DialogTitle>
-              <DialogDescription className="text-xs">
-                This action is irreversible. All app files and chat history will be
-                permanently deleted.
+              <DialogTitle dir={dir}>
+                {t('Delete "name"?', { name: selectedApp.name })}
+              </DialogTitle>
+              <DialogDescription dir={dir} className="text-xs">
+                {t(
+                  "This action is irreversible. All app files and chat history will be permanently deleted."
+                )}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="flex justify-end gap-2 pt-2">
               <Button
+                dir={dir}
                 variant="outline"
                 onClick={() => setIsDeleteDialogOpen(false)}
                 disabled={isDeleting}
                 size="sm"
               >
-                Cancel
+                {t("Cancel")}
               </Button>
               <Button
+                dir={dir}
                 variant="destructive"
                 onClick={handleDeleteApp}
                 disabled={isDeleting}
@@ -646,10 +719,10 @@ export default function AppDetailsPage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Deleting...
+                    {t("Deleting...")}
                   </>
                 ) : (
-                  "Delete App"
+                  t("Delete App")
                 )}
               </Button>
             </DialogFooter>

@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import React, { useMemo, useState } from "react";
 import { CheckCircle, ChevronsUpDown, ChevronsDownUp } from "lucide-react";
 import { CodeHighlight } from "./CodeHighlight";
@@ -11,6 +12,7 @@ export const EeziMcpToolResult: React.FC<EeziMcpToolResultProps> = ({
   node,
   children,
 }) => {
+  const { t, dir } = useI18n();
   const serverName: string = node?.properties?.serverName || "";
   const toolName: string = node?.properties?.toolName || "";
   const [expanded, setExpanded] = useState(false);
@@ -32,14 +34,16 @@ export const EeziMcpToolResult: React.FC<EeziMcpToolResultProps> = ({
     <div
       className="relative bg-(--background-lightest) hover:bg-(--background-lighter) rounded-lg px-4 py-2 border my-2 cursor-pointer"
       onClick={() => setExpanded((v) => !v)}
+      dir={dir}
     >
       {/* Top-left label badge */}
       <div
         className="absolute top-3 left-2 flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold text-emerald-600 bg-white dark:bg-zinc-900"
         style={{ zIndex: 1 }}
+        dir={dir}
       >
         <CheckCircle size={16} className="text-emerald-600" />
-        <span>Tool Result</span>
+        <span dir={dir}>{t("Tool Result")}</span>
       </div>
 
       {/* Right chevron */}
@@ -48,7 +52,7 @@ export const EeziMcpToolResult: React.FC<EeziMcpToolResultProps> = ({
       </div>
 
       {/* Header content */}
-      <div className="flex items-start gap-2 pl-24 pr-8 py-1">
+      <div className="flex items-start gap-2 pl-24 pr-8 py-1" dir={dir}>
         {serverName ? (
           <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-zinc-800 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-zinc-700">
             {serverName}
@@ -64,7 +68,7 @@ export const EeziMcpToolResult: React.FC<EeziMcpToolResultProps> = ({
 
       {/* JSON content */}
       {expanded ? (
-        <div className="mt-2 pr-4 pb-2">
+        <div className="mt-2 pr-4 pb-2" dir={dir}>
           <CodeHighlight className="language-json">{prettyJson}</CodeHighlight>
         </div>
       ) : null}

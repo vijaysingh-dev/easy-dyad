@@ -1,4 +1,5 @@
 import React from "react";
+import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 import { X, AlertTriangle } from "lucide-react";
 import { Button } from "./ui/button";
@@ -14,6 +15,7 @@ export function InputRequestToast({
   toastId,
   onResponse,
 }: InputRequestToastProps) {
+  const { t, dir } = useI18n();
   const handleClose = () => {
     toast.dismiss(toastId);
   };
@@ -31,7 +33,10 @@ export function InputRequestToast({
     .join("\n");
 
   return (
-    <div className="relative bg-amber-50/95 dark:bg-slate-800/95 backdrop-blur-sm border border-amber-200 dark:border-slate-600 rounded-xl shadow-lg min-w-[400px] max-w-[500px] overflow-hidden">
+    <div
+      dir={dir}
+      className="relative bg-amber-50/95 dark:bg-slate-800/95 backdrop-blur-sm border border-amber-200 dark:border-slate-600 rounded-xl shadow-lg min-w-[400px] max-w-[500px] overflow-hidden"
+    >
       {/* Content */}
       <div className="p-5">
         <div className="flex items-start">
@@ -42,15 +47,19 @@ export function InputRequestToast({
                   <AlertTriangle className="w-3.5 h-3.5 text-white" />
                 </div>
               </div>
-              <h3 className="ml-3 text-base font-semibold text-amber-900 dark:text-amber-100">
-                Input Required
+              <h3
+                dir={dir}
+                className="ml-3 text-base font-semibold text-amber-900 dark:text-amber-100"
+              >
+                {t("Input Required")}
               </h3>
 
               {/* Close button */}
               <button
+                dir={dir}
                 onClick={handleClose}
                 className="ml-auto flex-shrink-0 p-1.5 text-amber-500 dark:text-slate-400 hover:text-amber-700 dark:hover:text-slate-200 transition-colors duration-200 rounded-md hover:bg-amber-100/50 dark:hover:bg-slate-700/50"
-                aria-label="Close"
+                aria-label={t("Close")}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -58,7 +67,10 @@ export function InputRequestToast({
 
             {/* Message */}
             <div className="mb-5">
-              <p className="text-sm text-amber-900 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
+              <p
+                dir={dir}
+                className="text-sm text-amber-900 dark:text-slate-200 whitespace-pre-wrap leading-relaxed"
+              >
                 {cleanMessage}
               </p>
             </div>
@@ -66,19 +78,21 @@ export function InputRequestToast({
             {/* Action buttons */}
             <div className="flex items-center gap-3">
               <Button
+                dir={dir}
                 onClick={() => handleResponse("y")}
                 size="sm"
                 className="bg-primary  text-white dark:bg-primary dark:text-black px-6"
               >
-                Yes
+                {t("Yes")}
               </Button>
               <Button
+                dir={dir}
                 onClick={() => handleResponse("n")}
                 size="sm"
                 variant="outline"
                 className="border-amber-300 dark:border-slate-500 text-amber-800 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-slate-700 px-6"
               >
-                No
+                {t("No")}
               </Button>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import { $getRoot, $createParagraphNode, $createTextNode, EditorState } from "lexical";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { PlainTextPlugin } from "@lexical/react/LexicalPlainTextPlugin";
@@ -31,11 +32,13 @@ const beautifulMentionsTheme: BeautifulMentionsTheme = {
 // Custom menu item component
 const CustomMenuItem = forwardRef<HTMLLIElement, BeautifulMentionsMenuItemProps>(
   ({ selected, item, ...props }, ref) => {
+    const { t, dir } = useI18n();
     const isPrompt = typeof item !== "string" && item.data?.type === "prompt";
-    const label = isPrompt ? "Prompt" : "App";
+    const label = isPrompt ? t("Prompt") : t("App");
     const value = typeof item === "string" ? item : (item as any)?.value;
     return (
       <li
+        dir={dir}
         className={`m-0 flex items-center px-3 py-2 cursor-pointer whitespace-nowrap ${
           selected
             ? "bg-accent text-accent-foreground"
@@ -63,8 +66,10 @@ const CustomMenuItem = forwardRef<HTMLLIElement, BeautifulMentionsMenuItemProps>
 
 // Custom menu component
 function CustomMenu({ loading: _loading, ...props }: any) {
+  const { dir } = useI18n();
   return (
     <ul
+      dir={dir}
       className="m-0 mb-1 min-w-[300px] w-auto max-h-64 overflow-y-auto bg-popover border border-border rounded-lg shadow-lg z-50"
       style={{
         position: "absolute",
@@ -230,6 +235,7 @@ export function LexicalChatInput({
   placeholder = "Ask Eezi to build...",
   disabled = false,
 }: LexicalChatInputProps) {
+  const { t, dir } = useI18n();
   const { apps } = useLoadApps();
   const { prompts } = usePrompts();
   const [shouldClear, setShouldClear] = useState(false);
@@ -338,15 +344,18 @@ export function LexicalChatInput({
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div className="relative flex-1">
+      <div className="relative flex-1" dir={dir}>
         <PlainTextPlugin
           contentEditable={
             <ContentEditable
               className="flex-1 p-2 focus:outline-none overflow-y-auto min-h-[40px] max-h-[200px] resize-none"
-              aria-placeholder={placeholder}
+              aria-placeholder={t(placeholder)}
               placeholder={
-                <div className="absolute top-2 left-2 text-muted-foreground pointer-events-none select-none">
-                  {placeholder}
+                <div
+                  className="absolute top-2 left-2 text-muted-foreground pointer-events-none select-none"
+                  dir={dir}
+                >
+                  {t(placeholder)}
                 </div>
               }
               onPaste={onPaste}

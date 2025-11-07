@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { Brain, ChevronDown, ChevronUp, Loader } from "lucide-react";
 import { VanillaMarkdownParser } from "./EeziMarkdownParser";
@@ -10,6 +11,7 @@ interface EeziThinkProps {
 }
 
 export const EeziThink: React.FC<EeziThinkProps> = ({ children, node }) => {
+  const { t, dir } = useI18n();
   const state = node?.properties?.state as CustomTagState;
   const inProgress = state === "pending";
   const [isExpanded, setIsExpanded] = useState(inProgress);
@@ -56,14 +58,16 @@ export const EeziThink: React.FC<EeziThinkProps> = ({ children, node }) => {
           setIsExpanded(!isExpanded);
         }
       }}
+      dir={dir}
     >
       {/* Top-left label badge */}
       <div
         className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold text-purple-500 bg-white dark:bg-zinc-900"
         style={{ zIndex: 1 }}
+        dir={dir}
       >
         <Brain size={16} className="text-purple-500" />
-        <span>Thinking</span>
+        <span dir={dir}>{t("Thinking")}</span>
         {inProgress && (
           <Loader size={14} className="ml-1 text-purple-500 animate-spin" />
         )}
@@ -82,8 +86,9 @@ export const EeziThink: React.FC<EeziThinkProps> = ({ children, node }) => {
           opacity: isExpanded ? 1 : 0,
           marginBottom: isExpanded ? "0" : "-6px", // Compensate for padding
         }}
+        dir={dir}
       >
-        <div className="px-0 text-sm text-gray-600 dark:text-gray-300">
+        <div className="px-0 text-sm text-gray-600 dark:text-gray-300" dir={dir}>
           {typeof children === "string" ? (
             <VanillaMarkdownParser content={children} />
           ) : (

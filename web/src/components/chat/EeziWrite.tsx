@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import type React from "react";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -29,6 +30,7 @@ export const EeziWrite: React.FC<EeziWriteProps> = ({
   path: pathProp,
   description: descriptionProp,
 }) => {
+  const { t, dir } = useI18n();
   const [isContentVisible, setIsContentVisible] = useState(false);
 
   // Use props directly if provided, otherwise extract from node
@@ -58,25 +60,29 @@ export const EeziWrite: React.FC<EeziWriteProps> = ({
         inProgress ? "border-amber-500" : aborted ? "border-red-500" : "border-border"
       }`}
       onClick={() => setIsContentVisible(!isContentVisible)}
+      dir={dir}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between" dir={dir}>
+        <div className="flex items-center gap-2" dir={dir}>
           <Pencil size={16} />
           {fileName && (
-            <span className="text-gray-700 dark:text-gray-300 font-medium text-sm">
+            <span
+              className="text-gray-700 dark:text-gray-300 font-medium text-sm"
+              dir={dir}
+            >
               {fileName}
             </span>
           )}
           {inProgress && (
-            <div className="flex items-center text-amber-600 text-xs">
+            <div className="flex items-center text-amber-600 text-xs" dir={dir}>
               <Loader size={14} className="mr-1 animate-spin" />
-              <span>Writing...</span>
+              <span dir={dir}>{t("Writing...")}</span>
             </div>
           )}
           {aborted && (
-            <div className="flex items-center text-red-600 text-xs">
+            <div className="flex items-center text-red-600 text-xs" dir={dir}>
               <CircleX size={14} className="mr-1" />
-              <span>Did not finish</span>
+              <span dir={dir}>{t("Did not finish")}</span>
             </div>
           )}
         </div>
@@ -91,9 +97,10 @@ export const EeziWrite: React.FC<EeziWriteProps> = ({
                       handleCancel();
                     }}
                     className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1 rounded cursor-pointer"
+                    dir={dir}
                   >
                     <X size={14} />
-                    Cancel
+                    {t("Cancel")}
                   </button>
                 </>
               ) : (
@@ -103,9 +110,10 @@ export const EeziWrite: React.FC<EeziWriteProps> = ({
                     handleEdit();
                   }}
                   className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1 rounded cursor-pointer"
+                  dir={dir}
                 >
                   <Edit size={14} />
-                  Edit
+                  {t("Edit")}
                 </button>
               )}
             </>
@@ -124,20 +132,32 @@ export const EeziWrite: React.FC<EeziWriteProps> = ({
         </div>
       </div>
       {path && (
-        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+        <div
+          className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1"
+          dir={dir}
+        >
           {path}
         </div>
       )}
       {description && (
-        <div className="text-sm text-gray-600 dark:text-gray-300">
-          <span className="font-medium">Summary: </span>
+        <div className="text-sm text-gray-600 dark:text-gray-300" dir={dir}>
+          <span className="font-medium" dir={dir}>
+            {t("Summary:")}
+          </span>
           {description}
         </div>
       )}
       {isContentVisible && (
-        <div className="text-xs cursor-text" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="text-xs cursor-text"
+          onClick={(e) => e.stopPropagation()}
+          dir={dir}
+        >
           {isEditing ? (
-            <div className="h-96 min-h-96 border border-gray-200 dark:border-gray-700 rounded overflow-hidden">
+            <div
+              className="h-96 min-h-96 border border-gray-200 dark:border-gray-700 rounded overflow-hidden"
+              dir={dir}
+            >
               <FileEditor appId={appId ?? null} filePath={path} />
             </div>
           ) : (

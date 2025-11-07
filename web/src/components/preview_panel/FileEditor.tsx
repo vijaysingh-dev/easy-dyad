@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useI18n } from "@/lib/i18n";
 import Editor, { OnMount } from "@monaco-editor/react";
 import { useLoadAppFile } from "@/hooks/useLoadAppFile";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -31,10 +32,14 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
   onSave,
   isSaving,
 }) => {
+  const { t, dir } = useI18n();
   const segments = path.split("/").filter(Boolean);
 
   return (
-    <div className="flex items-center justify-between px-4 py-2 text-sm text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+    <div
+      dir={dir}
+      className="flex items-center justify-between px-4 py-2 text-sm text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700"
+    >
       <div className="flex items-center gap-1 overflow-hidden">
         <div className="flex items-center gap-1 overflow-hidden min-w-0">
           {segments.map((segment, index) => (
@@ -62,8 +67,8 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
                 <Save size={12} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              {hasUnsavedChanges ? "Save changes" : "No unsaved changes"}
+            <TooltipContent dir={dir}>
+              {hasUnsavedChanges ? t("Save changes") : t("No unsaved changes")}
             </TooltipContent>
           </Tooltip>
           {hasUnsavedChanges && (
@@ -80,6 +85,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
 };
 
 export const FileEditor = ({ appId, filePath }: FileEditorProps) => {
+  const { t, dir } = useI18n();
   const { content, loading, error } = useLoadAppFile(appId, filePath);
   const { theme } = useTheme();
   const [value, setValue] = useState<string | undefined>(undefined);
@@ -183,19 +189,31 @@ export const FileEditor = ({ appId, filePath }: FileEditorProps) => {
   };
 
   if (loading) {
-    return <div className="p-4">Loading file content...</div>;
+    return (
+      <div dir={dir} className="p-4">
+        {t("Loading file content...")}
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-4 text-red-500">Error: {error.message}</div>;
+    return (
+      <div dir={dir} className="p-4 text-red-500">
+        {t("Error")}: {error.message}
+      </div>
+    );
   }
 
   if (!content) {
-    return <div className="p-4 text-gray-500">No content available</div>;
+    return (
+      <div dir={dir} className="p-4 text-gray-500">
+        {t("No content available")}
+      </div>
+    );
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div dir={dir} className="h-full flex flex-col">
       <Breadcrumb
         path={filePath}
         hasUnsavedChanges={displayUnsavedChanges}

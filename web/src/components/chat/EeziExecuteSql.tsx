@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import type React from "react";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -16,6 +17,7 @@ export const EeziExecuteSql: React.FC<EeziExecuteSqlProps> = ({
   node,
   description,
 }) => {
+  const { t, dir } = useI18n();
   const [isContentVisible, setIsContentVisible] = useState(false);
   const state = node?.properties?.state as CustomTagState;
   const inProgress = state === "pending";
@@ -28,26 +30,33 @@ export const EeziExecuteSql: React.FC<EeziExecuteSqlProps> = ({
         inProgress ? "border-amber-500" : aborted ? "border-red-500" : "border-border"
       }`}
       onClick={() => setIsContentVisible(!isContentVisible)}
+      dir={dir}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Database size={16} />
-          <span className="text-gray-700 dark:text-gray-300 font-medium text-sm">
-            <span className="font-bold mr-2 outline-2 outline-gray-200 dark:outline-gray-700 bg-gray-100 dark:bg-gray-800 rounded-md px-1">
-              SQL
+          <span
+            className="text-gray-700 dark:text-gray-300 font-medium text-sm"
+            dir={dir}
+          >
+            <span
+              className="font-bold mr-2 outline-2 outline-gray-200 dark:outline-gray-700 bg-gray-100 dark:bg-gray-800 rounded-md px-1"
+              dir={dir}
+            >
+              {t("SQL")}
             </span>
             {queryDescription}
           </span>
           {inProgress && (
-            <div className="flex items-center text-amber-600 text-xs">
+            <div className="flex items-center text-amber-600 text-xs" dir={dir}>
               <Loader size={14} className="mr-1 animate-spin" />
-              <span>Executing...</span>
+              <span>{t("Executing...")}</span>
             </div>
           )}
           {aborted && (
-            <div className="flex items-center text-red-600 text-xs">
+            <div className="flex items-center text-red-600 text-xs" dir={dir}>
               <CircleX size={14} className="mr-1" />
-              <span>Did not finish</span>
+              <span>{t("Did not finish")}</span>
             </div>
           )}
         </div>
@@ -66,7 +75,7 @@ export const EeziExecuteSql: React.FC<EeziExecuteSqlProps> = ({
         </div>
       </div>
       {isContentVisible && (
-        <div className="text-xs">
+        <div className="text-xs" dir={dir}>
           <CodeHighlight className="language-sql">{children}</CodeHighlight>
         </div>
       )}

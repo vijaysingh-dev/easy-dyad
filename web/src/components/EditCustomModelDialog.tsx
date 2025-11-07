@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useI18n } from "@/lib/i18n";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,8 @@ export function EditCustomModelDialog({
   providerId,
   model,
 }: EditCustomModelDialogProps) {
+  const { t, dir } = useI18n();
+
   const [apiName, setApiName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [description, setDescription] = useState("");
@@ -76,13 +79,13 @@ export function EditCustomModelDialog({
         throw new Error("Context Window must be a valid number");
 
       // First delete the old model
-      await api.mcp.deleteCustomModel({
+      await api.llm.deleteCustomModel({
         providerId,
         modelApiName: model.apiName,
       });
 
       // Then create the new model
-      await api.mcp.createCustomLanguageModel(newParams);
+      await api.llm.createCustomLanguageModel(newParams);
     },
     onSuccess: () => {
       showSuccess("Custom model updated successfully!");
@@ -111,16 +114,16 @@ export function EditCustomModelDialog({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle>Edit Custom Model</DialogTitle>
-          <DialogDescription>
-            Modify the configuration of the selected language model.
+          <DialogTitle dir={dir}>{t("Edit Custom Model")}</DialogTitle>
+          <DialogDescription dir={dir}>
+            {t("Modify the configuration of the selected language model.")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-model-id" className="text-right">
-                Model ID*
+              <Label htmlFor="edit-model-id" className="text-right" dir={dir}>
+                {t("Model ID*")}
               </Label>
               <Input
                 id="edit-model-id"
@@ -129,14 +132,15 @@ export function EditCustomModelDialog({
                   setApiName(e.target.value)
                 }
                 className="col-span-3"
-                placeholder="This must match the model expected by the API"
+                placeholder={t("This must match the model expected by the API")}
                 required
                 disabled={mutation.isPending}
+                dir={dir}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-model-name" className="text-right">
-                Name*
+              <Label htmlFor="edit-model-name" className="text-right" dir={dir}>
+                {t("Name*")}
               </Label>
               <Input
                 id="edit-model-name"
@@ -145,14 +149,15 @@ export function EditCustomModelDialog({
                   setDisplayName(e.target.value)
                 }
                 className="col-span-3"
-                placeholder="Human-friendly name for the model"
+                placeholder={t("Human-friendly name for the model")}
                 required
                 disabled={mutation.isPending}
+                dir={dir}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-description" className="text-right">
-                Description
+              <Label htmlFor="edit-description" className="text-right" dir={dir}>
+                {t("Description")}
               </Label>
               <Input
                 id="edit-description"
@@ -161,13 +166,14 @@ export function EditCustomModelDialog({
                   setDescription(e.target.value)
                 }
                 className="col-span-3"
-                placeholder="Optional: Describe the model's capabilities"
+                placeholder={t("Optional: Describe the model's capabilities")}
                 disabled={mutation.isPending}
+                dir={dir}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-max-output-tokens" className="text-right">
-                Max Output Tokens
+              <Label htmlFor="edit-max-output-tokens" className="text-right" dir={dir}>
+                {t("Max Output Tokens")}
               </Label>
               <Input
                 id="edit-max-output-tokens"
@@ -177,13 +183,14 @@ export function EditCustomModelDialog({
                   setMaxOutputTokens(e.target.value)
                 }
                 className="col-span-3"
-                placeholder="Optional: e.g., 4096"
+                placeholder={t("Optional: e.g., 4096")}
                 disabled={mutation.isPending}
+                dir={dir}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-context-window" className="text-right">
-                Context Window
+              <Label htmlFor="edit-context-window" className="text-right" dir={dir}>
+                {t("Context Window")}
               </Label>
               <Input
                 id="edit-context-window"
@@ -193,8 +200,9 @@ export function EditCustomModelDialog({
                   setContextWindow(e.target.value)
                 }
                 className="col-span-3"
-                placeholder="Optional: e.g., 8192"
+                placeholder={t("Optional: e.g., 8192")}
                 disabled={mutation.isPending}
+                dir={dir}
               />
             </div>
           </div>
@@ -204,11 +212,12 @@ export function EditCustomModelDialog({
               variant="outline"
               onClick={handleClose}
               disabled={mutation.isPending}
+              dir={dir}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Updating..." : "Update Model"}
+            <Button type="submit" disabled={mutation.isPending} dir={dir}>
+              {mutation.isPending ? t("Updating...") : t("Update Model")}
             </Button>
           </DialogFooter>
         </form>

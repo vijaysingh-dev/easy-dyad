@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useI18n } from "@/lib/i18n";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import { Button } from "@/components/ui/button";
@@ -13,26 +14,34 @@ import { useNavigate } from "@tanstack/react-router";
 import { NeonConfigure } from "./NeonConfigure";
 import api from "@/api";
 
-const EnvironmentVariablesTitle = () => (
-  <div className="flex items-center gap-2">
-    <span className="text-lg font-semibold">Environment Variables</span>
-    <span className="text-sm text-muted-foreground font-normal">Local</span>
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <HelpCircle size={16} className="text-muted-foreground cursor-help" />
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>
-          To modify environment variables for Supabase or production,
-          <br />
-          access your hosting provider's console and update them there.
-        </p>
-      </TooltipContent>
-    </Tooltip>
-  </div>
-);
+const EnvironmentVariablesTitle = () => {
+  const { t, dir } = useI18n();
+  return (
+    <div dir={dir} className="flex items-center gap-2">
+      <span dir={dir} className="text-lg font-semibold">
+        {t("Environment Variables")}
+      </span>
+      <span dir={dir} className="text-sm text-muted-foreground font-normal">
+        {t("Local")}
+      </span>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <HelpCircle size={16} className="text-muted-foreground cursor-help" />
+        </TooltipTrigger>
+        <TooltipContent dir={dir}>
+          <p dir={dir}>
+            {t(
+              "To modify environment variables for Supabase or production, access your hosting provider's console and update them there."
+            )}
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
+};
 
 export const ConfigurePanel = () => {
+  const { t, dir } = useI18n();
   const selectedAppId = useAtomValue(selectedAppIdAtom);
   const queryClient = useQueryClient();
 
@@ -61,7 +70,7 @@ export const ConfigurePanel = () => {
   // Mutation to save environment variables
   const saveEnvVarsMutation = useMutation({
     mutationFn: async (newEnvVars: { key: string; value: string }[]) => {
-      if (!selectedAppId) throw new Error("No app selected");
+      if (!selectedAppId) throw new Error(t("No app selected"));
       return await api.app.setAppEnvVars({
         appId: selectedAppId,
         envVars: newEnvVars,
@@ -71,22 +80,24 @@ export const ConfigurePanel = () => {
       queryClient.invalidateQueries({
         queryKey: ["app-env-vars", selectedAppId],
       });
-      showSuccess("Environment variables saved");
+      showSuccess(t("Environment variables saved"));
     },
     onError: (error) => {
-      showError(`Failed to save environment variables: ${error}`);
+      showError(
+        t("Failed to save environment variables: error", { error: String(error) })
+      );
     },
   });
 
   const handleAdd = useCallback(() => {
     if (!newKey.trim() || !newValue.trim()) {
-      showError("Both key and value are required");
+      showError(t("Both key and value are required"));
       return;
     }
 
     // Check for duplicate keys
     if (envVars.some((envVar) => envVar.key === newKey.trim())) {
-      showError("Environment variable with this key already exists");
+      showError(t("Environment variable with this key already exists"));
       return;
     }
 
@@ -95,7 +106,7 @@ export const ConfigurePanel = () => {
     setNewKey("");
     setNewValue("");
     setIsAddingNew(false);
-  }, [newKey, newValue, envVars, saveEnvVarsMutation]);
+  }, [newKey, newValue, envVars, saveEnvVarsMutation, t]);
 
   const handleEdit = useCallback((envVar: { key: string; value: string }) => {
     setEditingKey(envVar.key);
@@ -105,7 +116,7 @@ export const ConfigurePanel = () => {
 
   const handleSaveEdit = useCallback(() => {
     if (!editingKeyValue.trim() || !editingValue.trim()) {
-      showError("Both key and value are required");
+      showError(t("Both key and value are required"));
       return;
     }
 
@@ -115,7 +126,7 @@ export const ConfigurePanel = () => {
         (envVar) => envVar.key === editingKeyValue.trim() && envVar.key !== editingKey
       )
     ) {
-      showError("Environment variable with this key already exists");
+      showError(t("Environment variable with this key already exists"));
       return;
     }
 
@@ -128,7 +139,7 @@ export const ConfigurePanel = () => {
     setEditingKey(null);
     setEditingKeyValue("");
     setEditingValue("");
-  }, [editingKey, editingKeyValue, editingValue, envVars, saveEnvVarsMutation]);
+  }, [editingKey, editingKeyValue, editingValue, envVars, saveEnvVarsMutation, t]);
 
   const handleCancelEdit = useCallback(() => {
     setEditingKey(null);
@@ -153,7 +164,7 @@ export const ConfigurePanel = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="p-4 space-y-4">
+      <div dir={dir} className="p-4 space-y-4">
         <Card>
           <CardHeader>
             <CardTitle>
@@ -162,8 +173,8 @@ export const ConfigurePanel = () => {
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
-              <div className="text-sm text-muted-foreground">
-                Loading environment variables...
+              <div dir={dir} className="text-sm text-muted-foreground">
+                {t("Loading environment variables...")}
               </div>
             </div>
           </CardContent>
@@ -175,7 +186,7 @@ export const ConfigurePanel = () => {
   // Show error state
   if (error) {
     return (
-      <div className="p-4 space-y-4">
+      <div dir={dir} className="p-4 space-y-4">
         <Card>
           <CardHeader>
             <CardTitle>
@@ -184,8 +195,10 @@ export const ConfigurePanel = () => {
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
-              <div className="text-sm text-red-500">
-                Error loading environment variables: {error.message}
+              <div dir={dir} className="text-sm text-red-500">
+                {t("Error loading environment variables: error", {
+                  error: error.message,
+                })}
               </div>
             </div>
           </CardContent>
@@ -197,7 +210,7 @@ export const ConfigurePanel = () => {
   // Show no app selected state
   if (!selectedAppId) {
     return (
-      <div className="p-4 space-y-4">
+      <div dir={dir} className="p-4 space-y-4">
         <Card>
           <CardHeader>
             <CardTitle>
@@ -206,8 +219,8 @@ export const ConfigurePanel = () => {
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
-              <div className="text-sm text-muted-foreground">
-                Select an app to manage environment variables
+              <div dir={dir} className="text-sm text-muted-foreground">
+                {t("Select an app to manage environment variables")}
               </div>
             </div>
           </CardContent>
@@ -217,7 +230,7 @@ export const ConfigurePanel = () => {
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div dir={dir} className="p-4 space-y-4">
       <Card>
         <CardHeader>
           <CardTitle>
@@ -227,22 +240,26 @@ export const ConfigurePanel = () => {
         <CardContent className="space-y-4">
           {/* Add new environment variable form */}
           {isAddingNew ? (
-            <div className="space-y-3 p-3 border rounded-md bg-muted/50">
+            <div dir={dir} className="space-y-3 p-3 border rounded-md bg-muted/50">
               <div className="space-y-2">
-                <Label htmlFor="new-key">Key</Label>
+                <Label dir={dir} htmlFor="new-key">
+                  {t("Key")}
+                </Label>
                 <Input
                   id="new-key"
-                  placeholder="e.g., API_URL"
+                  placeholder={t("e.g., API_URL")}
                   value={newKey}
                   onChange={(e) => setNewKey(e.target.value)}
                   autoFocus
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="new-value">Value</Label>
+                <Label dir={dir} htmlFor="new-value">
+                  {t("Value")}
+                </Label>
                 <Input
                   id="new-value"
-                  placeholder="e.g., https://api.example.com"
+                  placeholder={t("e.g., https://api.example.com")}
                   value={newValue}
                   onChange={(e) => setNewValue(e.target.value)}
                 />
@@ -254,11 +271,11 @@ export const ConfigurePanel = () => {
                   disabled={saveEnvVarsMutation.isPending}
                 >
                   <Save size={14} />
-                  {saveEnvVarsMutation.isPending ? "Saving..." : "Save"}
+                  {saveEnvVarsMutation.isPending ? t("Saving...") : t("Save")}
                 </Button>
                 <Button onClick={handleCancelAdd} variant="outline" size="sm">
                   <X size={14} />
-                  Cancel
+                  {t("Cancel")}
                 </Button>
               </div>
             </div>
@@ -269,19 +286,20 @@ export const ConfigurePanel = () => {
               className="w-full"
             >
               <Plus size={14} />
-              Add Environment Variable
+              {t("Add Environment Variable")}
             </Button>
           )}
 
           {/* List of existing environment variables */}
           <div className="space-y-2">
             {envVars.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                No environment variables configured
+              <p dir={dir} className="text-sm text-muted-foreground text-center py-8">
+                {t("No environment variables configured")}
               </p>
             ) : (
               envVars.map((envVar) => (
                 <div
+                  dir={dir}
                   key={envVar.key}
                   className="flex items-center space-x-2 p-2 border rounded-md"
                 >
@@ -291,13 +309,13 @@ export const ConfigurePanel = () => {
                         <Input
                           value={editingKeyValue}
                           onChange={(e) => setEditingKeyValue(e.target.value)}
-                          placeholder="Key"
+                          placeholder={t("Key")}
                           className="h-8"
                         />
                         <Input
                           value={editingValue}
                           onChange={(e) => setEditingValue(e.target.value)}
-                          placeholder="Value"
+                          placeholder={t("Value")}
                           className="h-8"
                         />
                       </div>
@@ -371,7 +389,7 @@ export const ConfigurePanel = () => {
                 }
               }}
             >
-              <span>More app settings</span>
+              <span dir={dir}>{t("More app settings")}</span>
               <ArrowRight size={16} />
             </Button>
           </div>

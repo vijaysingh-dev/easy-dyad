@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Github, Clipboard, Check, AlertTriangle, ChevronRight } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
@@ -63,6 +64,7 @@ function ConnectedGitHubConnector({
   triggerAutoSync,
   onAutoSyncComplete,
 }: ConnectedGitHubConnectorProps) {
+  const { t, dir } = useI18n();
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [syncSuccess, setSyncSuccess] = useState<boolean>(false);
@@ -129,8 +131,9 @@ function ConnectedGitHubConnector({
 
   return (
     <div className="w-full" data-testid="github-connected-repo">
-      <p>Connected to GitHub Repo:</p>
+      <p dir={dir}>{t("Connected to GitHub Repo:")}</p>
       <a
+        dir={dir}
         onClick={(e) => {
           e.preventDefault();
           api.app.openExternalUrl(
@@ -144,8 +147,8 @@ function ConnectedGitHubConnector({
         {app.githubOrg}/{app.githubRepo}
       </a>
       {app.githubBranch && (
-        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-          Branch: <span className="font-mono">{app.githubBranch}</span>
+        <p dir={dir} className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+          {t("Branch:")} <span className="font-mono">{app.githubBranch}</span>
         </p>
       )}
       <div className="mt-2 flex gap-2">
@@ -173,10 +176,10 @@ function ConnectedGitHubConnector({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              Syncing...
+              {t("Syncing...")}
             </>
           ) : (
-            "Sync to GitHub"
+            t("Sync to GitHub")
           )}
         </Button>
         <Button
@@ -184,14 +187,15 @@ function ConnectedGitHubConnector({
           disabled={isDisconnecting}
           variant="outline"
         >
-          {isDisconnecting ? "Disconnecting..." : "Disconnect from repo"}
+          {isDisconnecting ? t("Disconnecting...") : t("Disconnect from repo")}
         </Button>
       </div>
       {syncError && (
         <div className="mt-2">
-          <p className="text-red-600">
+          <p dir={dir} className="text-red-600">
             {syncError}{" "}
             <a
+              dir={dir}
               onClick={(e) => {
                 e.preventDefault();
                 api.app.openExternalUrl(
@@ -202,7 +206,7 @@ function ConnectedGitHubConnector({
               target="_blank"
               rel="noopener noreferrer"
             >
-              See troubleshooting guide
+              {t("See troubleshooting guide")}
             </a>
           </p>
           {(syncError.includes("rejected") ||
@@ -214,15 +218,21 @@ function ConnectedGitHubConnector({
               className="mt-2 text-orange-600 border-orange-600 hover:bg-orange-50"
             >
               <AlertTriangle className="h-4 w-4 mr-2" />
-              Force Push (Dangerous)
+              {t("Force Push (Dangerous)")}
             </Button>
           )}
         </div>
       )}
       {syncSuccess && (
-        <p className="text-green-600 mt-2">Successfully pushed to GitHub!</p>
+        <p dir={dir} className="text-green-600 mt-2">
+          {t("Successfully pushed to GitHub!")}
+        </p>
       )}
-      {disconnectError && <p className="text-red-600 mt-2">{disconnectError}</p>}
+      {disconnectError && (
+        <p dir={dir} className="text-red-600 mt-2">
+          {disconnectError}
+        </p>
+      )}
 
       {/* Force Push Warning Dialog */}
       <Dialog open={showForceDialog} onOpenChange={setShowForceDialog}>
@@ -230,41 +240,44 @@ function ConnectedGitHubConnector({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-orange-500" />
-              Force Push Warning
+              {t("Force Push Warning")}
             </DialogTitle>
             <DialogDescription>
               <div className="space-y-3">
-                <p>
-                  You are about to perform a <strong>force push</strong> to your GitHub
-                  repository.
+                <p dir={dir}>
+                  {t("You are about to perform a force push to your GitHub repository.")}
                 </p>
                 <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-md border border-orange-200 dark:border-orange-800">
-                  <p className="text-sm text-orange-800 dark:text-orange-200">
-                    <strong>This is dangerous and non-reversible and will:</strong>
+                  <p dir={dir} className="text-sm text-orange-800 dark:text-orange-200">
+                    <strong>
+                      {t("This is dangerous and non-reversible and will:")}
+                    </strong>
                   </p>
                   <ul className="text-sm text-orange-700 dark:text-orange-300 list-disc list-inside mt-2 space-y-1">
-                    <li>Overwrite the remote repository history</li>
+                    <li>{t("Overwrite the remote repository history")}</li>
                     <li>
-                      Permanently delete commits that exist on the remote but not locally
+                      {t(
+                        "Permanently delete commits that exist on the remote but not locally"
+                      )}
                     </li>
                   </ul>
                 </div>
-                <p className="text-sm">
-                  Only proceed if you're certain this is what you want to do.
+                <p dir={dir} className="text-sm">
+                  {t("Only proceed if you're certain this is what you want to do.")}
                 </p>
               </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowForceDialog(false)}>
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               variant="destructive"
               onClick={() => handleSyncToGithub(true)}
               disabled={isSyncing}
             >
-              {isSyncing ? "Force Pushing..." : "Force Push"}
+              {isSyncing ? t("Force Pushing...") : t("Force Push")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -281,6 +294,7 @@ function UnconnectedGitHubConnector({
   handleRepoSetupComplete,
   expanded,
 }: UnconnectedGitHubConnectorProps) {
+  const { t, dir } = useI18n();
   // --- Collapsible State ---
   const [isExpanded, setIsExpanded] = useState(expanded || false);
 
@@ -498,13 +512,14 @@ function UnconnectedGitHubConnector({
     return (
       <div className="mt-1 w-full" data-testid="github-unconnected-repo">
         <Button
+          dir={dir}
           onClick={handleConnectToGithub}
           className="cursor-pointer w-full py-5 flex justify-center items-center gap-2"
           size="lg"
           variant="outline"
           disabled={isConnectingToGithub || !appId} // Also disable if appId is null
         >
-          Connect to GitHub
+          {t("Connect to GitHub")}
           <Github className="h-5 w-5" />
           {isConnectingToGithub && (
             <svg
@@ -532,14 +547,18 @@ function UnconnectedGitHubConnector({
         {/* GitHub Connection Status/Instructions */}
         {(githubUserCode || githubStatusMessage || githubError) && (
           <div className="mt-6 p-4 border rounded-md bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600">
-            <h4 className="font-medium mb-2">GitHub Connection</h4>
+            <h4 dir={dir} className="font-medium mb-2">
+              {t("GitHub Connection")}
+            </h4>
             {githubError && (
-              <p className="text-red-600 dark:text-red-400 mb-2">Error: {githubError}</p>
+              <p dir={dir} className="text-red-600 dark:text-red-400 mb-2">
+                {t("Error:")} {githubError}
+              </p>
             )}
             {githubUserCode && githubVerificationUri && (
               <div className="mb-2">
-                <p>
-                  1. Go to:
+                <p dir={dir}>
+                  1. {t("Go to:")}
                   <a
                     href={githubVerificationUri} // Make it a direct link
                     onClick={(e) => {
@@ -553,8 +572,8 @@ function UnconnectedGitHubConnector({
                     {githubVerificationUri}
                   </a>
                 </p>
-                <p>
-                  2. Enter code:
+                <p dir={dir}>
+                  2. {t("Enter code:")}
                   <strong className="ml-1 font-mono text-lg tracking-wider bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded">
                     {githubUserCode}
                   </strong>
@@ -571,7 +590,7 @@ function UnconnectedGitHubConnector({
                           .catch((err) => console.error("Failed to copy code:", err));
                       }
                     }}
-                    title="Copy to clipboard"
+                    title={t("Copy to clipboard")}
                   >
                     {codeCopied ? (
                       <Check className="h-4 w-4 text-green-500" />
@@ -583,7 +602,7 @@ function UnconnectedGitHubConnector({
               </div>
             )}
             {githubStatusMessage && (
-              <p className="text-sm text-gray-600 dark:text-gray-300">
+              <p dir={dir} className="text-sm text-gray-600 dark:text-gray-300">
                 {githubStatusMessage}
               </p>
             )}
@@ -603,7 +622,9 @@ function UnconnectedGitHubConnector({
           !isExpanded ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50" : ""
         }`}
       >
-        <span className="font-medium">Set up your GitHub repo</span>
+        <span dir={dir} className="font-medium">
+          {t("Set up your GitHub repo")}
+        </span>
         {isExpanded ? undefined : <ChevronRight className="h-4 w-4 text-gray-500" />}
       </button>
 
@@ -631,7 +652,7 @@ function UnconnectedGitHubConnector({
                   setCreateRepoSuccess(false);
                 }}
               >
-                Create new repo
+                {t("Create new repo")}
               </Button>
               <Button
                 type="button"
@@ -647,7 +668,7 @@ function UnconnectedGitHubConnector({
                   setCreateRepoSuccess(false);
                 }}
               >
-                Connect to existing repo
+                {t("Connect to existing repo")}
               </Button>
             </div>
           </div>
@@ -656,7 +677,9 @@ function UnconnectedGitHubConnector({
             {repoSetupMode === "create" ? (
               <>
                 <div>
-                  <Label className="block text-sm font-medium">Repository Name</Label>
+                  <Label dir={dir} className="block text-sm font-medium">
+                    {t("Repository Name")}
+                  </Label>
                   <Input
                     data-testid="github-create-repo-name-input"
                     className="w-full mt-1"
@@ -671,24 +694,28 @@ function UnconnectedGitHubConnector({
                     disabled={isCreatingRepo}
                   />
                   {isCheckingRepo && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Checking availability...
+                    <p dir={dir} className="text-xs text-gray-500 mt-1">
+                      {t("Checking availability...")}
                     </p>
                   )}
                   {repoAvailable === true && (
-                    <p className="text-xs text-green-600 mt-1">
-                      Repository name is available!
+                    <p dir={dir} className="text-xs text-green-600 mt-1">
+                      {t("Repository name is available!")}
                     </p>
                   )}
                   {repoAvailable === false && (
-                    <p className="text-xs text-red-600 mt-1">{repoCheckError}</p>
+                    <p dir={dir} className="text-xs text-red-600 mt-1">
+                      {repoCheckError || t("Repository name is not available.")}
+                    </p>
                   )}
                 </div>
               </>
             ) : (
               <>
                 <div>
-                  <Label className="block text-sm font-medium">Select Repository</Label>
+                  <Label dir={dir} className="block text-sm font-medium">
+                    {t("Select Repository")}
+                  </Label>
                   <Select
                     value={selectedRepo}
                     onValueChange={setSelectedRepo}
@@ -701,8 +728,8 @@ function UnconnectedGitHubConnector({
                       <SelectValue
                         placeholder={
                           isLoadingRepos
-                            ? "Loading repositories..."
-                            : "Select a repository"
+                            ? t("Loading repositories...")
+                            : t("Select a repository")
                         }
                       />
                     </SelectTrigger>
@@ -720,7 +747,9 @@ function UnconnectedGitHubConnector({
 
             {/* Branch Selection */}
             <div>
-              <Label className="block text-sm font-medium">Branch</Label>
+              <Label dir={dir} className="block text-sm font-medium">
+                {t("Branch")}
+              </Label>
               {repoSetupMode === "existing" && selectedRepo ? (
                 <div className="space-y-2">
                   <Select
@@ -742,7 +771,9 @@ function UnconnectedGitHubConnector({
                     >
                       <SelectValue
                         placeholder={
-                          isLoadingBranches ? "Loading branches..." : "Select a branch"
+                          isLoadingBranches
+                            ? t("Loading branches...")
+                            : t("Select a branch")
                         }
                       />
                     </SelectTrigger>
@@ -753,7 +784,9 @@ function UnconnectedGitHubConnector({
                         </SelectItem>
                       ))}
                       <SelectItem value="custom">
-                        <span className="font-medium">✏️ Type custom branch name</span>
+                        <span dir={dir} className="font-medium">
+                          ✏️ {t("Type custom branch name")}
+                        </span>
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -763,7 +796,7 @@ function UnconnectedGitHubConnector({
                       className="w-full"
                       value={customBranchName}
                       onChange={(e) => setCustomBranchName(e.target.value)}
-                      placeholder="Enter branch name (e.g., feature/new-feature)"
+                      placeholder={t("Enter branch name (e.g., feature/new-feature)")}
                       disabled={isCreatingRepo}
                     />
                   )}
@@ -773,7 +806,7 @@ function UnconnectedGitHubConnector({
                   className="w-full mt-1"
                   value={selectedBranch}
                   onChange={(e) => setSelectedBranch(e.target.value)}
-                  placeholder="main"
+                  placeholder={t("main")}
                   disabled={isCreatingRepo}
                   data-testid="github-new-repo-branch-input"
                 />
@@ -793,20 +826,24 @@ function UnconnectedGitHubConnector({
             >
               {isCreatingRepo
                 ? repoSetupMode === "create"
-                  ? "Creating..."
-                  : "Connecting..."
+                  ? t("Creating...")
+                  : t("Connecting...")
                 : repoSetupMode === "create"
-                  ? "Create Repo"
-                  : "Connect to Repo"}
+                ? t("Create Repo")
+                : t("Connect to Repo")}
             </Button>
           </form>
 
-          {createRepoError && <p className="text-red-600 mt-2">{createRepoError}</p>}
+          {createRepoError && (
+            <p dir={dir} className="text-red-600 mt-2">
+              {createRepoError}
+            </p>
+          )}
           {createRepoSuccess && (
-            <p className="text-green-600 mt-2">
+            <p dir={dir} className="text-green-600 mt-2">
               {repoSetupMode === "create"
-                ? "Repository created and linked!"
-                : "Connected to repository!"}
+                ? t("Repository created and linked!")
+                : t("Connected to repository!")}
             </p>
           )}
         </div>

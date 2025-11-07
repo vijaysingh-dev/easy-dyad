@@ -18,6 +18,7 @@ import {
   SendHorizontalIcon,
 } from "lucide-react";
 import type React from "react";
+import { useI18n } from "@/lib/i18n";
 import { useCallback, useEffect, useState } from "react";
 
 import { useSettings } from "@/hooks/useSettings";
@@ -65,6 +66,7 @@ import api from "@/api";
 const showTokenBarAtom = atom(false);
 
 export function ChatInput({ chatId }: { chatId?: number }) {
+  const { t, dir } = useI18n();
   const posthog = usePostHog();
   const [inputValue, setInputValue] = useAtom(chatInputValueAtom);
   const { settings } = useSettings();
@@ -234,11 +236,13 @@ export function ChatInput({ chatId }: { chatId?: number }) {
       )}
       {/* Display loading or error state for proposal */}
       {isProposalLoading && (
-        <div className="p-4 text-sm text-muted-foreground">Loading proposal...</div>
+        <div dir={dir} className="p-4 text-sm text-muted-foreground">
+          {t("Loading proposal...")}
+        </div>
       )}
       {proposalError && (
-        <div className="p-4 text-sm text-red-600">
-          Error loading proposal: {proposalError}
+        <div dir={dir} className="p-4 text-sm text-red-600">
+          {t("Error loading proposal:")} {proposalError}
         </div>
       )}
       <div className="p-4" data-testid="chat-input-container">
@@ -334,8 +338,8 @@ export function ChatInput({ chatId }: { chatId?: number }) {
                     <ChartColumnIncreasing size={14} />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
-                  {showTokenBar ? "Hide token usage" : "Show token usage"}
+                <TooltipContent dir={dir}>
+                  {showTokenBar ? t("Hide token usage") : t("Show token usage")}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -357,6 +361,7 @@ function SuggestionButton({
   children: React.ReactNode;
   tooltipText: string;
 }) {
+  const { t, dir } = useI18n();
   const { isStreaming } = useStreamChat();
   return (
     <TooltipProvider>
@@ -366,13 +371,14 @@ function SuggestionButton({
             {children}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>{tooltipText}</TooltipContent>
+        <TooltipContent dir={dir}>{t(tooltipText)}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
 }
 
 function SummarizeInNewChatButton() {
+  const { t, dir } = useI18n();
   const chatId = useAtomValue(selectedChatIdAtom);
   const appId = useAtomValue(selectedAppIdAtom);
   const { streamMessage } = useStreamChat();
@@ -399,12 +405,13 @@ function SummarizeInNewChatButton() {
       onClick={onClick}
       tooltipText="Creating a new chat makes the AI more focused and efficient"
     >
-      Summarize to new chat
+      <span dir={dir}>{t("Summarize to new chat")}</span>
     </SuggestionButton>
   );
 }
 
 function RefactorFileButton({ path }: { path: string }) {
+  const { t, dir } = useI18n();
   const chatId = useAtomValue(selectedChatIdAtom);
   const { streamMessage } = useStreamChat();
   const onClick = () => {
@@ -423,14 +430,18 @@ function RefactorFileButton({ path }: { path: string }) {
       onClick={onClick}
       tooltipText="Refactor the file to improve maintainability"
     >
-      <span className="max-w-[180px] overflow-hidden whitespace-nowrap text-ellipsis">
-        Refactor {path.split("/").slice(-2).join("/")}
+      <span
+        dir={dir}
+        className="max-w-[180px] overflow-hidden whitespace-nowrap text-ellipsis"
+      >
+        {t("Refactor file", { file: path.split("/").slice(-2).join("/") })}
       </span>
     </SuggestionButton>
   );
 }
 
 function WriteCodeProperlyButton() {
+  const { t, dir } = useI18n();
   const chatId = useAtomValue(selectedChatIdAtom);
   const { streamMessage } = useStreamChat();
   const onClick = () => {
@@ -449,12 +460,13 @@ function WriteCodeProperlyButton() {
       onClick={onClick}
       tooltipText="Write code properly (useful when AI generates the code in the wrong format)"
     >
-      Write code properly
+      <span dir={dir}>{t("Write code properly")}</span>
     </SuggestionButton>
   );
 }
 
 function RebuildButton() {
+  const { t, dir } = useI18n();
   const { restartApp } = useRunApp();
   const posthog = usePostHog();
   const selectedAppId = useAtomValue(selectedAppIdAtom);
@@ -468,12 +480,13 @@ function RebuildButton() {
 
   return (
     <SuggestionButton onClick={onClick} tooltipText="Rebuild the application">
-      Rebuild app
+      <span dir={dir}>{t("Rebuild app")}</span>
     </SuggestionButton>
   );
 }
 
 function RestartButton() {
+  const { t, dir } = useI18n();
   const { restartApp } = useRunApp();
   const posthog = usePostHog();
   const selectedAppId = useAtomValue(selectedAppIdAtom);
@@ -487,12 +500,13 @@ function RestartButton() {
 
   return (
     <SuggestionButton onClick={onClick} tooltipText="Restart the development server">
-      Restart app
+      <span dir={dir}>{t("Restart app")}</span>
     </SuggestionButton>
   );
 }
 
 function RefreshButton() {
+  const { t, dir } = useI18n();
   const { refreshAppIframe } = useRunApp();
   const posthog = usePostHog();
 
@@ -503,12 +517,13 @@ function RefreshButton() {
 
   return (
     <SuggestionButton onClick={onClick} tooltipText="Refresh the application preview">
-      Refresh app
+      <span dir={dir}>{t("Refresh app")}</span>
     </SuggestionButton>
   );
 }
 
 function KeepGoingButton() {
+  const { t, dir } = useI18n();
   const { streamMessage } = useStreamChat();
   const chatId = useAtomValue(selectedChatIdAtom);
   const onClick = () => {
@@ -523,7 +538,7 @@ function KeepGoingButton() {
   };
   return (
     <SuggestionButton onClick={onClick} tooltipText="Keep going">
-      Keep going
+      <span dir={dir}>{t("Keep going")}</span>
     </SuggestionButton>
   );
 }
@@ -582,10 +597,12 @@ function ChatInputActions({
   isApproving,
   isRejecting,
 }: ChatInputActionsProps) {
+  const { t, dir } = useI18n();
   const [isDetailsVisible, setIsDetailsVisible] = useState(false);
 
   if (proposal.type === "tip-proposal") {
-    return <div>Tip proposal</div>;
+    const { t, dir } = useI18n();
+    return <div dir={dir}>{t("Tip proposal")}</div>;
   }
   if (proposal.type === "action-proposal") {
     return <ActionProposalActions proposal={proposal}></ActionProposalActions>;
@@ -625,11 +642,11 @@ function ChatInputActions({
               ) : (
                 <ChevronDown size={16} className="mr-1 flex-shrink-0" />
               )}
-              <span className="font-medium">
-                {formatTitle({ title: proposal.title, isDetailsVisible })}
+              <span dir={dir} className="font-medium">
+                {formatTitle({ title: t(proposal.title), isDetailsVisible })}
               </span>
             </div>
-            <div className="text-xs text-muted-foreground ml-6">
+            <div dir={dir} className="text-xs text-muted-foreground ml-6">
               <ProposalSummary
                 sqlQueries={proposal.sqlQueries}
                 serverFunctions={serverFunctions}
@@ -639,8 +656,11 @@ function ChatInputActions({
             </div>
           </button>
           {proposal.securityRisks.length > 0 && (
-            <span className="bg-red-100 text-red-700 text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0">
-              Security risks found
+            <span
+              dir={dir}
+              className="bg-red-100 text-red-700 text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0"
+            >
+              {t("Security risks found")}
             </span>
           )}
         </div>
@@ -648,6 +668,7 @@ function ChatInputActions({
         {/* Row 2: Buttons and Toggle */}
         <div className="flex items-center justify-start space-x-2">
           <Button
+            dir={dir}
             className="px-8"
             size="sm"
             variant="outline"
@@ -660,9 +681,10 @@ function ChatInputActions({
             ) : (
               <Check size={16} className="mr-1" />
             )}
-            Approve
+            {t("Approve")}
           </Button>
           <Button
+            dir={dir}
             className="px-8"
             size="sm"
             variant="outline"
@@ -675,7 +697,7 @@ function ChatInputActions({
             ) : (
               <X size={16} className="mr-1" />
             )}
-            Reject
+            {t("Reject")}
           </Button>
           <div className="flex items-center space-x-1 ml-auto">
             <AutoApproveSwitch />
@@ -688,7 +710,9 @@ function ChatInputActions({
           <div className="p-3 border-t border-border bg-muted/50 text-sm">
             {!!proposal.securityRisks.length && (
               <div className="mb-3">
-                <h4 className="font-semibold mb-1">Security Risks</h4>
+                <h4 dir={dir} className="font-semibold mb-1">
+                  {t("Security Risks")}
+                </h4>
                 <ul className="space-y-1">
                   {proposal.securityRisks.map((risk, index) => (
                     <li key={index} className="flex items-start space-x-2">
@@ -715,7 +739,9 @@ function ChatInputActions({
 
             {proposal.sqlQueries?.length > 0 && (
               <div className="mb-3">
-                <h4 className="font-semibold mb-1">SQL Queries</h4>
+                <h4 dir={dir} className="font-semibold mb-1">
+                  {t("SQL Queries")}
+                </h4>
                 <ul className="space-y-2">
                   {proposal.sqlQueries.map((query, index) => (
                     <SqlQueryItem key={index} query={query} />
@@ -726,7 +752,9 @@ function ChatInputActions({
 
             {proposal.packagesAdded?.length > 0 && (
               <div className="mb-3">
-                <h4 className="font-semibold mb-1">Packages Added</h4>
+                <h4 dir={dir} className="font-semibold mb-1">
+                  {t("Packages Added")}
+                </h4>
                 <ul className="space-y-1">
                   {proposal.packagesAdded.map((pkg, index) => (
                     <li
@@ -751,7 +779,9 @@ function ChatInputActions({
 
             {serverFunctions.length > 0 && (
               <div className="mb-3">
-                <h4 className="font-semibold mb-1">Server Functions Changed</h4>
+                <h4 dir={dir} className="font-semibold mb-1">
+                  {t("Server Functions Changed")}
+                </h4>
                 <ul className="space-y-1">
                   {serverFunctions.map((file: FileChange, index: number) => (
                     <li key={index} className="flex items-center space-x-2">
@@ -770,7 +800,9 @@ function ChatInputActions({
 
             {otherFilesChanged.length > 0 && (
               <div>
-                <h4 className="font-semibold mb-1">Files Changed</h4>
+                <h4 dir={dir} className="font-semibold mb-1">
+                  {t("Files Changed")}
+                </h4>
                 <ul className="space-y-1">
                   {otherFilesChanged.map((file: FileChange, index: number) => (
                     <li key={index} className="flex items-center space-x-2">
@@ -816,6 +848,7 @@ function ProposalSummary({
   packagesAdded?: string[];
   filesChanged?: FileChange[];
 }) {
+  const { t, dir } = useI18n();
   // If no changes, show a simple message
   if (
     !sqlQueries.length &&
@@ -823,7 +856,7 @@ function ProposalSummary({
     !packagesAdded.length &&
     !filesChanged.length
   ) {
-    return <span>No changes</span>;
+    return <span dir={dir}>{t("No changes")}</span>;
   }
 
   // Build parts array with only the segments that have content
@@ -831,26 +864,28 @@ function ProposalSummary({
 
   if (sqlQueries.length) {
     parts.push(
-      `${sqlQueries.length} SQL ${sqlQueries.length === 1 ? "query" : "queries"}`
+      `${sqlQueries.length} ${t(sqlQueries.length === 1 ? "SQL query" : "SQL queries")}`
     );
   }
 
   if (serverFunctions.length) {
     parts.push(
-      `${serverFunctions.length} Server ${
-        serverFunctions.length === 1 ? "Function" : "Functions"
-      }`
+      `${serverFunctions.length} ${t(
+        serverFunctions.length === 1 ? "Server Function" : "Server Functions"
+      )}`
     );
   }
 
   if (packagesAdded.length) {
     parts.push(
-      `${packagesAdded.length} ${packagesAdded.length === 1 ? "package" : "packages"}`
+      `${packagesAdded.length} ${t(packagesAdded.length === 1 ? "package" : "packages")}`
     );
   }
 
   if (filesChanged.length) {
-    parts.push(`${filesChanged.length} ${filesChanged.length === 1 ? "file" : "files"}`);
+    parts.push(
+      `${filesChanged.length} ${t(filesChanged.length === 1 ? "file" : "files")}`
+    );
   }
 
   // Join all parts with separator
@@ -859,6 +894,7 @@ function ProposalSummary({
 
 // SQL Query item with expandable functionality
 function SqlQueryItem({ query }: { query: SqlQuery }) {
+  const { t, dir } = useI18n();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const queryContent = query.content;
@@ -872,7 +908,9 @@ function SqlQueryItem({ query }: { query: SqlQuery }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Database size={16} className="text-muted-foreground flex-shrink-0" />
-          <span className="text-sm font-medium">{queryDescription || "SQL Query"}</span>
+          <span dir={dir} className="text-sm font-medium">
+            {t(queryDescription || "SQL Query")}
+          </span>
         </div>
         <div>
           {isExpanded ? (

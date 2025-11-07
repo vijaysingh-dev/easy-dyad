@@ -4,6 +4,7 @@ import React from "react";
 import { CustomErrorToast } from "./CustomErrorToast";
 import { InputRequestToast } from "./InputRequestToast";
 import { McpConsentToast } from "./McpConsentToast";
+import { useI18n } from "@/lib/i18n";
 
 /**
  * Toast utility functions for consistent notifications across the app
@@ -14,7 +15,8 @@ import { McpConsentToast } from "./McpConsentToast";
  * @param message The message to display
  */
 export const showSuccess = (message: string) => {
-  toast.success(message);
+  const { t, dir } = useI18n();
+  toast.success(<span dir={dir}>{t(message)}</span>);
 };
 
 /**
@@ -22,6 +24,7 @@ export const showSuccess = (message: string) => {
  * @param message The error message to display
  */
 export const showError = (message: any) => {
+  const { t, dir } = useI18n();
   const errorMessage = message.toString();
   console.error(message);
 
@@ -30,12 +33,12 @@ export const showError = (message: any) => {
 
     // Update the toast to show the 'copied' state
     toast.custom(
-      (t) => (
+      (toastInst) => (
         <CustomErrorToast
-          message={errorMessage}
-          toastId={t}
+          message={t(errorMessage)}
+          toastId={toastInst}
           copied={true}
-          onCopy={() => onCopy(t)}
+          onCopy={() => onCopy(toastInst)}
         />
       ),
       { id: toastId, duration: Infinity }
@@ -44,12 +47,12 @@ export const showError = (message: any) => {
     // After 2 seconds, revert the toast back to the original state
     setTimeout(() => {
       toast.custom(
-        (t) => (
+        (toastInst) => (
           <CustomErrorToast
-            message={errorMessage}
-            toastId={t}
+            message={t(errorMessage)}
+            toastId={toastInst}
             copied={false}
-            onCopy={() => onCopy(t)}
+            onCopy={() => onCopy(toastInst)}
           />
         ),
         { id: toastId, duration: Infinity }
@@ -59,8 +62,12 @@ export const showError = (message: any) => {
 
   // Use custom error toast with enhanced features
   const toastId = toast.custom(
-    (t) => (
-      <CustomErrorToast message={errorMessage} toastId={t} onCopy={() => onCopy(t)} />
+    (toastInst) => (
+      <CustomErrorToast
+        message={t(errorMessage)}
+        toastId={toastInst}
+        onCopy={() => onCopy(toastInst)}
+      />
     ),
     { duration: 8_000 }
   );
@@ -73,7 +80,8 @@ export const showError = (message: any) => {
  * @param message The warning message to display
  */
 export const showWarning = (message: string) => {
-  toast.warning(message);
+  const { t, dir } = useI18n();
+  toast.warning(<span dir={dir}>{t(message)}</span>);
   console.warn(message);
 };
 
@@ -82,7 +90,8 @@ export const showWarning = (message: string) => {
  * @param message The info message to display
  */
 export const showInfo = (message: string) => {
-  toast.info(message);
+  const { t, dir } = useI18n();
+  toast.info(<span dir={dir}>{t(message)}</span>);
 };
 
 /**
@@ -94,8 +103,15 @@ export const showInputRequest = (
   message: string,
   onResponse: (response: "y" | "n") => void
 ) => {
+  const { t } = useI18n();
   const toastId = toast.custom(
-    (t) => <InputRequestToast message={message} toastId={t} onResponse={onResponse} />,
+    (toastInst) => (
+      <InputRequestToast
+        message={t(message)}
+        toastId={toastInst}
+        onResponse={onResponse}
+      />
+    ),
     { duration: Infinity } // Don't auto-close
   );
 
@@ -110,9 +126,9 @@ export function showMcpConsentToast(args: {
   onDecision: (d: "accept-once" | "accept-always" | "decline") => void;
 }) {
   const toastId = toast.custom(
-    (t) => (
+    (toastInst) => (
       <McpConsentToast
-        toastId={t}
+        toastId={toastInst}
         serverName={args.serverName}
         toolName={args.toolName}
         toolDescription={args.toolDescription}
@@ -134,9 +150,13 @@ export const showExtraFilesToast = ({
   error?: string;
   posthog: PostHog;
 }) => {
+  const { t } = useI18n();
   if (error) {
     showError(
-      `Error committing files ${files.join(", ")} changed outside of Eezi: ${error}`
+      t("Error committing files: files changed outside of Eezi", {
+        files: files.join(", "),
+        error,
+      })
     );
     posthog.capture("extra-files:error", {
       files: files,
@@ -144,8 +164,9 @@ export const showExtraFilesToast = ({
     });
   } else {
     showWarning(
-      `Files changed outside of Eezi have automatically been committed:
-    \n\n${files.join("\n")}`
+      t("Files changed outside of Eezi have automatically been committed: files", {
+        files: files.join("\n"),
+      })
     );
     posthog.capture("extra-files:warning", {
       files: files,

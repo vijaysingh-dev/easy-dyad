@@ -7,6 +7,7 @@ import {
   CommandItem,
 } from "./ui/command";
 import { useState, useEffect } from "react";
+import { useI18n } from "@/lib/i18n";
 import { useSearchChats } from "@/hooks/useSearchChats";
 import type { ChatSummary, ChatSearchResult } from "@shared/schemas";
 
@@ -26,6 +27,7 @@ export function ChatSearchDialog({
   allChats,
 }: ChatSearchDialogProps) {
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const { t, dir } = useI18n();
   function useDebouncedValue<T>(value: T, delay: number): T {
     const [debounced, setDebounced] = useState<T>(value);
     useEffect(() => {
@@ -41,11 +43,7 @@ export function ChatSearchDialog({
   // Show all chats if search is empty, otherwise show search results
   const chatsToShow = debouncedQuery.trim() === "" ? allChats : searchResults;
 
-  const commandFilter = (
-    value: string,
-    search: string,
-    keywords?: string[],
-  ): number => {
+  const commandFilter = (value: string, search: string, keywords?: string[]): number => {
     const q = search.trim().toLowerCase();
     if (!q) return 1;
     const v = (value || "").toLowerCase();
@@ -54,7 +52,7 @@ export function ChatSearchDialog({
       return 100 - Math.max(0, v.indexOf(q));
     }
     const foundInKeywords = (keywords || []).some((k) =>
-      (k || "").toLowerCase().includes(q),
+      (k || "").toLowerCase().includes(q)
     );
     return foundInKeywords ? 50 : 0;
   };
@@ -62,7 +60,7 @@ export function ChatSearchDialog({
   function getSnippet(
     text: string,
     query: string,
-    radius = 50,
+    radius = 50
   ): {
     before: string;
     match: string;
@@ -74,16 +72,14 @@ export function ChatSearchDialog({
     const lowerQuery = q.toLowerCase();
     const idx = lowerText.toLowerCase().indexOf(lowerQuery);
     if (idx === -1) {
-      const raw =
-        text.length > radius * 2 ? text.slice(0, radius * 2) + "…" : text;
+      const raw = text.length > radius * 2 ? text.slice(0, radius * 2) + "…" : text;
       return { before: "", match: "", after: "", raw };
     }
     const start = Math.max(0, idx - radius);
     const end = Math.min(text.length, idx + q.length + radius);
     const before = (start > 0 ? "…" : "") + text.slice(start, idx);
     const match = text.slice(idx, idx + q.length);
-    const after =
-      text.slice(idx + q.length, end) + (end < text.length ? "…" : "");
+    const after = text.slice(idx + q.length, end) + (end < text.length ? "…" : "");
     return { before, match, after, raw: before + match + after };
   }
 
@@ -106,13 +102,14 @@ export function ChatSearchDialog({
       filter={commandFilter}
     >
       <CommandInput
-        placeholder="Search chats"
+        placeholder={t("Search chats")}
         value={searchQuery}
         onValueChange={setSearchQuery}
+        dir={dir}
       />
-      <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
-        <CommandGroup heading="Chats">
+      <CommandList dir={dir}>
+        <CommandEmpty dir={dir}>{t("No results found.")}</CommandEmpty>
+        <CommandGroup heading={t("Chats")} dir={dir}>
           {chatsToShow.map((chat) => {
             const isSearch = searchQuery.trim() !== "";
             const hasSnippet =
@@ -122,27 +119,31 @@ export function ChatSearchDialog({
             const snippet = hasSnippet
               ? getSnippet(
                   (chat as ChatSearchResult).matchedMessageContent as string,
-                  searchQuery,
+                  searchQuery
                 )
               : null;
             return (
               <CommandItem
                 key={chat.id}
-                onSelect={() =>
-                  onSelectChat({ chatId: chat.id, appId: chat.appId })
-                }
+                onSelect={() => onSelectChat({ chatId: chat.id, appId: chat.appId })}
                 value={
-                  (chat.title || "Untitled Chat") +
-                  (snippet ? ` ${snippet.raw}` : "")
+                  (chat.title || t("Untitled Chat")) + (snippet ? ` ${snippet.raw}` : "")
                 }
                 keywords={snippet ? [snippet.raw] : []}
+                dir={dir}
               >
-                <div className="flex flex-col">
-                  <span>{chat.title || "Untitled Chat"}</span>
+                <div className="flex flex-col" dir={dir}>
+                  <span dir={dir}>{chat.title || t("Untitled Chat")}</span>
                   {snippet && (
-                    <span className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                    <span
+                      className="text-xs text-muted-foreground mt-1 line-clamp-2"
+                      dir={dir}
+                    >
                       {snippet.before}
-                      <mark className="bg-transparent underline decoration-2 decoration-primary">
+                      <mark
+                        className="bg-transparent underline decoration-2 decoration-primary"
+                        dir={dir}
+                      >
                         {snippet.match}
                       </mark>
                       {snippet.after}

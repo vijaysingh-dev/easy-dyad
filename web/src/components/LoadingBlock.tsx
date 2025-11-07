@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import ReactMarkdown from "react-markdown";
 import api from "@/api";
 
@@ -29,26 +30,28 @@ export const VanillaMarkdownParser = ({ content }: { content: string }) => {
 
 // Chat loader with human-like typing/deleting of rotating messages
 function ChatLoader() {
+  const { t, dir } = useI18n();
+
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [displayText, setDisplayText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [typingSpeed, setTypingSpeed] = useState(100);
 
   const loadingTexts = [
-    "Preparing your conversation... 🗨️",
-    "Gathering thoughts... 💭",
-    "Crafting the perfect response... 🎨",
-    "Almost there... 🚀",
-    "Just a moment... ⏳",
-    "Warming up the neural networks... 🧠",
-    "Connecting the dots... 🔗",
-    "Brewing some digital magic... ✨",
-    "Assembling words with care... 🔤",
-    "Fine-tuning the response... 🎯",
-    "Diving into deep thought... 🤿",
-    "Weaving ideas together... 🕸️",
-    "Sparking up the conversation... ⚡",
-    "Polishing the perfect reply... 💎",
+    t("Preparing your conversation... 🗨️"),
+    t("Gathering thoughts... 💭"),
+    t("Crafting the perfect response... 🎨"),
+    t("Almost there... 🚀"),
+    t("Just a moment... ⏳"),
+    t("Warming up the neural networks... 🧠"),
+    t("Connecting the dots... 🔗"),
+    t("Brewing some digital magic... ✨"),
+    t("Assembling words with care... 🔤"),
+    t("Fine-tuning the response... 🎯"),
+    t("Diving into deep thought... 🤿"),
+    t("Weaving ideas together... 🕸️"),
+    t("Sparking up the conversation... ⚡"),
+    t("Polishing the perfect reply... 💎"),
   ];
 
   useEffect(() => {
@@ -106,7 +109,7 @@ function ChatLoader() {
       `}</style>
       <div className="text-center animate-text-pulse">
         <div className="inline-block">
-          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+          <p dir={dir} className="text-sm text-gray-500 dark:text-gray-400 font-medium">
             {renderFadingText()}
             <span className="ml-1 inline-block w-2 h-4 bg-gray-500 dark:bg-gray-400 animate-blink" />
           </p>

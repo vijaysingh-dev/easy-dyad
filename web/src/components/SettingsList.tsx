@@ -1,5 +1,6 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 import { useEffect } from "react";
 import { useScrollAndNavigateTo } from "@/hooks/useScrollAndNavigateTo";
 import { useAtom } from "jotai";
@@ -18,6 +19,7 @@ const SETTINGS_SECTIONS = [
 ];
 
 export function SettingsList({ show }: { show: boolean }) {
+  const { t, dir } = useI18n();
   const [activeSection, setActiveSection] = useAtom(activeSettingsSectionAtom);
   const scrollAndNavigateTo = useScrollAndNavigateTo("/settings", {
     behavior: "smooth",
@@ -56,15 +58,18 @@ export function SettingsList({ show }: { show: boolean }) {
   const handleScrollAndNavigateTo = scrollAndNavigateTo;
 
   return (
-    <div className="flex flex-col h-full">
+    <div dir={dir} className="flex flex-col h-full">
       <div className="flex-shrink-0 p-4">
-        <h2 className="text-lg font-semibold tracking-tight">Settings</h2>
+        <h2 dir={dir} className="text-lg font-semibold tracking-tight">
+          {t("Settings")}
+        </h2>
       </div>
       <ScrollArea className="flex-grow">
         <div className="space-y-1 p-4 pt-0">
           {SETTINGS_SECTIONS.map((section) => (
             <button
               key={section.id}
+              dir={dir}
               onClick={() => handleScrollAndNavigateTo(section.id)}
               className={cn(
                 "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
@@ -73,7 +78,7 @@ export function SettingsList({ show }: { show: boolean }) {
                   : "hover:bg-sidebar-accent"
               )}
             >
-              {section.label}
+              {t(section.label)}
             </button>
           ))}
         </div>

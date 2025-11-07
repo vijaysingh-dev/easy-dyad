@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n";
 
 import { Label } from "@/components/ui/label";
 
@@ -38,6 +39,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import api from "@/api";
 
 export function SupabaseConnector({ appId }: { appId: number }) {
+  const { t, dir } = useI18n();
   const { settings, refreshSettings } = useSettings();
   const { app, refreshApp } = useLoadApp(appId);
   const { lastDeepLink } = useDeepLink();
@@ -88,8 +90,8 @@ export function SupabaseConnector({ appId }: { appId: number }) {
       return (
         <Card className="mt-1">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Supabase Project{" "}
+            <CardTitle dir={dir} className="flex items-center justify-between">
+              {t("Supabase Project")}
               <Button
                 variant="outline"
                 onClick={() => {
@@ -111,13 +113,15 @@ export function SupabaseConnector({ appId }: { appId: number }) {
                 </div>
               </Button>
             </CardTitle>
-            <CardDescription>
-              This app is connected to project: {app.supabaseProjectName}
+            <CardDescription dir={dir}>
+              {t("This app is connected to project: name", {
+                name: app.supabaseProjectName,
+              })}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="destructive" onClick={handleUnsetProject}>
-              Disconnect Project
+            <Button variant="destructive" onClick={handleUnsetProject} dir={dir}>
+              {t("Disconnect Project")}
             </Button>
           </CardContent>
         </Card>
@@ -126,9 +130,9 @@ export function SupabaseConnector({ appId }: { appId: number }) {
     return (
       <Card className="mt-1">
         <CardHeader>
-          <CardTitle>Supabase Projects</CardTitle>
-          <CardDescription>
-            Select a Supabase project to connect to this app
+          <CardTitle dir={dir}>{t("Supabase Projects")}</CardTitle>
+          <CardDescription dir={dir}>
+            {t("Select a Supabase project to connect to this app")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -138,32 +142,39 @@ export function SupabaseConnector({ appId }: { appId: number }) {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : error ? (
-            <div className="text-red-500">
-              Error loading projects: {error.message}
-              <Button variant="outline" className="mt-2" onClick={() => loadProjects()}>
-                Retry
+            <div className="text-red-500" dir={dir}>
+              {t("Error loading projects: message", { message: error.message })}
+              <Button
+                variant="outline"
+                className="mt-2"
+                onClick={() => loadProjects()}
+                dir={dir}
+              >
+                {t("Retry")}
               </Button>
             </div>
           ) : (
             <div className="space-y-4">
               {projects.length === 0 ? (
-                <p className="text-sm text-gray-500">
-                  No projects found in your Supabase account.
+                <p className="text-sm text-gray-500" dir={dir}>
+                  {t("No projects found in your Supabase account.")}
                 </p>
               ) : (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="project-select">Project</Label>
+                    <Label htmlFor="project-select" dir={dir}>
+                      {t("Project")}
+                    </Label>
                     <Select
                       value={currentProjectId || ""}
                       onValueChange={handleProjectSelect}
                     >
                       <SelectTrigger id="project-select">
-                        <SelectValue placeholder="Select a project" />
+                        <SelectValue placeholder={t("Select a project")} />
                       </SelectTrigger>
                       <SelectContent>
                         {projects.map((project) => (
-                          <SelectItem key={project.id} value={project.id}>
+                          <SelectItem key={project.id} value={project.id} dir={dir}>
                             {project.name || project.id}
                           </SelectItem>
                         ))}
@@ -172,10 +183,12 @@ export function SupabaseConnector({ appId }: { appId: number }) {
                   </div>
 
                   {currentProjectId && (
-                    <div className="text-sm text-gray-500">
-                      This app is connected to project:{" "}
-                      {projects.find((p) => p.id === currentProjectId)?.name ||
-                        currentProjectId}
+                    <div className="text-sm text-gray-500" dir={dir}>
+                      {t("This app is connected to project: name", {
+                        name:
+                          projects.find((p) => p.id === currentProjectId)?.name ||
+                          currentProjectId,
+                      })}
                     </div>
                   )}
                 </>
@@ -188,9 +201,11 @@ export function SupabaseConnector({ appId }: { appId: number }) {
   }
 
   return (
-    <div className="flex flex-col space-y-4 p-4 border rounded-md">
+    <div className="flex flex-col space-y-4 p-4 border rounded-md" dir={dir}>
       <div className="flex flex-col md:flex-row items-center justify-between">
-        <h2 className="text-lg font-medium">Integrations</h2>
+        <h2 className="text-lg font-medium" dir={dir}>
+          {t("Integrations")}
+        </h2>
         <img
           onClick={async () => {
             if (settings?.isTestMode) {
@@ -205,7 +220,7 @@ export function SupabaseConnector({ appId }: { appId: number }) {
             }
           }}
           src={isDarkMode ? connectSupabaseDark : connectSupabaseLight}
-          alt="Connect to Supabase"
+          alt={t("Connect to Supabase")}
           className="w-full h-10 min-h-8 min-w-20 cursor-pointer"
           data-testid="connect-supabase-button"
           // className="h-10"

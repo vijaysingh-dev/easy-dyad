@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ interface Message {
 }
 
 export function HelpBotDialog({ isOpen, onClose }: HelpBotDialogProps) {
+  const { t, dir } = useI18n();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [streaming, setStreaming] = useState(false);
@@ -160,32 +162,42 @@ export function HelpBotDialog({ isOpen, onClose }: HelpBotDialogProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Eezi Help Bot</DialogTitle>
+          <DialogTitle dir={dir}>{t("Eezi Help Bot")}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3 h-[480px]">
           {error && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+            <div
+              dir={dir}
+              className="bg-destructive/10 border border-destructive/20 rounded-md p-3"
+            >
               <div className="flex items-start gap-2">
-                <div className="text-destructive text-sm font-medium">Error:</div>
+                <div className="text-destructive text-sm font-medium">{t("Error:")}</div>
                 <div className="text-destructive text-sm flex-1">{error}</div>
                 <button
                   onClick={() => setError(null)}
                   className="text-destructive hover:text-destructive/80 text-xs"
                 >
-                  ✕
+                  {t("✕")}
                 </button>
               </div>
             </div>
           )}
-          <div className="flex-1 overflow-auto rounded-md border p-3 bg-(--background-lightest)">
+          <div
+            dir={dir}
+            className="flex-1 overflow-auto rounded-md border p-3 bg-(--background-lightest)"
+          >
             {messages.length === 0 ? (
               <div className="space-y-3">
-                <div className="text-sm text-muted-foreground">
-                  Ask a question about using Eezi.
+                <div dir={dir} className="text-sm text-muted-foreground">
+                  {t("Ask a question about using Eezi.")}
                 </div>
-                <div className="text-xs text-muted-foreground/70 bg-muted/50 rounded-md p-3">
-                  This conversation may be logged and used to improve the product. Please
-                  do not put any sensitive information in here.
+                <div
+                  dir={dir}
+                  className="text-xs text-muted-foreground/70 bg-muted/50 rounded-md p-3"
+                >
+                  {t(
+                    "This conversation may be logged and used to improve the product. Please do not put any sensitive information in here."
+                  )}
                 </div>
               </div>
             ) : (
@@ -193,13 +205,16 @@ export function HelpBotDialog({ isOpen, onClose }: HelpBotDialogProps) {
                 {messages.map((m, i) => (
                   <div key={i}>
                     {m.role === "user" ? (
-                      <div className="text-right">
-                        <div className="inline-block rounded-lg px-3 py-2 bg-primary text-primary-foreground">
+                      <div dir={dir} className="text-right">
+                        <div
+                          dir={dir}
+                          className="inline-block rounded-lg px-3 py-2 bg-primary text-primary-foreground"
+                        >
                           {m.content}
                         </div>
                       </div>
                     ) : (
-                      <div className="text-left">
+                      <div dir={dir} className="text-left">
                         {streaming && i === messages.length - 1 && (
                           <LoadingBlock
                             isStreaming={streaming && i === messages.length - 1}
@@ -207,7 +222,10 @@ export function HelpBotDialog({ isOpen, onClose }: HelpBotDialogProps) {
                         )}
 
                         {m.content && (
-                          <div className="inline-block rounded-lg px-3 py-2 bg-muted prose dark:prose-invert prose-headings:mb-2 prose-p:my-1 prose-pre:my-0 max-w-none">
+                          <div
+                            dir={dir}
+                            className="inline-block rounded-lg px-3 py-2 bg-muted prose dark:prose-invert prose-headings:mb-2 prose-p:my-1 prose-pre:my-0 max-w-none"
+                          >
                             <VanillaMarkdownParser content={m.content} />
                           </div>
                         )}
@@ -220,10 +238,11 @@ export function HelpBotDialog({ isOpen, onClose }: HelpBotDialogProps) {
           </div>
           <div className="flex gap-2">
             <input
+              dir={dir}
               className="flex-1 h-10 rounded-md border bg-background px-3 text-sm"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your question..."
+              placeholder={t("Type your question...")}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -231,8 +250,8 @@ export function HelpBotDialog({ isOpen, onClose }: HelpBotDialogProps) {
                 }
               }}
             />
-            <Button onClick={handleSend} disabled={streaming || !input.trim()}>
-              {streaming ? "Sending..." : "Send"}
+            <Button dir={dir} onClick={handleSend} disabled={streaming || !input.trim()}>
+              {streaming ? t("Sending...") : t("Send")}
             </Button>
           </div>
         </div>

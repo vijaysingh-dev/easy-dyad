@@ -74,7 +74,7 @@ export function AzureConfiguration({
       }
 
       if (trimmedApiKey) {
-        azureSettings.apiKey = { value: trimmedApiKey };
+        azureSettings.apiKey = { value: trimmedApiKey, encryptionType: "aes-256-gcm" };
       } else {
         delete azureSettings.apiKey;
       }
@@ -143,8 +143,10 @@ export function AzureConfiguration({
     <div className="space-y-4">
       <Alert variant={status.variant} className={status.alertClassName}>
         <StatusIcon className="h-4 w-4" />
-        <AlertTitle className={status.titleClassName}>{status.title}</AlertTitle>
-        <AlertDescription className={status.descriptionClassName}>
+        <AlertTitle dir={dir} className={status.titleClassName}>
+          {status.title}
+        </AlertTitle>
+        <AlertDescription dir={dir} className={status.descriptionClassName}>
           {status.description}
         </AlertDescription>
       </Alert>
@@ -152,10 +154,11 @@ export function AzureConfiguration({
       <div className="grid grid-cols-1 gap-4">
         <div>
           <label
+            dir={dir}
             htmlFor="azure-resource-name"
             className="block text-sm font-medium mb-1"
           >
-            Resource Name
+            {t("Resource Name")}
           </label>
           <Input
             id="azure-resource-name"
@@ -165,12 +168,16 @@ export function AzureConfiguration({
               setSaved(false);
               setError(null);
             }}
-            placeholder="your-azure-openai-resource"
+            placeholder={t("your-azure-openai-resource")}
             autoComplete="off"
           />
         </div>
         <div dir={dir}>
-          <label htmlFor="azure-api-key" className="block text-sm font-medium mb-1">
+          <label
+            dir={dir}
+            htmlFor="azure-api-key"
+            className="block text-sm font-medium mb-1"
+          >
             {t("API Key")}
           </label>
           <Input
@@ -193,7 +200,7 @@ export function AzureConfiguration({
           {saving ? t("Saving...") : t("Save Settings")}
         </Button>
         {saved && !error && (
-          <span className="flex items-center text-green-600 text-sm">
+          <span dir={dir} className="flex items-center text-green-600 text-sm">
             <CheckCircle2 className="h-4 w-4 mr-1" /> {t("Saved")}
           </span>
         )}
@@ -213,8 +220,10 @@ export function AzureConfiguration({
 
       {error && (
         <Alert dir={dir} variant="destructive">
-          <AlertTitle>{t("Save Error")}</AlertTitle>
-          <AlertDescription>{t("provided_value", { value: error })}</AlertDescription>
+          <AlertTitle dir={dir}>{t("Save Error")}</AlertTitle>
+          <AlertDescription dir={dir}>
+            {t("provided_value", { value: error })}
+          </AlertDescription>
         </Alert>
       )}
 

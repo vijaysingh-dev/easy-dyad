@@ -1,4 +1,5 @@
 import { PanelRightOpen, History, PlusCircle, GitBranch, Info } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 import { PanelRightClose } from "lucide-react";
 import { useAtom, useAtomValue } from "jotai";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
@@ -31,6 +32,7 @@ export function ChatHeader({
   onTogglePreview,
   onVersionClick,
 }: ChatHeaderProps) {
+  const { t, dir } = useI18n();
   const appId = useAtomValue(selectedAppIdAtom);
   const { versions, loading: versionsLoading } = useVersions(appId);
   const { navigate } = useRouter();
@@ -95,40 +97,45 @@ export function ChatHeader({
   const currentBranchName = branchInfo?.branch;
 
   return (
-    <div className="flex flex-col w-full @container">
+    <div dir={dir} className="flex flex-col w-full @container">
       <LoadingBar isVisible={isAnyCheckoutVersionInProgress} />
       {/* If the version pane is open, it's expected to not always be on the main branch. */}
       {isNotMainBranch && !isVersionPaneOpen && (
-        <div className="flex flex-col @sm:flex-row items-center justify-between px-4 py-2 bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200">
+        <div
+          dir={dir}
+          className="flex flex-col @sm:flex-row items-center justify-between px-4 py-2 bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200"
+        >
           <div className="flex items-center gap-2 text-sm">
             <GitBranch size={16} />
-            <span>
+            <span dir={dir}>
               {currentBranchName === "<no-branch>" && (
                 <>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="flex items-center  gap-1">
+                        <span dir={dir} className="flex items-center  gap-1">
                           {isAnyCheckoutVersionInProgress ? (
                             <>
-                              <span>
-                                Please wait, switching back to latest version...
+                              <span dir={dir}>
+                                {t("Please wait, switching back to latest version...")}
                               </span>
                             </>
                           ) : (
                             <>
-                              <strong>Warning:</strong>
-                              <span>You are not on a branch</span>
+                              <strong dir={dir}>{t("Warning:")}</strong>
+                              <span dir={dir}>{t("You are not on a branch")}</span>
                               <Info size={14} />
                             </>
                           )}
                         </span>
                       </TooltipTrigger>
-                      <TooltipContent>
-                        <p>
+                      <TooltipContent dir={dir}>
+                        <p dir={dir}>
                           {isAnyCheckoutVersionInProgress
-                            ? "Version checkout is currently in progress"
-                            : "Checkout main branch, otherwise changes will not be saved properly"}
+                            ? t("Version checkout is currently in progress")
+                            : t(
+                                "Checkout main branch, otherwise changes will not be saved properly"
+                              )}
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -136,11 +143,12 @@ export function ChatHeader({
                 </>
               )}
               {currentBranchName && currentBranchName !== "<no-branch>" && (
-                <span>
-                  You are on branch: <strong>{currentBranchName}</strong>.
+                <span dir={dir}>
+                  {t("You are on branch:")}{" "}
+                  <strong dir={dir}>{currentBranchName}</strong>.
                 </span>
               )}
-              {branchInfoLoading && <span>Checking branch...</span>}
+              {branchInfoLoading && <span dir={dir}>{t("Checking branch...")}</span>}
             </span>
           </div>
           {currentBranchName === "master" ? (
@@ -150,7 +158,7 @@ export function ChatHeader({
               onClick={handleRenameMasterToMain}
               disabled={isRenamingBranch || branchInfoLoading}
             >
-              {isRenamingBranch ? "Renaming..." : "Rename master to main"}
+              {isRenamingBranch ? t("Renaming...") : t("Rename master to main")}
             </Button>
           ) : isAnyCheckoutVersionInProgress && !isCheckingOutVersion ? null : (
             <Button
@@ -159,14 +167,17 @@ export function ChatHeader({
               onClick={handleCheckoutMainBranch}
               disabled={isCheckingOutVersion || branchInfoLoading}
             >
-              {isCheckingOutVersion ? "Checking out..." : "Switch to main branch"}
+              {isCheckingOutVersion ? t("Checking out...") : t("Switch to main branch")}
             </Button>
           )}
         </div>
       )}
 
       {/* Why is this pt-0.5? Because the loading bar is h-1 (it always takes space) and we want the vertical spacing to be consistent.*/}
-      <div className="@container flex items-center justify-between pb-1.5 pt-0.5">
+      <div
+        dir={dir}
+        className="@container flex items-center justify-between pb-1.5 pt-0.5"
+      >
         <div className="flex items-center space-x-2">
           <Button
             onClick={handleNewChat}
@@ -174,7 +185,7 @@ export function ChatHeader({
             className="hidden @2xs:flex items-center justify-start gap-2 mx-2 py-3"
           >
             <PlusCircle size={16} />
-            <span>New Chat</span>
+            <span dir={dir}>{t("New Chat")}</span>
           </Button>
           <Button
             onClick={onVersionClick}
@@ -182,7 +193,9 @@ export function ChatHeader({
             className="hidden @6xs:flex cursor-pointer items-center gap-1 text-sm px-2 py-1 rounded-md"
           >
             <History size={16} />
-            {versionsLoading ? "..." : `Version ${versions.length}${versionPostfix}`}
+            {versionsLoading
+              ? "..."
+              : t("Version count", { count: versions.length, postfix: versionPostfix })}
           </Button>
         </div>
 

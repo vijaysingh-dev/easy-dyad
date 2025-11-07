@@ -5,15 +5,20 @@ import { GitHubConnector } from "@/components/GitHubConnector";
 import { VercelConnector } from "@/components/VercelConnector";
 import { PortalMigrate } from "@/components/PortalMigrate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useI18n } from "@/lib/i18n";
 import api from "@/api";
 
 export const PublishPanel = () => {
+  const { t, dir } = useI18n();
   const selectedAppId = useAtomValue(selectedAppIdAtom);
   const { app, loading } = useLoadApp(selectedAppId);
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+      <div
+        dir={dir}
+        className="flex flex-col items-center justify-center h-full p-8 text-center"
+      >
         <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
           <svg
             className="w-6 h-6 text-blue-600 dark:text-blue-400 animate-spin"
@@ -35,8 +40,8 @@ export const PublishPanel = () => {
             />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-          Loading...
+        <h2 dir={dir} className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          {t("Loading...")}
         </h2>
       </div>
     );
@@ -44,7 +49,10 @@ export const PublishPanel = () => {
 
   if (!selectedAppId || !app) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+      <div
+        dir={dir}
+        className="flex flex-col items-center justify-center h-full p-8 text-center"
+      >
         <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-900/30 flex items-center justify-center">
           <svg
             className="w-6 h-6 text-gray-600 dark:text-gray-400"
@@ -60,22 +68,25 @@ export const PublishPanel = () => {
             />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-          No App Selected
+        <h2 dir={dir} className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          {t("No App Selected")}
         </h2>
-        <p className="text-gray-600 dark:text-gray-400 max-w-md">
-          Select an app to view publishing options.
+        <p dir={dir} className="text-gray-600 dark:text-gray-400 max-w-md">
+          {t("Select an app to view publishing options.")}
         </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
+    <div dir={dir} className="flex flex-col h-full overflow-y-auto">
       <div className="p-4 space-y-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            Publish App
+          <h1
+            dir={dir}
+            className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2"
+          >
+            {t("Publish App")}
           </h1>
         </div>
 
@@ -83,9 +94,9 @@ export const PublishPanel = () => {
         {app.neonProjectId && <PortalMigrate appId={selectedAppId} />}
 
         {/* GitHub Section */}
-        <Card>
+        <Card dir={dir}>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle dir={dir} className="flex items-center gap-2">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -93,12 +104,12 @@ export const PublishPanel = () => {
                   clipRule="evenodd"
                 />
               </svg>
-              GitHub
+              {t("GitHub")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Sync your code to GitHub for collaboration.
+            <p dir={dir} className="text-sm text-gray-600 dark:text-gray-400">
+              {t("Sync your code to GitHub for collaboration.")}
             </p>
             <GitHubConnector
               appId={selectedAppId}
@@ -109,9 +120,9 @@ export const PublishPanel = () => {
         </Card>
 
         {/* Vercel Section */}
-        <Card>
+        <Card dir={dir}>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle dir={dir} className="flex items-center gap-2">
               <button
                 onClick={() => {
                   api.app.openExternalUrl("https://vercel.com/dashboard");
@@ -121,17 +132,20 @@ export const PublishPanel = () => {
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M24 22.525H0l12-21.05 12 21.05z" />
                 </svg>
-                Vercel
+                {t("Vercel")}
               </button>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Publish your app by deploying it to Vercel.
+            <p dir={dir} className="text-sm text-gray-600 dark:text-gray-400">
+              {t("Publish your app by deploying it to Vercel.")}
             </p>
 
             {!app?.githubOrg || !app?.githubRepo ? (
-              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+              <div
+                dir={dir}
+                className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4"
+              >
                 <div className="flex items-start gap-3">
                   <svg
                     className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0"
@@ -147,12 +161,19 @@ export const PublishPanel = () => {
                     />
                   </svg>
                   <div>
-                    <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                      GitHub Required for Vercel Deployment
+                    <h3
+                      dir={dir}
+                      className="text-sm font-medium text-amber-800 dark:text-amber-200"
+                    >
+                      {t("GitHub Required for Vercel Deployment")}
                     </h3>
-                    <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                      Deploying to Vercel requires connecting to GitHub first. Please set
-                      up your GitHub repository above.
+                    <p
+                      dir={dir}
+                      className="text-sm text-amber-700 dark:text-amber-300 mt-1"
+                    >
+                      {t(
+                        "Deploying to Vercel requires connecting to GitHub first. Please set up your GitHub repository above."
+                      )}
                     </p>
                   </div>
                 </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useI18n } from "@/lib/i18n";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,7 @@ export function CreateCustomProviderDialog({
   const [errorMessage, setErrorMessage] = useState("");
   const isEditMode = Boolean(editingProvider);
 
+  const { t, dir } = useI18n();
   const { createProvider, editProvider, isCreating, isEditing, error } =
     useCustomLanguageModelProvider();
   // Load provider data when editing
@@ -90,7 +92,7 @@ export function CreateCustomProviderDialog({
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : `Failed to ${isEditMode ? "edit" : "create"} custom provider`,
+          : `Failed to ${isEditMode ? "edit" : "create"} custom provider`
       );
     }
   };
@@ -107,82 +109,90 @@ export function CreateCustomProviderDialog({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {isEditMode ? "Edit Custom Provider" : "Add Custom Provider"}
+          <DialogTitle dir={dir}>
+            {isEditMode ? t("Edit Custom Provider") : t("Add Custom Provider")}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription dir={dir}>
             {isEditMode
-              ? "Update your custom language model provider configuration."
-              : "Connect to a custom language model provider API."}
+              ? t("Update your custom language model provider configuration.")
+              : t("Connect to a custom language model provider API.")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="id">Provider ID</Label>
+            <Label htmlFor="id" dir={dir}>
+              {t("Provider ID")}
+            </Label>
             <Input
               id="id"
               value={id}
               onChange={(e) => setId(e.target.value)}
-              placeholder="E.g., my-provider"
+              placeholder={t("E.g., my-provider")}
               required
               disabled={isLoading || isEditMode}
             />
-            <p className="text-xs text-muted-foreground">
-              A unique identifier for this provider (no spaces).
+            <p className="text-xs text-muted-foreground" dir={dir}>
+              {t("A unique identifier for this provider (no spaces).")}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="name">Display Name</Label>
+            <Label htmlFor="name" dir={dir}>
+              {t("Display Name")}
+            </Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="E.g., My Provider"
+              placeholder={t("E.g., My Provider")}
               required
               disabled={isLoading}
             />
-            <p className="text-xs text-muted-foreground">
-              The name that will be displayed in the UI.
+            <p className="text-xs text-muted-foreground" dir={dir}>
+              {t("The name that will be displayed in the UI.")}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="apiBaseUrl">API Base URL</Label>
+            <Label htmlFor="apiBaseUrl" dir={dir}>
+              {t("API Base URL")}
+            </Label>
             <Input
               id="apiBaseUrl"
               value={apiBaseUrl}
               onChange={(e) => setApiBaseUrl(e.target.value)}
-              placeholder="E.g., https://api.example.com/v1"
+              placeholder={t("E.g., https://api.example.com/v1")}
               required
               disabled={isLoading}
             />
-            <p className="text-xs text-muted-foreground">
-              The base URL for the API endpoint.
+            <p className="text-xs text-muted-foreground" dir={dir}>
+              {t("The base URL for the API endpoint.")}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="envVarName">Environment Variable (Optional)</Label>
+            <Label htmlFor="envVarName" dir={dir}>
+              {t("Environment Variable (Optional)")}
+            </Label>
             <Input
               id="envVarName"
               value={envVarName}
               onChange={(e) => setEnvVarName(e.target.value)}
-              placeholder="E.g., MY_PROVIDER_API_KEY"
+              placeholder={t("E.g., MY_PROVIDER_API_KEY")}
               disabled={isLoading}
             />
-            <p className="text-xs text-muted-foreground">
-              Environment variable name for the API key.
+            <p className="text-xs text-muted-foreground" dir={dir}>
+              {t("Environment variable name for the API key.")}
             </p>
           </div>
 
           {(errorMessage || error) && (
-            <div className="text-sm text-red-500">
+            <div className="text-sm text-red-500" dir={dir}>
               {errorMessage ||
                 (error instanceof Error
                   ? error.message
-                  : "Failed to create custom provider")}
+                  : t("Failed to create custom provider"))}
             </div>
           )}
 
@@ -192,18 +202,19 @@ export function CreateCustomProviderDialog({
               variant="outline"
               onClick={handleClose}
               disabled={isLoading}
+              dir={dir}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} dir={dir}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isLoading
                 ? isEditMode
-                  ? "Updating..."
-                  : "Adding..."
+                  ? t("Updating...")
+                  : t("Adding...")
                 : isEditMode
-                  ? "Update Provider"
-                  : "Add Provider"}
+                ? t("Update Provider")
+                : t("Add Provider")}
             </Button>
           </div>
         </form>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { showSuccess } from "@/components/Toast";
@@ -26,6 +27,7 @@ interface CapacitorControlsProps {
 type CapacitorStatus = "idle" | "syncing" | "opening";
 
 export function CapacitorControls({ appId }: CapacitorControlsProps) {
+  const { t, dir } = useI18n();
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorDetails, setErrorDetails] = useState<{
     title: string;
@@ -59,7 +61,7 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
     },
     onSuccess: () => {
       setIosStatus("idle");
-      showSuccess("Synced and opened iOS project in Xcode");
+      showSuccess(t("Synced and opened iOS project in Xcode"));
     },
     onError: (error) => {
       setIosStatus("idle");
@@ -79,7 +81,7 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
     },
     onSuccess: () => {
       setAndroidStatus("idle");
-      showSuccess("Synced and opened Android project in Android Studio");
+      showSuccess(t("Synced and opened Android project in Android Studio"));
     },
     onError: (error) => {
       setAndroidStatus("idle");
@@ -91,22 +93,22 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
   const getIosButtonText = () => {
     switch (iosStatus) {
       case "syncing":
-        return { main: "Syncing...", sub: "Building app" };
+        return { main: t("Syncing..."), sub: t("Building app") };
       case "opening":
-        return { main: "Opening...", sub: "Launching Xcode" };
+        return { main: t("Opening..."), sub: t("Launching Xcode") };
       default:
-        return { main: "Sync & Open iOS", sub: "Xcode" };
+        return { main: t("Sync & Open iOS"), sub: t("Xcode") };
     }
   };
 
   const getAndroidButtonText = () => {
     switch (androidStatus) {
       case "syncing":
-        return { main: "Syncing...", sub: "Building app" };
+        return { main: t("Syncing..."), sub: t("Building app") };
       case "opening":
-        return { main: "Opening...", sub: "Launching Android Studio" };
+        return { main: t("Opening..."), sub: t("Launching Android Studio") };
       default:
-        return { main: "Sync & Open Android", sub: "Android Studio" };
+        return { main: t("Sync & Open Android"), sub: t("Android Studio") };
     }
   };
 
@@ -120,10 +122,10 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
 
   return (
     <>
-      <Card className="mt-1" data-testid="capacitor-controls">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            Mobile Development
+      <Card className="mt-1" data-testid="capacitor-controls" dir={dir}>
+        <CardHeader dir={dir}>
+          <CardTitle className="flex items-center justify-between" dir={dir}>
+            {t("Mobile Development")}
             <Button
               variant="ghost"
               size="sm"
@@ -134,30 +136,38 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
                 );
               }}
               className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center gap-1"
+              dir={dir}
             >
-              Need help?
+              {t("Need help?")}
               <ExternalLink className="h-3 w-3" />
             </Button>
           </CardTitle>
-          <CardDescription>Sync and open your Capacitor mobile projects</CardDescription>
+          <CardDescription dir={dir}>
+            {t("Sync and open your Capacitor mobile projects")}
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-2">
+        <CardContent dir={dir}>
+          <div className="grid grid-cols-2 gap-2" dir={dir}>
             <Button
               onClick={() => syncAndOpenIosMutation.mutate()}
               disabled={syncAndOpenIosMutation.isPending}
               variant="outline"
               size="sm"
               className="flex items-center gap-2 h-10"
+              dir={dir}
             >
               {syncAndOpenIosMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Smartphone className="h-4 w-4" />
               )}
-              <div className="text-left">
-                <div className="text-xs font-medium">{iosButtonText.main}</div>
-                <div className="text-xs text-gray-500">{iosButtonText.sub}</div>
+              <div className="text-left" dir={dir}>
+                <div className="text-xs font-medium" dir={dir}>
+                  {iosButtonText.main}
+                </div>
+                <div className="text-xs text-gray-500" dir={dir}>
+                  {iosButtonText.sub}
+                </div>
               </div>
             </Button>
 
@@ -167,15 +177,20 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
               variant="outline"
               size="sm"
               className="flex items-center gap-2 h-10"
+              dir={dir}
             >
               {syncAndOpenAndroidMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <TabletSmartphone className="h-4 w-4" />
               )}
-              <div className="text-left">
-                <div className="text-xs font-medium">{androidButtonText.main}</div>
-                <div className="text-xs text-gray-500">{androidButtonText.sub}</div>
+              <div className="text-left" dir={dir}>
+                <div className="text-xs font-medium" dir={dir}>
+                  {androidButtonText.main}
+                </div>
+                <div className="text-xs text-gray-500" dir={dir}>
+                  {androidButtonText.sub}
+                </div>
               </div>
             </Button>
           </div>
@@ -186,56 +201,64 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
       <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-red-600 dark:text-red-400">
+            <DialogTitle className="text-red-600 dark:text-red-400" dir={dir}>
               {errorDetails?.title}
             </DialogTitle>
-            <DialogDescription>
-              An error occurred while running the Capacitor command. See details below:
+            <DialogDescription dir={dir}>
+              {t(
+                "An error occurred while running the Capacitor command. See details below:"
+              )}
             </DialogDescription>
           </DialogHeader>
 
           {errorDetails && (
-            <div className="relative">
-              <div className="max-h-[50vh] w-full max-w-md rounded border p-4 bg-gray-50 dark:bg-gray-900 overflow-y-auto">
-                <pre className="text-xs whitespace-pre-wrap font-mono">
+            <div className="relative" dir={dir}>
+              <div
+                className="max-h-[50vh] w-full max-w-md rounded border p-4 bg-gray-50 dark:bg-gray-900 overflow-y-auto"
+                dir={dir}
+              >
+                <pre className="text-xs whitespace-pre-wrap font-mono" dir={dir}>
                   {errorDetails.message}
                 </pre>
               </div>
               <Button
                 onClick={() => {
                   navigator.clipboard.writeText(errorDetails.message);
-                  showSuccess("Error details copied to clipboard");
+                  showSuccess(t("Error details copied to clipboard"));
                 }}
                 variant="ghost"
                 size="sm"
                 className="absolute top-2 right-2 h-8 w-8 p-0"
+                dir={dir}
               >
                 <Copy className="h-4 w-4" />
               </Button>
             </div>
           )}
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2" dir={dir}>
             <Button
               onClick={() => {
                 if (errorDetails) {
                   navigator.clipboard.writeText(errorDetails.message);
-                  showSuccess("Error details copied to clipboard");
+                  showSuccess(t("Error details copied to clipboard"));
                 }
               }}
               variant="outline"
               size="sm"
               className="flex items-center gap-2"
+              dir={dir}
             >
               <Copy className="h-4 w-4" />
-              Copy Error
+              {t("Copy Error")}
             </Button>
             <Button
               onClick={() => setErrorDialogOpen(false)}
               variant="outline"
               size="sm"
+              dir={dir}
             >
-              Close
+              {t("Close")}
             </Button>
           </div>
         </DialogContent>

@@ -1,4 +1,5 @@
 import type React from "react";
+import { useI18n } from "@/lib/i18n";
 import type { Message } from "@shared/eeziTypes";
 import { forwardRef, useState } from "react";
 import ChatMessage from "./ChatMessage";
@@ -26,6 +27,7 @@ interface MessagesListProps {
 
 export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
   function MessagesList({ messages, messagesEndRef }, ref) {
+    const { t, dir } = useI18n();
     const appId = useAtomValue(selectedAppIdAtom);
     const { versions, revertVersion } = useVersions(appId);
     const { streamMessage, isStreaming } = useStreamChat();
@@ -57,6 +59,7 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
         className="absolute inset-0 overflow-y-auto p-4"
         ref={ref}
         data-testid="messages-list"
+        dir={dir}
       >
         {messages.length > 0
           ? messages.map((message, index) => (
@@ -68,8 +71,11 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
             ))
           : !renderSetupBanner() && (
               <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto">
-                <div className="flex flex-1 items-center justify-center text-gray-500">
-                  No messages yet
+                <div
+                  className="flex flex-1 items-center justify-center text-gray-500"
+                  dir={dir}
+                >
+                  {t("No messages yet")}
                 </div>
               </div>
             )}
@@ -125,13 +131,15 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
                           }
                         } else {
                           showWarning(
-                            "No initial commit hash found for chat. Need to manually undo code changes"
+                            t(
+                              "No initial commit hash found for chat. Need to manually undo code changes"
+                            )
                           );
                         }
                       }
                     } catch (error) {
                       console.error("Error during undo operation:", error);
-                      showError("Failed to undo changes");
+                      showError(t("Failed to undo changes"));
                     } finally {
                       setIsUndoLoading(false);
                     }
@@ -142,7 +150,7 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
                   ) : (
                     <Undo size={16} />
                   )}
-                  Undo
+                  {t("Undo")}
                 </Button>
               )}
             {!!messages.length && (
@@ -188,7 +196,9 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
                           });
                         } else {
                           showWarning(
-                            "No initial commit hash found for chat. Need to manually undo code changes"
+                            t(
+                              "No initial commit hash found for chat. Need to manually undo code changes"
+                            )
                           );
                         }
                       }
@@ -213,7 +223,7 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
                     });
                   } catch (error) {
                     console.error("Error during retry operation:", error);
-                    showError("Failed to retry message");
+                    showError(t("Failed to retry message"));
                   } finally {
                     setIsRetryLoading(false);
                   }
@@ -224,7 +234,7 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
                 ) : (
                   <RefreshCw size={16} />
                 )}
-                Retry
+                {t("Retry")}
               </Button>
             )}
           </div>

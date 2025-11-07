@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,7 @@ export function CreateCustomModelDialog({
   onSuccess,
   providerId,
 }: CreateCustomModelDialogProps) {
+  const { t, dir } = useI18n();
   const [apiName, setApiName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [description, setDescription] = useState("");
@@ -51,7 +53,7 @@ export function CreateCustomModelDialog({
       if (contextWindow && isNaN(params.contextWindow ?? NaN))
         throw new Error("Context Window must be a valid number");
 
-      await api.mcp.createCustomLanguageModel(params);
+      await api.llm.createCustomLanguageModel(params);
     },
     onSuccess: () => {
       showSuccess("Custom model created successfully!");
@@ -86,18 +88,18 @@ export function CreateCustomModelDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[525px]">
-        <DialogHeader>
-          <DialogTitle>Add Custom Model</DialogTitle>
-          <DialogDescription>
-            Configure a new language model for the selected provider.
+      <DialogContent className="sm:max-w-[525px]" dir={dir}>
+        <DialogHeader dir={dir}>
+          <DialogTitle dir={dir}>{t("Add Custom Model")}</DialogTitle>
+          <DialogDescription dir={dir}>
+            {t("Configure a new language model for the selected provider.")}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="model-id" className="text-right">
-                Model ID*
+        <form onSubmit={handleSubmit} dir={dir}>
+          <div className="grid gap-4 py-4" dir={dir}>
+            <div className="grid grid-cols-4 items-center gap-4" dir={dir}>
+              <Label htmlFor="model-id" className="text-right" dir={dir}>
+                {t("Model ID*")}
               </Label>
               <Input
                 id="model-id"
@@ -106,14 +108,15 @@ export function CreateCustomModelDialog({
                   setApiName(e.target.value)
                 }
                 className="col-span-3"
-                placeholder="This must match the model expected by the API"
+                placeholder={t("This must match the model expected by the API")}
                 required
                 disabled={mutation.isPending}
+                dir={dir}
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="model-name" className="text-right">
-                Name*
+            <div className="grid grid-cols-4 items-center gap-4" dir={dir}>
+              <Label htmlFor="model-name" className="text-right" dir={dir}>
+                {t("Name*")}
               </Label>
               <Input
                 id="model-name"
@@ -122,14 +125,15 @@ export function CreateCustomModelDialog({
                   setDisplayName(e.target.value)
                 }
                 className="col-span-3"
-                placeholder="Human-friendly name for the model"
+                placeholder={t("Human-friendly name for the model")}
                 required
                 disabled={mutation.isPending}
+                dir={dir}
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Description
+            <div className="grid grid-cols-4 items-center gap-4" dir={dir}>
+              <Label htmlFor="description" className="text-right" dir={dir}>
+                {t("Description")}
               </Label>
               <Input
                 id="description"
@@ -138,13 +142,14 @@ export function CreateCustomModelDialog({
                   setDescription(e.target.value)
                 }
                 className="col-span-3"
-                placeholder="Optional: Describe the model's capabilities"
+                placeholder={t("Optional: Describe the model's capabilities")}
                 disabled={mutation.isPending}
+                dir={dir}
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="max-output-tokens" className="text-right">
-                Max Output Tokens
+            <div className="grid grid-cols-4 items-center gap-4" dir={dir}>
+              <Label htmlFor="max-output-tokens" className="text-right" dir={dir}>
+                {t("Max Output Tokens")}
               </Label>
               <Input
                 id="max-output-tokens"
@@ -154,13 +159,14 @@ export function CreateCustomModelDialog({
                   setMaxOutputTokens(e.target.value)
                 }
                 className="col-span-3"
-                placeholder="Optional: e.g., 4096"
+                placeholder={t("Optional: e.g., 4096")}
                 disabled={mutation.isPending}
+                dir={dir}
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="context-window" className="text-right">
-                Context Window
+            <div className="grid grid-cols-4 items-center gap-4" dir={dir}>
+              <Label htmlFor="context-window" className="text-right" dir={dir}>
+                {t("Context Window")}
               </Label>
               <Input
                 id="context-window"
@@ -170,22 +176,24 @@ export function CreateCustomModelDialog({
                   setContextWindow(e.target.value)
                 }
                 className="col-span-3"
-                placeholder="Optional: e.g., 8192"
+                placeholder={t("Optional: e.g., 8192")}
                 disabled={mutation.isPending}
+                dir={dir}
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter dir={dir}>
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               disabled={mutation.isPending}
+              dir={dir}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Adding..." : "Add Model"}
+            <Button type="submit" disabled={mutation.isPending} dir={dir}>
+              {mutation.isPending ? t("Adding...") : t("Add Model")}
             </Button>
           </DialogFooter>
         </form>

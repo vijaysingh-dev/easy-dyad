@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import { showError, showSuccess } from "@/components/Toast";
 import {
   Dialog,
@@ -28,6 +29,7 @@ export function RenameChatDialog({
   onOpenChange,
   onRename,
 }: RenameChatDialogProps) {
+  const { t, dir } = useI18n();
   const [newTitle, setNewTitle] = useState("");
 
   // Reset title when dialog opens
@@ -65,36 +67,39 @@ export function RenameChatDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent dir={dir}>
         <DialogHeader>
-          <DialogTitle>Rename Chat</DialogTitle>
-          <DialogDescription>Enter a new name for this chat.</DialogDescription>
+          <DialogTitle dir={dir}>{t("Rename Chat")}</DialogTitle>
+          <DialogDescription dir={dir}>
+            {t("Enter a new name for this chat.")}
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="chat-title" className="text-right">
-              Title
+            <Label htmlFor="chat-title" className="text-right" dir={dir}>
+              {t("Title")}
             </Label>
             <Input
               id="chat-title"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               className="col-span-3"
-              placeholder="Enter chat title..."
+              placeholder={t("Enter chat title...")}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   handleSave();
                 }
               }}
+              dir={dir}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>
-            Cancel
+          <Button variant="outline" onClick={handleClose} dir={dir}>
+            {t("Cancel")}
           </Button>
-          <Button onClick={handleSave} disabled={!newTitle.trim()}>
-            Save
+          <Button onClick={handleSave} disabled={!newTitle.trim()} dir={dir}>
+            {t("Save")}
           </Button>
         </DialogFooter>
       </DialogContent>

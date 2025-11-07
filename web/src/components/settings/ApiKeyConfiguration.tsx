@@ -107,7 +107,7 @@ export function ApiKeyConfiguration({
             <Alert variant="default" className="mb-4">
               <KeyRound className="h-4 w-4" />
               <AlertTitle className="flex justify-between items-center">
-                <span>{t("Current Key (Settings)")}</span>
+                <span dir={dir}>{t("Current Key (Settings)")}</span>
                 <Button
                   variant="destructive"
                   size="sm"
@@ -116,11 +116,13 @@ export function ApiKeyConfiguration({
                   className="flex items-center gap-1 h-7 px-2"
                 >
                   <Trash2 className="h-4 w-4" />
-                  {isSaving ? "Deleting..." : "Delete"}
+                  {isSaving ? t("Deleting...") : t("Delete")}
                 </Button>
               </AlertTitle>
               <AlertDescription>
-                <p className="font-mono text-sm">{userApiKey}</p>
+                <p dir={dir} className="font-mono text-sm">
+                  {userApiKey}
+                </p>
                 {activeKeySource === "settings" && (
                   <p
                     dir={dir}
@@ -135,17 +137,21 @@ export function ApiKeyConfiguration({
 
           <div className="space-y-2">
             <label
+              dir={dir}
               htmlFor="apiKeyInput"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {isValidUserKey ? "Update" : "Set"} {providerDisplayName} API Key
+              {isValidUserKey ? t("Update") : t("Set")} {providerDisplayName}{" "}
+              {t("API Key")}
             </label>
             <div className="flex items-start space-x-2">
               <Input
                 id="apiKeyInput"
                 value={apiKeyInput}
                 onChange={(e) => onApiKeyInputChange(e.target.value)}
-                placeholder={`Enter new ${providerDisplayName} API Key here`}
+                placeholder={t("Enter new provider API Key here", {
+                  provider: providerDisplayName,
+                })}
                 className={`flex-grow ${saveError ? "border-red-500" : ""}`}
               />
               <Tooltip>
@@ -158,31 +164,37 @@ export function ApiKeyConfiguration({
                           onSaveKey(text);
                         }
                       } catch (error) {
-                        showError("Failed to paste from clipboard");
+                        showError(t("Failed to paste from clipboard"));
                         console.error("Failed to paste from clipboard", error);
                       }
                     }}
                     disabled={isSaving}
                     variant="outline"
                     size="icon"
-                    title="Paste from clipboard and save"
-                    aria-label="Paste from clipboard and save"
+                    title={t("Paste from clipboard and save")}
+                    aria-label={t("Paste from clipboard and save")}
                   >
                     <Clipboard className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{t("Paste from clipboard and save")}</TooltipContent>
+                <TooltipContent dir={dir}>
+                  {t("Paste from clipboard and save")}
+                </TooltipContent>
               </Tooltip>
 
               <Button
                 onClick={() => onSaveKey(apiKeyInput)}
                 disabled={isSaving || !apiKeyInput}
               >
-                {isSaving ? "Saving..." : "Save Key"}
+                {isSaving ? t("Saving...") : t("Save Key")}
               </Button>
             </div>
-            {saveError && <p className="text-xs text-red-600">{saveError}</p>}
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            {saveError && (
+              <p dir={dir} className="text-xs text-red-600">
+                {saveError}
+              </p>
+            )}
+            <p dir={dir} className="text-xs text-gray-500 dark:text-gray-400">
               {t("Setting a key here will override the environment variable (if set).")}
             </p>
           </div>
@@ -206,7 +218,9 @@ export function ApiKeyConfiguration({
                 <KeyRound className="h-4 w-4" />
                 <AlertTitle dir={dir}>{t("envvar_key", { envVarName })}</AlertTitle>
                 <AlertDescription>
-                  <p className="font-mono text-sm">{maskEnvApiKey(envApiKey)}</p>
+                  <p dir={dir} className="font-mono text-sm">
+                    {maskEnvApiKey(envApiKey)}
+                  </p>
                   {activeKeySource === "env" && (
                     <p
                       dir={dir}

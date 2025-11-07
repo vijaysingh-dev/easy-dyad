@@ -1,4 +1,5 @@
 import React from "react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "./ui/button";
 import { X, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
@@ -20,6 +21,8 @@ export function McpConsentToast({
   inputPreview,
   onDecision,
 }: McpConsentToastProps) {
+  const { t, dir } = useI18n();
+
   const handleClose = () => toast.dismiss(toastId);
 
   const handle = (d: "accept-once" | "accept-always" | "decline") => {
@@ -91,7 +94,10 @@ export function McpConsentToast({
   }, [inputPreview]);
 
   return (
-    <div className="relative bg-amber-50/95 dark:bg-slate-800/95 backdrop-blur-sm border border-amber-200 dark:border-slate-600 rounded-xl shadow-lg min-w-[420px] max-w-[560px] overflow-hidden">
+    <div
+      className="relative bg-amber-50/95 dark:bg-slate-800/95 backdrop-blur-sm border border-amber-200 dark:border-slate-600 rounded-xl shadow-lg min-w-[420px] max-w-[560px] overflow-hidden"
+      dir={dir}
+    >
       <div className="p-5">
         <div className="flex items-start">
           <div className="flex-1">
@@ -102,21 +108,21 @@ export function McpConsentToast({
                 </div>
               </div>
               <h3 className="ml-3 text-base font-semibold text-amber-900 dark:text-amber-100">
-                Tool wants to run
+                {t("Tool wants to run")}
               </h3>
               <button
                 onClick={handleClose}
                 className="ml-auto flex-shrink-0 p-1.5 text-amber-500 dark:text-slate-400 hover:text-amber-700 dark:hover:text-slate-200 transition-colors duration-200 rounded-md hover:bg-amber-100/50 dark:hover:bg-slate-700/50"
-                aria-label="Close"
+                aria-label={t("Close")}
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-2 text-sm">
-              <p>
-                <span className="font-semibold">{toolName}</span> from
-                <span className="font-semibold"> {serverName}</span> requests
-                your consent.
+              <p dir={dir}>
+                <span className="font-semibold">{toolName}</span> {t("from")}
+                <span className="font-semibold"> {serverName}</span>{" "}
+                {t("requests your consent.")}
               </p>
               {toolDescription && (
                 <div>
@@ -136,7 +142,7 @@ export function McpConsentToast({
                       className="mt-1 text-xs font-medium text-amber-700 hover:underline dark:text-amber-300"
                       onClick={() => setIsExpanded((v) => !v)}
                     >
-                      {isExpanded ? "Show less" : "Show more"}
+                      {isExpanded ? t("Show less") : t("Show more")}
                     </button>
                   )}
                 </div>
@@ -147,9 +153,7 @@ export function McpConsentToast({
                     ref={inputRef}
                     className="bg-amber-100/60 dark:bg-slate-700/60 p-2 rounded text-xs whitespace-pre-wrap"
                     style={{
-                      maxHeight: isInputExpanded
-                        ? "40vh"
-                        : inputCollapsedMaxHeight,
+                      maxHeight: isInputExpanded ? "40vh" : inputCollapsedMaxHeight,
                       overflow: isInputExpanded ? "auto" : "hidden",
                     }}
                   >
@@ -161,19 +165,15 @@ export function McpConsentToast({
                       className="mt-1 text-xs font-medium text-amber-700 hover:underline dark:text-amber-300"
                       onClick={() => setIsInputExpanded((v) => !v)}
                     >
-                      {isInputExpanded ? "Show less" : "Show more"}
+                      {isInputExpanded ? t("Show less") : t("Show more")}
                     </button>
                   )}
                 </div>
               )}
             </div>
             <div className="flex items-center gap-3 mt-4">
-              <Button
-                onClick={() => handle("accept-once")}
-                size="sm"
-                className="px-6"
-              >
-                Allow once
+              <Button onClick={() => handle("accept-once")} size="sm" className="px-6">
+                {t("Allow once")}
               </Button>
               <Button
                 onClick={() => handle("accept-always")}
@@ -181,7 +181,7 @@ export function McpConsentToast({
                 variant="secondary"
                 className="px-6"
               >
-                Always allow
+                {t("Always allow")}
               </Button>
               <Button
                 onClick={() => handle("decline")}
@@ -189,7 +189,7 @@ export function McpConsentToast({
                 variant="outline"
                 className="px-6"
               >
-                Decline
+                {t("Decline")}
               </Button>
             </div>
           </div>

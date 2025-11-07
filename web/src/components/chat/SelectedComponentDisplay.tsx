@@ -1,10 +1,12 @@
+import { useI18n } from "@/lib/i18n";
 import { selectedComponentPreviewAtom } from "@/atoms/previewAtoms";
 import { useAtom } from "jotai";
 import { Code2, X } from "lucide-react";
 
 export function SelectedComponentDisplay() {
+  const { t, dir } = useI18n();
   const [selectedComponent, setSelectedComponent] = useAtom(
-    selectedComponentPreviewAtom,
+    selectedComponentPreviewAtom
   );
 
   if (!selectedComponent) {
@@ -12,7 +14,7 @@ export function SelectedComponentDisplay() {
   }
 
   return (
-    <div className="p-2 pb-1" data-testid="selected-component-display">
+    <div className="p-2 pb-1" data-testid="selected-component-display" dir={dir}>
       <div className="flex items-center justify-between rounded-md bg-indigo-600/10 px-2 py-1 text-sm">
         <div className="flex items-center gap-2 overflow-hidden">
           <Code2
@@ -23,12 +25,14 @@ export function SelectedComponentDisplay() {
             <span
               className="truncate font-medium text-indigo-800 dark:text-indigo-300"
               title={selectedComponent.name}
+              dir={dir}
             >
               {selectedComponent.name}
             </span>
             <span
               className="truncate text-xs text-indigo-600/80 dark:text-indigo-400/80"
               title={`${selectedComponent.relativePath}:${selectedComponent.lineNumber}`}
+              dir={dir}
             >
               {selectedComponent.relativePath}:{selectedComponent.lineNumber}
             </span>
@@ -37,7 +41,8 @@ export function SelectedComponentDisplay() {
         <button
           onClick={() => setSelectedComponent(null)}
           className="ml-2 flex-shrink-0 rounded-full p-0.5 hover:bg-indigo-600/20"
-          title="Deselect component"
+          title={t("Deselect component")}
+          dir={dir}
         >
           <X size={18} className="text-indigo-600 dark:text-indigo-400" />
         </button>

@@ -1,4 +1,5 @@
 import { FileText, X, MessageSquare, Upload } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 import type { FileAttachment } from "@shared/eeziTypes";
 
 interface AttachmentsListProps {
@@ -6,19 +7,20 @@ interface AttachmentsListProps {
   onRemove: (index: number) => void;
 }
 
-export function AttachmentsList({
-  attachments,
-  onRemove,
-}: AttachmentsListProps) {
+export function AttachmentsList({ attachments, onRemove }: AttachmentsListProps) {
+  const { t, dir } = useI18n();
   if (attachments.length === 0) return null;
 
   return (
-    <div className="px-2 pt-2 flex flex-wrap gap-1">
+    <div dir={dir} className="px-2 pt-2 flex flex-wrap gap-1">
       {attachments.map((attachment, index) => (
         <div
           key={index}
           className="flex items-center bg-muted rounded-md px-2 py-1 text-xs gap-1"
-          title={`${attachment.file.name} (${(attachment.file.size / 1024).toFixed(1)}KB)`}
+          title={t("Attachment tooltip", {
+            name: attachment.file.name,
+            size: (attachment.file.size / 1024).toFixed(1),
+          })}
         >
           <div className="flex items-center gap-1">
             {attachment.type === "upload-to-codebase" ? (
@@ -30,11 +32,9 @@ export function AttachmentsList({
               <div className="relative group">
                 <img
                   src={URL.createObjectURL(attachment.file)}
-                  alt={attachment.file.name}
+                  alt={t("Attachment image alt", { name: attachment.file.name })}
                   className="w-5 h-5 object-cover rounded"
-                  onLoad={(e) =>
-                    URL.revokeObjectURL((e.target as HTMLImageElement).src)
-                  }
+                  onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
                   onError={(e) =>
                     URL.revokeObjectURL((e.target as HTMLImageElement).src)
                   }
@@ -42,7 +42,7 @@ export function AttachmentsList({
                 <div className="absolute hidden group-hover:block top-6 left-0 z-10">
                   <img
                     src={URL.createObjectURL(attachment.file)}
-                    alt={attachment.file.name}
+                    alt={t("Attachment image alt", { name: attachment.file.name })}
                     className="max-w-[200px] max-h-[200px] object-contain bg-white p-1 rounded shadow-lg"
                     onLoad={(e) =>
                       URL.revokeObjectURL((e.target as HTMLImageElement).src)
@@ -57,11 +57,13 @@ export function AttachmentsList({
               <FileText size={12} />
             )}
           </div>
-          <span className="truncate max-w-[120px]">{attachment.file.name}</span>
+          <span dir={dir} className="truncate max-w-[120px]">
+            {attachment.file.name}
+          </span>
           <button
             onClick={() => onRemove(index)}
             className="hover:bg-muted-foreground/20 rounded-full p-0.5"
-            aria-label="Remove attachment"
+            aria-label={t("Remove attachment")}
           >
             <X size={12} />
           </button>

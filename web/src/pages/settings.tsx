@@ -29,7 +29,7 @@ import { useI18n } from "@/lib/i18n";
 import api from "@/api";
 
 export default function SettingsPage() {
-  const {t, dir} = useI18n();
+  const { t, dir } = useI18n();
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [appVersion] = useAtom(appVersionAtom);
@@ -61,10 +61,12 @@ export default function SettingsPage() {
           className="flex items-center gap-2 mb-4 bg-(--background-lightest) py-5"
         >
           <ArrowLeft className="h-4 w-4" />
-          {t("Go Back")}
+          <span dir={dir}>{t("Go Back")}</span>
         </Button>
         <div className="flex justify-between mb-4">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t("Settings")}</h1>
+          <h1 dir={dir} className="text-3xl font-bold text-gray-900 dark:text-white">
+            {t("Settings")}
+          </h1>
         </div>
 
         <div className="space-y-6">
@@ -215,6 +217,7 @@ export default function SettingsPage() {
 }
 
 export function GeneralSettings({ appVersion }: { appVersion: string | null }) {
+  const { t, dir } = useI18n();
   const { theme, setTheme } = useTheme();
 
   return (
@@ -222,14 +225,17 @@ export function GeneralSettings({ appVersion }: { appVersion: string | null }) {
       id="general-settings"
       className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
     >
-      <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-        General Settings
+      <h2 dir={dir} className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+        {t("General Settings")}
       </h2>
 
       <div className="space-y-4 mb-4">
         <div className="flex items-center gap-4">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Theme
+          <label
+            dir={dir}
+            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            {t("Theme")}
           </label>
 
           <div className="relative bg-gray-100 dark:bg-gray-700 rounded-lg p-1 flex">
@@ -247,7 +253,7 @@ export function GeneralSettings({ appVersion }: { appVersion: string | null }) {
                 }
               `}
               >
-                {option.charAt(0).toUpperCase() + option.slice(1)}
+                {t(option.charAt(0).toUpperCase() + option.slice(1))}
               </button>
             ))}
           </div>
@@ -256,8 +262,8 @@ export function GeneralSettings({ appVersion }: { appVersion: string | null }) {
 
       <div className="space-y-1 mt-4">
         <AutoUpdateSwitch />
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          This will automatically update the app when new versions are available.
+        <div dir={dir} className="text-sm text-gray-500 dark:text-gray-400">
+          {t("This will automatically update the app when new versions are available.")}
         </div>
       </div>
 
@@ -270,7 +276,9 @@ export function GeneralSettings({ appVersion }: { appVersion: string | null }) {
       </div>
 
       <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-4">
-        <span className="mr-2 font-medium">App Version:</span>
+        <span dir={dir} className="mr-2 font-medium">
+          {t("App Version:")}
+        </span>
         <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-800 dark:text-gray-200 font-mono">
           {appVersion ? appVersion : "-"}
         </span>
@@ -280,36 +288,38 @@ export function GeneralSettings({ appVersion }: { appVersion: string | null }) {
 }
 
 export function WorkflowSettings() {
+  const { t, dir } = useI18n();
   return (
     <div
       id="workflow-settings"
       className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
     >
-      <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-        Workflow Settings
+      <h2 dir={dir} className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+        {t("Workflow Settings")}
       </h2>
 
       <div className="space-y-1">
         <AutoApproveSwitch showToast={false} />
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          This will automatically approve code changes and run them.
+        <div dir={dir} className="text-sm text-gray-500 dark:text-gray-400">
+          {t("This will automatically approve code changes and run them.")}
         </div>
       </div>
 
       <div className="space-y-1 mt-4">
         <AutoFixProblemsSwitch />
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          This will automatically fix TypeScript errors.
+        <div dir={dir} className="text-sm text-gray-500 dark:text-gray-400">
+          {t("This will automatically fix TypeScript errors.")}
         </div>
       </div>
     </div>
   );
 }
 export function AISettings() {
+  const { t, dir } = useI18n();
   return (
     <div id="ai-settings" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-      <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-        AI Settings
+      <h2 dir={dir} className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+        {t("AI Settings")}
       </h2>
 
       <div className="mt-4">

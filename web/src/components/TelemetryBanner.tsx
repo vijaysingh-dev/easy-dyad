@@ -1,4 +1,5 @@
 import React from "react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "./ui/button";
 import { atom, useAtom } from "jotai";
 import { useSettings } from "@/hooks/useSettings";
@@ -7,6 +8,7 @@ import api from "@/api";
 const hideBannerAtom = atom(false);
 
 export function PrivacyBanner() {
+  const { t, dir } = useI18n();
   const [hideBanner, setHideBanner] = useAtom(hideBannerAtom);
   const { settings, updateSettings } = useSettings();
   // TODO: Implement state management for banner visibility and user choice
@@ -19,24 +21,31 @@ export function PrivacyBanner() {
     return null;
   }
   return (
-    <div className="fixed bg-(--background)/90 bottom-4 right-4  backdrop-blur-md border border-gray-200 dark:border-gray-700 p-4 rounded-lg shadow-lg z-50 max-w-md">
+    <div
+      className="fixed bg-(--background)/90 bottom-4 right-4  backdrop-blur-md border border-gray-200 dark:border-gray-700 p-4 rounded-lg shadow-lg z-50 max-w-md"
+      dir={dir}
+    >
       <div className="flex flex-col gap-3">
         <div>
-          <h4 className="text-base font-semibold text-gray-800 dark:text-gray-200">
-            Share anonymous data?
+          <h4
+            className="text-base font-semibold text-gray-800 dark:text-gray-200"
+            dir={dir}
+          >
+            {t("Share anonymous data?")}
           </h4>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Help improve Eezi with anonymous usage data.
-            <em className="block italic mt-0.5">
-              Note: this does not log your code or messages.
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1" dir={dir}>
+            {t("Help improve Eezi with anonymous usage data.")}
+            <em className="block italic mt-0.5" dir={dir}>
+              {t("Note: this does not log your code or messages.")}
             </em>
             <a
               onClick={() => {
                 api.app.openExternalUrl("https://dyad.sh/docs/policies/privacy-policy");
               }}
               className="cursor-pointer text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              dir={dir}
             >
-              Learn more
+              {t("Learn more")}
             </a>
           </p>
         </div>
@@ -47,8 +56,9 @@ export function PrivacyBanner() {
               updateSettings({ telemetryConsent: "opted_in" });
             }}
             data-testid="telemetry-accept-button"
+            dir={dir}
           >
-            Accept
+            {t("Accept")}
           </Button>
           <Button
             variant="secondary"
@@ -56,15 +66,17 @@ export function PrivacyBanner() {
               updateSettings({ telemetryConsent: "opted_out" });
             }}
             data-testid="telemetry-reject-button"
+            dir={dir}
           >
-            Reject
+            {t("Reject")}
           </Button>
           <Button
             variant="ghost"
             onClick={() => setHideBanner(true)}
             data-testid="telemetry-later-button"
+            dir={dir}
           >
-            Later
+            {t("Later")}
           </Button>
         </div>
       </div>

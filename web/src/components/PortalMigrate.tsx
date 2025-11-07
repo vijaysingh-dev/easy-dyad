@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import { useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ interface PortalMigrateProps {
 }
 
 export const PortalMigrate = ({ appId }: PortalMigrateProps) => {
+  const { t, dir } = useI18n();
   const [output, setOutput] = useState<string>("");
   const { refreshVersions } = useVersions(appId);
 
@@ -21,12 +23,12 @@ export const PortalMigrate = ({ appId }: PortalMigrateProps) => {
     },
     onSuccess: (result) => {
       setOutput(result.output);
-      showSuccess("Database migration file generated and committed successfully!");
+      showSuccess(t("Database migration file generated and committed successfully!"));
       refreshVersions();
     },
     onError: (error) => {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      setOutput(`Error: ${errorMessage}`);
+      setOutput(`${t("Error:")} ${errorMessage}`);
       showError(errorMessage);
     },
   });
@@ -45,18 +47,19 @@ export const PortalMigrate = ({ appId }: PortalMigrateProps) => {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle dir={dir} className="flex items-center gap-2">
           <Database className="w-5 h-5 text-primary" />
-          Portal Database Migration
+          {t("Portal Database Migration")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Generate a new database migration file for your Portal app.
+        <p dir={dir} className="text-sm text-gray-600 dark:text-gray-400">
+          {t("Generate a new database migration file for your Portal app.")}
         </p>
 
         <div className="flex items-center gap-3">
           <Button
+            dir={dir}
             onClick={handleCreateMigration}
             disabled={migrateMutation.isPending}
             // className="bg-primary hover:bg-purple-700 text-white"
@@ -64,30 +67,42 @@ export const PortalMigrate = ({ appId }: PortalMigrateProps) => {
             {migrateMutation.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating...
+                {t("Generating...")}
               </>
             ) : (
               <>
                 <Database className="w-4 h-4 mr-2" />
-                Generate database migration
+                {t("Generate database migration")}
               </>
             )}
           </Button>
 
-          <Button variant="outline" size="sm" onClick={openDocs} className="text-sm">
+          <Button
+            dir={dir}
+            variant="outline"
+            size="sm"
+            onClick={openDocs}
+            className="text-sm"
+          >
             <ExternalLink className="w-3 h-3 mr-1" />
-            Docs
+            {t("Docs")}
           </Button>
         </div>
 
         {output && (
           <div className="mt-4">
             <div className="bg-gray-50 dark:bg-gray-900 border rounded-lg p-3">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Command Output:
+              <h4
+                dir={dir}
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                {t("Command Output:")}
               </h4>
               <div className="max-h-64 overflow-auto">
-                <pre className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap font-mono">
+                <pre
+                  dir={dir}
+                  className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap font-mono"
+                >
                   {output}
                 </pre>
               </div>

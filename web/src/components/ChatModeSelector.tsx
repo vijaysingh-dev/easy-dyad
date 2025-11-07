@@ -11,10 +11,13 @@ import type { ChatMode } from "@shared/schemas";
 import { cn } from "@/lib/utils";
 import { detectIsMac } from "@/hooks/useChatModeToggle";
 
+import { useI18n } from "@/lib/i18n";
+
 export function ChatModeSelector() {
   const { settings, updateSettings } = useSettings();
 
   const selectedMode = settings?.selectedChatMode || "build";
+  const { t, dir } = useI18n();
 
   const handleModeChange = (value: string) => {
     updateSettings({ selectedChatMode: value as ChatMode });
@@ -23,13 +26,13 @@ export function ChatModeSelector() {
   const getModeDisplayName = (mode: ChatMode) => {
     switch (mode) {
       case "build":
-        return "Build";
+        return t("Build");
       case "ask":
-        return "Ask";
+        return t("Ask");
       case "agent":
-        return "Agent";
+        return t("Agent");
       default:
-        return "Build";
+        return t("Build");
     }
   };
   const isMac = detectIsMac();
@@ -47,39 +50,52 @@ export function ChatModeSelector() {
                 : "bg-primary/10 hover:bg-primary/20 focus:bg-primary/20 text-primary border-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30 dark:focus:bg-primary/30"
             )}
             size="sm"
+            dir={dir}
           >
-            <SelectValue>{getModeDisplayName(selectedMode)}</SelectValue>
+            <SelectValue dir={dir}>{getModeDisplayName(selectedMode)}</SelectValue>
           </MiniSelectTrigger>
         </TooltipTrigger>
-        <TooltipContent>
-          <div className="flex flex-col">
-            <span>Open mode menu</span>
-            <span className="text-xs text-gray-200 dark:text-gray-500">
-              {isMac ? "⌘ + ." : "Ctrl + ."} to toggle
+        <TooltipContent dir={dir}>
+          <div className="flex flex-col" dir={dir}>
+            <span dir={dir}>{t("Open mode menu")}</span>
+            <span className="text-xs text-gray-200 dark:text-gray-500" dir={dir}>
+              {isMac ? "⌘ + ." : t("Ctrl + . to toggle")}
             </span>
           </div>
         </TooltipContent>
       </Tooltip>
-      <SelectContent align="start" onCloseAutoFocus={(e) => e.preventDefault()}>
-        <SelectItem value="build">
-          <div className="flex flex-col items-start">
-            <span className="font-medium">Build</span>
-            <span className="text-xs text-muted-foreground">Generate and edit code</span>
-          </div>
-        </SelectItem>
-        <SelectItem value="ask">
-          <div className="flex flex-col items-start">
-            <span className="font-medium">Ask</span>
-            <span className="text-xs text-muted-foreground">
-              Ask questions about the app
+      <SelectContent
+        align="start"
+        onCloseAutoFocus={(e) => e.preventDefault()}
+        dir={dir}
+      >
+        <SelectItem value="build" dir={dir}>
+          <div className="flex flex-col items-start" dir={dir}>
+            <span className="font-medium" dir={dir}>
+              {t("Build")}
+            </span>
+            <span className="text-xs text-muted-foreground" dir={dir}>
+              {t("Generate and edit code")}
             </span>
           </div>
         </SelectItem>
-        <SelectItem value="agent">
-          <div className="flex flex-col items-start">
-            <span className="font-medium">Agent (experimental)</span>
-            <span className="text-xs text-muted-foreground">
-              Agent can use tools (MCP) and generate code
+        <SelectItem value="ask" dir={dir}>
+          <div className="flex flex-col items-start" dir={dir}>
+            <span className="font-medium" dir={dir}>
+              {t("Ask")}
+            </span>
+            <span className="text-xs text-muted-foreground" dir={dir}>
+              {t("Ask questions about the app")}
+            </span>
+          </div>
+        </SelectItem>
+        <SelectItem value="agent" dir={dir}>
+          <div className="flex flex-col items-start" dir={dir}>
+            <span className="font-medium" dir={dir}>
+              {t("Agent (experimental)")}
+            </span>
+            <span className="text-xs text-muted-foreground" dir={dir}>
+              {t("Agent can use tools (MCP) and generate code")}
             </span>
           </div>
         </SelectItem>

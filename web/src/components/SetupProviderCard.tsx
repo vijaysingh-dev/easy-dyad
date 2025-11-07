@@ -1,6 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
+import { useI18n } from "@/lib/i18n";
 
 type SetupProviderVariant = "google" | "openrouter" | "eezi";
 
@@ -21,10 +22,12 @@ export function SetupProviderCard({
   tabIndex?: number;
   className?: string;
 }) {
+  const { t, dir } = useI18n();
   const styles = getVariantStyles(variant);
 
   return (
     <div
+      dir={dir}
       className={cn(
         "p-3 border rounded-lg cursor-pointer transition-colors",
         styles.container,
@@ -40,12 +43,15 @@ export function SetupProviderCard({
             {leadingIcon}
           </div>
           <div>
-            <h4 className={cn("font-medium text-sm", styles.titleColor)}>{title}</h4>
+            <h4 dir={dir} className={cn("font-medium text-sm", styles.titleColor)}>
+              {t(title)}
+            </h4>
             {subtitle ? (
               <div
+                dir={dir}
                 className={cn("text-xs flex items-center gap-1", styles.subtitleColor)}
               >
-                {subtitle}
+                {typeof subtitle === "string" ? t(subtitle) : subtitle}
               </div>
             ) : null}
           </div>

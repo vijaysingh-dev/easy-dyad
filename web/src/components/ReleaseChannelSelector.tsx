@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import { useSettings } from "@/hooks/useSettings";
 
 import {
@@ -12,6 +13,7 @@ import type { ReleaseChannel } from "@shared/schemas";
 import api from "@/api";
 
 export function ReleaseChannelSelector() {
+  const { t, dir } = useI18n();
   const { settings, updateSettings } = useSettings();
 
   if (!settings) {
@@ -21,21 +23,24 @@ export function ReleaseChannelSelector() {
   const handleReleaseChannelChange = (value: ReleaseChannel) => {
     updateSettings({ releaseChannel: value });
     if (value === "stable") {
-      toast("Using Stable release channel", {
-        description:
-          "You'll stay on your current version until a newer stable release is available, or you can manually downgrade now.",
+      toast(t("Using Stable release channel"), {
+        description: t(
+          "You'll stay on your current version until a newer stable release is available, or you can manually downgrade now."
+        ),
         action: {
-          label: "Download Stable",
+          label: t("Download Stable"),
           onClick: () => {
             api.app.openExternalUrl("https://dyad.sh/download");
           },
         },
       });
     } else {
-      toast("Using Beta release channel", {
-        description: "You will need to restart Eezi for your settings to take effect.",
+      toast(t("Using Beta release channel"), {
+        description: t(
+          "You will need to restart Eezi for your settings to take effect."
+        ),
         action: {
-          label: "Restart Eezi",
+          label: t("Restart Eezi"),
           onClick: () => {
             api.app.restartEezi();
           },
@@ -45,13 +50,14 @@ export function ReleaseChannelSelector() {
   };
 
   return (
-    <div className="space-y-1">
+    <div dir={dir} className="space-y-1">
       <div className="flex items-center space-x-2">
         <label
+          dir={dir}
           htmlFor="release-channel"
           className="text-sm font-medium text-gray-700 dark:text-gray-300"
         >
-          Release Channel
+          {t("Release Channel")}
         </label>
         <Select
           value={settings.releaseChannel}
@@ -61,14 +67,20 @@ export function ReleaseChannelSelector() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="stable">Stable</SelectItem>
-            <SelectItem value="beta">Beta</SelectItem>
+            <SelectItem dir={dir} value="stable">
+              {t("Stable")}
+            </SelectItem>
+            <SelectItem dir={dir} value="beta">
+              {t("Beta")}
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="text-sm text-gray-500 dark:text-gray-400">
-        <p>Stable is recommended for most users. </p>
-        <p>Beta receives more frequent updates but may have more bugs.</p>
+        <p dir={dir}>{t("Stable is recommended for most users.")}</p>
+        <p dir={dir}>
+          {t("Beta receives more frequent updates but may have more bugs.")}
+        </p>
       </div>
     </div>
   );

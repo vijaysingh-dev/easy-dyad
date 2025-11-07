@@ -1,6 +1,7 @@
 import React from "react";
 import { toast } from "sonner";
 import { X, Copy, Check } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface CustomErrorToastProps {
   message: string;
@@ -15,6 +16,7 @@ export function CustomErrorToast({
   copied = false,
   onCopy,
 }: CustomErrorToastProps) {
+  const { t, dir } = useI18n();
   const handleClose = () => {
     toast.dismiss(toastId);
   };
@@ -37,7 +39,9 @@ export function CustomErrorToast({
                   <X className="w-3 h-3 text-white" />
                 </div>
               </div>
-              <h3 className="ml-3 text-sm font-medium text-red-900">Error</h3>
+              <h3 className="ml-3 text-sm font-medium text-red-900" dir={dir}>
+                {t("Error")}
+              </h3>
 
               {/* Action buttons */}
               <div className="flex items-center space-x-1.5 ml-auto">
@@ -47,7 +51,8 @@ export function CustomErrorToast({
                     handleCopy();
                   }}
                   className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-100/70 rounded-lg transition-all duration-150"
-                  title="Copy to clipboard"
+                  title={t("Copy to clipboard")}
+                  dir={dir}
                 >
                   {copied ? (
                     <Check className="w-4 h-4 text-green-500" />
@@ -61,14 +66,18 @@ export function CustomErrorToast({
                     handleClose();
                   }}
                   className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-100/70 rounded-lg transition-all duration-150"
-                  title="Close"
+                  title={t("Close")}
+                  dir={dir}
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
             <div>
-              <p className="text-sm text-red-800 leading-relaxed whitespace-pre-wrap bg-red-100/50 backdrop-blur-sm p-3 rounded-lg border border-red-200/50">
+              <p
+                className="text-sm text-red-800 leading-relaxed whitespace-pre-wrap bg-red-100/50 backdrop-blur-sm p-3 rounded-lg border border-red-200/50"
+                dir={dir}
+              >
                 {message}
               </p>
             </div>

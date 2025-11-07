@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import api from "@/api";
@@ -12,14 +13,17 @@ export function ChatErrorBox({
   error: string;
   isEeziProEnabled: boolean;
 }) {
+  const { t, dir } = useI18n();
   if (error.includes("doesn't have a free quota tier")) {
     return (
       <ChatErrorContainer onDismiss={onDismiss}>
         {error}
-        <span className="ml-1">
-          <ExternalLink href="https://dyad.sh/pro">Access with Eezi Pro</ExternalLink>
+        <span dir={dir} className="ml-1">
+          <ExternalLink href="https://dyad.sh/pro">
+            {t("Access with Eezi Pro")}
+          </ExternalLink>
         </span>{" "}
-        or switch to another model.
+        <span dir={dir}>{t("or switch to another model.")}</span>
       </ChatErrorContainer>
     );
   }
@@ -33,13 +37,15 @@ export function ChatErrorBox({
     return (
       <ChatErrorContainer onDismiss={onDismiss}>
         {error}
-        <span className="ml-1">
-          <ExternalLink href="https://dyad.sh/pro">Upgrade to Eezi Pro</ExternalLink>
+        <span dir={dir} className="ml-1">
+          <ExternalLink href="https://dyad.sh/pro">
+            {t("Upgrade to Eezi Pro")}
+          </ExternalLink>
         </span>{" "}
-        or read the
-        <span className="ml-1">
+        <span dir={dir}>{t("or read the")}</span>
+        <span dir={dir} className="ml-1">
           <ExternalLink href="https://dyad.sh/docs/help/ai-rate-limit">
-            Rate limit troubleshooting guide.
+            {t("Rate limit troubleshooting guide.")}
           </ExternalLink>
         </span>
       </ChatErrorContainer>
@@ -49,10 +55,12 @@ export function ChatErrorBox({
   if (error.includes("LiteLLM Virtual Key expected")) {
     return (
       <ChatInfoContainer onDismiss={onDismiss}>
-        <span>
-          Looks like you don't have a valid Eezi Pro key.{" "}
-          <ExternalLink href="https://dyad.sh/pro">Upgrade to Eezi Pro</ExternalLink>{" "}
-          today.
+        <span dir={dir}>
+          {t("Looks like you don't have a valid Eezi Pro key.")}{" "}
+          <ExternalLink href="https://dyad.sh/pro">
+            {t("Upgrade to Eezi Pro")}
+          </ExternalLink>{" "}
+          {t("today.")}
         </span>
       </ChatInfoContainer>
     );
@@ -60,12 +68,12 @@ export function ChatErrorBox({
   if (isEeziProEnabled && error.includes("ExceededBudget:")) {
     return (
       <ChatInfoContainer onDismiss={onDismiss}>
-        <span>
-          You have used all of your Eezi AI credits this month.{" "}
+        <span dir={dir}>
+          {t("You have used all of your Eezi AI credits this month.")}{" "}
           <ExternalLink href="https://academy.dyad.sh/subscription">
-            Upgrade to Eezi Max
+            {t("Upgrade to Eezi Max")}
           </ExternalLink>{" "}
-          and get more AI credits
+          {t("and get more AI credits")}
         </span>
       </ChatInfoContainer>
     );
@@ -78,8 +86,10 @@ export function ChatErrorBox({
 }
 
 function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const { dir } = useI18n();
   return (
     <a
+      dir={dir}
       className="underline cursor-pointer text-blue-500 hover:text-blue-700"
       onClick={() => api.app.openExternalUrl(href)}
     >
@@ -95,11 +105,16 @@ function ChatErrorContainer({
   onDismiss: () => void;
   children: React.ReactNode | string;
 }) {
+  const { t, dir } = useI18n();
   return (
-    <div className="relative mt-2 bg-red-50 border border-red-200 rounded-md shadow-sm p-2 mx-4">
+    <div
+      dir={dir}
+      className="relative mt-2 bg-red-50 border border-red-200 rounded-md shadow-sm p-2 mx-4"
+    >
       <button
         onClick={onDismiss}
         className="absolute top-2.5 left-2 p-1 hover:bg-red-100 rounded"
+        aria-label={t("Dismiss error")}
       >
         <X size={14} className="text-red-500" />
       </button>
@@ -112,6 +127,7 @@ function ChatErrorContainer({
                 a: ({ children: linkChildren, ...props }) => (
                   <a
                     {...props}
+                    dir={dir}
                     onClick={(e) => {
                       e.preventDefault();
                       if (props.href) {
@@ -143,11 +159,16 @@ function ChatInfoContainer({
   onDismiss: () => void;
   children: React.ReactNode;
 }) {
+  const { t, dir } = useI18n();
   return (
-    <div className="relative mt-2 bg-sky-50 border border-sky-200 rounded-md shadow-sm p-2 mx-4">
+    <div
+      dir={dir}
+      className="relative mt-2 bg-sky-50 border border-sky-200 rounded-md shadow-sm p-2 mx-4"
+    >
       <button
         onClick={onDismiss}
         className="absolute top-2.5 left-2 p-1 hover:bg-sky-100 rounded"
+        aria-label={t("Dismiss info")}
       >
         <X size={14} className="text-sky-600" />
       </button>

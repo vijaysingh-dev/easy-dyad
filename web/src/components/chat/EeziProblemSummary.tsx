@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import React, { useState } from "react";
 import { ChevronsDownUp, ChevronsUpDown, AlertTriangle, FileText } from "lucide-react";
 import type { Problem } from "@shared/eeziTypes";
@@ -15,28 +16,41 @@ interface ProblemItemProps {
 }
 
 const ProblemItem: React.FC<ProblemItemProps> = ({ problem, index }) => {
+  const { t, dir } = useI18n();
   return (
-    <div className="flex items-start gap-3 py-2 px-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+    <div
+      className="flex items-start gap-3 py-2 px-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+      dir={dir}
+    >
       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mt-0.5">
-        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+        <span className="text-xs font-medium text-gray-600 dark:text-gray-400" dir={dir}>
           {index + 1}
         </span>
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-2">
           <FileText size={14} className="text-gray-500 flex-shrink-0" />
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+          <span
+            className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate"
+            dir={dir}
+          >
             {problem.file}
           </span>
 
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+          <span className="text-xs text-gray-500 dark:text-gray-400" dir={dir}>
             {problem.line}:{problem.column}
           </span>
-          <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300">
-            TS{problem.code}
+          <span
+            className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300"
+            dir={dir}
+          >
+            {t("TSCode", { code: problem.code })}
           </span>
         </div>
-        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+        <p
+          className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
+          dir={dir}
+        >
           {problem.message}
         </p>
       </div>
@@ -48,6 +62,7 @@ export const EeziProblemSummary: React.FC<EeziProblemSummaryProps> = ({
   summary,
   children,
 }) => {
+  const { t, dir } = useI18n();
   const [isContentVisible, setIsContentVisible] = useState(false);
 
   // Parse problems from children content if available
@@ -87,20 +102,27 @@ export const EeziProblemSummary: React.FC<EeziProblemSummaryProps> = ({
 
   const totalProblems = problems.length;
   const displaySummary =
-    summary || `${totalProblems} problems found (TypeScript errors)`;
+    summary || t("problems found (TypeScript errors)", { count: totalProblems });
 
   return (
     <div
       className="bg-(--background-lightest) hover:bg-(--background-lighter) rounded-lg px-4 py-2 border border-border my-2 cursor-pointer"
       onClick={() => setIsContentVisible(!isContentVisible)}
       data-testid="problem-summary"
+      dir={dir}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between" dir={dir}>
         <div className="flex items-center gap-2">
           <AlertTriangle size={16} className="text-amber-600 dark:text-amber-500" />
-          <span className="text-gray-700 dark:text-gray-300 font-medium text-sm">
-            <span className="font-bold mr-2 outline-2 outline-amber-200 dark:outline-amber-700 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 rounded-md px-1">
-              Auto-fix
+          <span
+            className="text-gray-700 dark:text-gray-300 font-medium text-sm"
+            dir={dir}
+          >
+            <span
+              className="font-bold mr-2 outline-2 outline-amber-200 dark:outline-amber-700 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 rounded-md px-1"
+              dir={dir}
+            >
+              {t("Auto-fix")}
             </span>
             {displaySummary}
           </span>
@@ -122,7 +144,7 @@ export const EeziProblemSummary: React.FC<EeziProblemSummaryProps> = ({
 
       {/* Content area - show individual problems */}
       {isContentVisible && totalProblems > 0 && (
-        <div className="mt-4">
+        <div className="mt-4" dir={dir}>
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             {problems.map((problem, index) => (
               <ProblemItem
@@ -137,8 +159,11 @@ export const EeziProblemSummary: React.FC<EeziProblemSummaryProps> = ({
 
       {/* Fallback content area for raw children */}
       {isContentVisible && totalProblems === 0 && children && (
-        <div className="mt-4 text-sm text-gray-800 dark:text-gray-200">
-          <pre className="whitespace-pre-wrap font-mono text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded">
+        <div className="mt-4 text-sm text-gray-800 dark:text-gray-200" dir={dir}>
+          <pre
+            className="whitespace-pre-wrap font-mono text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded"
+            dir={dir}
+          >
             {children}
           </pre>
         </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { useI18n } from "@/lib/i18n";
 import { useSettings } from "@/hooks/useSettings";
 import {
   Select,
@@ -46,6 +47,7 @@ const options: OptionInfo[] = [
 ];
 
 export const MaxChatTurnsSelector: React.FC = () => {
+  const { t, dir } = useI18n();
   const { settings, updateSettings } = useSettings();
 
   const handleValueChange = (value: string) => {
@@ -64,29 +66,29 @@ export const MaxChatTurnsSelector: React.FC = () => {
   const currentOption = options.find((opt) => opt.value === currentValue) || options[1];
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1" dir={dir}>
       <div className="flex items-center gap-4">
         <label
           htmlFor="max-chat-turns"
           className="text-sm font-medium text-gray-700 dark:text-gray-300"
         >
-          Maximum number of chat turns used in context
+          {t("Maximum number of chat turns used in context")}
         </label>
         <Select value={currentValue} onValueChange={handleValueChange}>
           <SelectTrigger className="w-[180px]" id="max-chat-turns">
-            <SelectValue placeholder="Select turns" />
+            <SelectValue placeholder={t("Select turns")} />
           </SelectTrigger>
           <SelectContent>
             {options.map((option) => (
               <SelectItem key={option.value} value={option.value}>
-                {option.label}
+                {t(option.label)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
       <div className="text-sm text-gray-500 dark:text-gray-400">
-        {currentOption.description}
+        {t(currentOption.description)}
       </div>
     </div>
   );

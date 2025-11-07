@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import React, { useState } from "react";
 import {
   ChevronsDownUp,
@@ -16,6 +17,7 @@ interface EeziOutputProps {
 }
 
 export const EeziOutput: React.FC<EeziOutputProps> = ({ type, message, children }) => {
+  const { t, dir } = useI18n();
   const [isContentVisible, setIsContentVisible] = useState(false);
   const selectedChatId = useAtomValue(selectedChatIdAtom);
   const { streamMessage } = useStreamChat();
@@ -29,13 +31,13 @@ export const EeziOutput: React.FC<EeziOutputProps> = ({ type, message, children 
   ) : (
     <AlertTriangle size={16} className={iconColor} />
   );
-  const label = isError ? "Error" : "Warning";
+  const label = isError ? t("Error") : t("Warning");
 
   const handleAIFix = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (message && selectedChatId) {
       streamMessage({
-        prompt: `Fix the error: ${message}`,
+        prompt: t("Fix the error: message", { message }),
         chatId: selectedChatId,
       });
     }
@@ -45,34 +47,40 @@ export const EeziOutput: React.FC<EeziOutputProps> = ({ type, message, children 
     <div
       className={`relative bg-(--background-lightest) hover:bg-(--background-lighter) rounded-lg px-4 py-2 border my-2 cursor-pointer min-h-18 ${borderColor}`}
       onClick={() => setIsContentVisible(!isContentVisible)}
+      dir={dir}
     >
       {/* Top-left label badge */}
       <div
         className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${iconColor} bg-white dark:bg-gray-900`}
         style={{ zIndex: 1 }}
+        dir={dir}
       >
         {icon}
-        <span>{label}</span>
+        <span dir={dir}>{label}</span>
       </div>
 
       {/* Fix with AI button - always visible for errors */}
       {isError && message && (
-        <div className="absolute top-9 left-2">
+        <div className="absolute top-9 left-2" dir={dir}>
           <button
             onClick={handleAIFix}
             className="cursor-pointer flex items-center justify-center bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white rounded text-xs p-1 w-24 h-6"
+            dir={dir}
           >
             <Sparkles size={16} className="mr-1" />
-            <span>Fix with AI</span>
+            <span dir={dir}>{t("Fix with AI")}</span>
           </button>
         </div>
       )}
 
       {/* Main content, padded to avoid label */}
-      <div className="flex items-center justify-between pl-24 pr-6">
+      <div className="flex items-center justify-between pl-24 pr-6" dir={dir}>
         <div className="flex items-center gap-2">
           {message && (
-            <span className="text-gray-700 dark:text-gray-300 font-medium text-sm">
+            <span
+              className="text-gray-700 dark:text-gray-300 font-medium text-sm"
+              dir={dir}
+            >
               {message.slice(0, isContentVisible ? undefined : 100) +
                 (!isContentVisible ? "..." : "")}
             </span>
@@ -95,7 +103,7 @@ export const EeziOutput: React.FC<EeziOutputProps> = ({ type, message, children 
 
       {/* Content area */}
       {isContentVisible && children && (
-        <div className="mt-4 pl-20 text-sm text-gray-800 dark:text-gray-200">
+        <div className="mt-4 pl-20 text-sm text-gray-800 dark:text-gray-200" dir={dir}>
           {children}
         </div>
       )}

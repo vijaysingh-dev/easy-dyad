@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -11,6 +12,7 @@ import type { ContextPathResult } from "@shared/schemas";
 
 export function ContextFilesPicker() {
   const { settings } = useSettings();
+  const { t, dir } = useI18n();
   const {
     contextPaths,
     smartContextAutoIncludes,
@@ -121,28 +123,37 @@ export function ContextFilesPicker() {
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>
-        <TooltipContent>Codebase Context</TooltipContent>
+        <TooltipContent dir={dir}>{t("Codebase Context")}</TooltipContent>
       </Tooltip>
 
-      <PopoverContent className="w-96 max-h-[80vh] overflow-y-auto" align="start">
-        <div className="relative space-y-4">
-          <div>
-            <h3 className="font-medium">Codebase Context</h3>
-            <p className="text-sm text-muted-foreground">
+      <PopoverContent
+        className="w-96 max-h-[80vh] overflow-y-auto"
+        align="start"
+        dir={dir}
+      >
+        <div className="relative space-y-4" dir={dir}>
+          <div dir={dir}>
+            <h3 className="font-medium" dir={dir}>
+              {t("Codebase Context")}
+            </h3>
+            <p className="text-sm text-muted-foreground" dir={dir}>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="flex items-center gap-1 cursor-help">
-                      Select the files to use as context. <InfoIcon className="size-4" />
+                    <span className="flex items-center gap-1 cursor-help" dir={dir}>
+                      {t("Select the files to use as context.")}{" "}
+                      <InfoIcon className="size-4" />
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-[300px]">
+                  <TooltipContent className="max-w-[300px]" dir={dir}>
                     {isSmartContextEnabled ? (
-                      <p>
-                        With Smart Context, Eezi uses the most relevant files as context.
+                      <p dir={dir}>
+                        {t(
+                          "With Smart Context, Eezi uses the most relevant files as context."
+                        )}
                       </p>
                     ) : (
-                      <p>By default, Eezi uses your whole codebase.</p>
+                      <p dir={dir}>{t("By default, Eezi uses your whole codebase.")}</p>
                     )}
                   </TooltipContent>
                 </Tooltip>
@@ -167,8 +178,9 @@ export function ContextFilesPicker() {
               type="submit"
               onClick={addPath}
               data-testid="manual-context-files-add-button"
+              dir={dir}
             >
-              Add
+              {t("Add")}
             </Button>
           </div>
 
@@ -209,11 +221,13 @@ export function ContextFilesPicker() {
                 ))}
               </div>
             ) : (
-              <div className="rounded-md border border-dashed p-4 text-center">
-                <p className="text-sm text-muted-foreground">
+              <div className="rounded-md border border-dashed p-4 text-center" dir={dir}>
+                <p className="text-sm text-muted-foreground" dir={dir}>
                   {isSmartContextEnabled
-                    ? "Eezi will use Smart Context to automatically find the most relevant files to use as context."
-                    : "Eezi will use the entire codebase as context."}
+                    ? t(
+                        "Eezi will use Smart Context to automatically find the most relevant files to use as context."
+                      )
+                    : t("Eezi will use the entire codebase as context.")}
                 </p>
               </div>
             )}
@@ -221,20 +235,23 @@ export function ContextFilesPicker() {
 
           <div className="pt-2">
             <div>
-              <h3 className="font-medium">Exclude Paths</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="font-medium" dir={dir}>
+                {t("Exclude Paths")}
+              </h3>
+              <p className="text-sm text-muted-foreground" dir={dir}>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="flex items-center gap-1 cursor-help">
-                        These files will be excluded from the context.{" "}
+                      <span className="flex items-center gap-1 cursor-help" dir={dir}>
+                        {t("These files will be excluded from the context.")}{" "}
                         <InfoIcon className="ml-2 size-4" />
                       </span>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-[300px]">
-                      <p>
-                        Exclude paths take precedence - files that match both include and
-                        exclude patterns will be excluded.
+                    <TooltipContent className="max-w-[300px]" dir={dir}>
+                      <p dir={dir}>
+                        {t(
+                          "Exclude paths take precedence - files that match both include and exclude patterns will be excluded."
+                        )}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -259,8 +276,9 @@ export function ContextFilesPicker() {
                 type="submit"
                 onClick={addExcludePath}
                 data-testid="exclude-context-files-add-button"
+                dir={dir}
               >
-                Add
+                {t("Add")}
               </Button>
             </div>
 
@@ -306,21 +324,24 @@ export function ContextFilesPicker() {
 
           {isSmartContextEnabled && (
             <div className="pt-2">
-              <div>
-                <h3 className="font-medium">Smart Context Auto-includes</h3>
-                <p className="text-sm text-muted-foreground">
+              <div dir={dir}>
+                <h3 className="font-medium" dir={dir}>
+                  {t("Smart Context Auto-includes")}
+                </h3>
+                <p className="text-sm text-muted-foreground" dir={dir}>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="flex items-center gap-1 cursor-help">
-                          These files will always be included in the context.{" "}
+                        <span className="flex items-center gap-1 cursor-help" dir={dir}>
+                          {t("These files will always be included in the context.")}{" "}
                           <InfoIcon className="ml-2 size-4" />
                         </span>
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-[300px]">
-                        <p>
-                          Auto-include files are always included in the context in
-                          addition to the files selected as relevant by Smart Context.
+                      <TooltipContent className="max-w-[300px]" dir={dir}>
+                        <p dir={dir}>
+                          {t(
+                            "Auto-include files are always included in the context in addition to the files selected as relevant by Smart Context."
+                          )}
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -345,8 +366,9 @@ export function ContextFilesPicker() {
                   type="submit"
                   onClick={addAutoIncludePath}
                   data-testid="auto-include-context-files-add-button"
+                  dir={dir}
                 >
-                  Add
+                  {t("Add")}
                 </Button>
               </div>
 

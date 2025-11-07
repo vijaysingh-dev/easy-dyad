@@ -8,9 +8,11 @@ import { useAtomValue } from "jotai";
 import { isStreamingByIdAtom, recentStreamChatIdsAtom } from "@/atoms/chatAtoms";
 import { useLoadApps } from "@/hooks/useLoadApps";
 import { useSelectChat } from "@/hooks/useSelectChat";
+import { useI18n } from "@/lib/i18n";
 import api from "@/api";
 
 export function ChatActivityButton() {
+  const { t, dir } = useI18n();
   const [open, setOpen] = useState(false);
   const isStreamingById = useAtomValue(isStreamingByIdAtom);
   const isAnyStreaming = useMemo(() => {
@@ -25,6 +27,7 @@ export function ChatActivityButton() {
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
             <button
+              dir={dir}
               className="no-app-region-drag relative flex items-center justify-center p-1.5 rounded-md text-sm hover:bg-[var(--background-darkest)] transition-colors"
               data-testid="chat-activity-button"
             >
@@ -37,7 +40,7 @@ export function ChatActivityButton() {
             </button>
           </PopoverTrigger>
         </TooltipTrigger>
-        <TooltipContent>Recent chat activity</TooltipContent>
+        <TooltipContent dir={dir}>{t("Recent chat activity")}</TooltipContent>
       </Tooltip>
       <PopoverContent align="end" className="w-80 p-0 max-h-[50vh] overflow-y-auto">
         <ChatActivityList onSelect={() => setOpen(false)} />
@@ -47,12 +50,14 @@ export function ChatActivityButton() {
 }
 
 function ChatActivityList({ onSelect }: { onSelect?: () => void }) {
+  const { t, dir } = useI18n();
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const isStreamingById = useAtomValue(isStreamingByIdAtom);
   const recentStreamChatIds = useAtomValue(recentStreamChatIdsAtom);
   const apps = useLoadApps();
   const { selectChat } = useSelectChat();
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -77,24 +82,32 @@ function ChatActivityList({ onSelect }: { onSelect?: () => void }) {
 
   if (loading) {
     return (
-      <div className="p-4 text-sm text-muted-foreground flex items-center gap-2">
+      <div
+        dir={dir}
+        className="p-4 text-sm text-muted-foreground flex items-center gap-2"
+      >
         <Loader2 size={16} className="animate-spin" />
-        Loading activity…
+        {t("Loading activity…")}
       </div>
     );
   }
 
   if (rows.length === 0) {
-    return <div className="p-4 text-sm text-muted-foreground">No recent chats</div>;
+    return (
+      <div dir={dir} className="p-4 text-sm text-muted-foreground">
+        {t("No recent chats")}
+      </div>
+    );
   }
 
   return (
-    <div className="py-1" data-testid="chat-activity-list">
+    <div dir={dir} className="py-1" data-testid="chat-activity-list">
       {rows.map((c) => {
         const inProgress = isStreamingById.get(c.id) === true;
         return (
           <button
             key={c.id}
+            dir={dir}
             className="w-full text-left px-3 py-2 flex items-center justify-between gap-2 rounded-md hover:bg-[var(--background-darker)] dark:hover:bg-[var(--background-lighter)] transition-colors"
             onClick={() => {
               onSelect?.();
@@ -103,20 +116,20 @@ function ChatActivityList({ onSelect }: { onSelect?: () => void }) {
             data-testid={`chat-activity-list-item-${c.id}`}
           >
             <div className="min-w-0">
-              <div className="truncate text-sm font-medium">
-                {c.title ?? `Chat #${c.id}`}
+              <div dir={dir} className="truncate text-sm font-medium">
+                {c.title ?? t("Chat id", { id: c.id })}
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div dir={dir} className="text-xs text-muted-foreground">
                 {apps.apps.find((a) => a.id === c.appId)?.name}
               </div>
             </div>
             <div className="flex items-center gap-2">
               {inProgress ? (
-                <div className="flex items-center text-purple-600">
+                <div dir={dir} className="flex items-center text-purple-600">
                   <Loader2 size={16} className="animate-spin" />
                 </div>
               ) : (
-                <div className="flex items-center text-emerald-600">
+                <div dir={dir} className="flex items-center text-emerald-600">
                   <CheckCircle2 size={16} />
                 </div>
               )}

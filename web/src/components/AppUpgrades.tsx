@@ -1,4 +1,5 @@
 import { Terminal, Loader2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -6,6 +7,7 @@ import { AppUpgrade } from "@shared/eeziTypes";
 import api from "@/api";
 
 export function AppUpgrades({ appId }: { appId: number | null }) {
+  const { t, dir } = useI18n();
   const queryClient = useQueryClient();
 
   const {
@@ -58,9 +60,12 @@ export function AppUpgrades({ appId }: { appId: number | null }) {
 
   if (isLoading) {
     return (
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
-          App Upgrades
+      <div className="mt-6" dir={dir}>
+        <h3
+          className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100"
+          dir={dir}
+        >
+          {t("App Upgrades")}
         </h3>
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
@@ -69,13 +74,16 @@ export function AppUpgrades({ appId }: { appId: number | null }) {
 
   if (queryError) {
     return (
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
-          App Upgrades
+      <div className="mt-6" dir={dir}>
+        <h3
+          className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100"
+          dir={dir}
+        >
+          {t("App Upgrades")}
         </h3>
-        <Alert variant="destructive">
-          <AlertTitle>Error loading upgrades</AlertTitle>
-          <AlertDescription>{queryError.message}</AlertDescription>
+        <Alert variant="destructive" dir={dir}>
+          <AlertTitle dir={dir}>{t("Error loading upgrades")}</AlertTitle>
+          <AlertDescription dir={dir}>{queryError.message}</AlertDescription>
         </Alert>
       </div>
     );
@@ -84,36 +92,50 @@ export function AppUpgrades({ appId }: { appId: number | null }) {
   const currentUpgrades = upgrades?.filter((u) => u.isNeeded) ?? [];
 
   return (
-    <div className="mt-6">
-      <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
-        App Upgrades
+    <div className="mt-6" dir={dir}>
+      <h3
+        className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100"
+        dir={dir}
+      >
+        {t("App Upgrades")}
       </h3>
       {currentUpgrades.length === 0 ? (
         <div
           data-testid="no-app-upgrades-needed"
           className="p-4 bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-800/50 rounded-lg text-sm text-green-800 dark:text-green-300"
+          dir={dir}
         >
-          App is up-to-date and has all Eezi capabilities enabled
+          {t("App is up-to-date and has all Eezi capabilities enabled")}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4" dir={dir}>
           {currentUpgrades.map((upgrade: AppUpgrade) => (
             <div
               key={upgrade.id}
               className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg flex justify-between items-start"
+              dir={dir}
             >
-              <div className="flex-grow">
-                <h4 className="font-semibold text-gray-800 dark:text-gray-200">
+              <div className="flex-grow" dir={dir}>
+                <h4 className="font-semibold text-gray-800 dark:text-gray-200" dir={dir}>
                   {upgrade.title}
                 </h4>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1" dir={dir}>
                   {upgrade.description}
                 </p>
                 {mutationError && upgradingVariables === upgrade.id && (
-                  <Alert variant="destructive" className="mt-3 dark:bg-destructive/15">
+                  <Alert
+                    variant="destructive"
+                    className="mt-3 dark:bg-destructive/15"
+                    dir={dir}
+                  >
                     <Terminal className="h-4 w-4" />
-                    <AlertTitle className="dark:text-red-200">Upgrade Failed</AlertTitle>
-                    <AlertDescription className="text-xs text-red-400 dark:text-red-300">
+                    <AlertTitle className="dark:text-red-200" dir={dir}>
+                      {t("Upgrade Failed")}
+                    </AlertTitle>
+                    <AlertDescription
+                      className="text-xs text-red-400 dark:text-red-300"
+                      dir={dir}
+                    >
                       {(mutationError as Error).message}{" "}
                       <a
                         onClick={(e) => {
@@ -123,14 +145,16 @@ export function AppUpgrades({ appId }: { appId: number | null }) {
                           );
                         }}
                         className="underline font-medium hover:dark:text-red-200"
+                        dir={dir}
                       >
-                        Manual Upgrade Instructions
+                        {t("Manual Upgrade Instructions")}
                       </a>
                     </AlertDescription>
                   </Alert>
                 )}
               </div>
               <Button
+                dir={dir}
                 onClick={() => handleUpgrade(upgrade.id)}
                 disabled={isUpgrading && upgradingVariables === upgrade.id}
                 className="ml-4 flex-shrink-0"
@@ -140,7 +164,7 @@ export function AppUpgrades({ appId }: { appId: number | null }) {
                 {isUpgrading && upgradingVariables === upgrade.id ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Upgrade
+                {t("Upgrade")}
               </Button>
             </div>
           ))}

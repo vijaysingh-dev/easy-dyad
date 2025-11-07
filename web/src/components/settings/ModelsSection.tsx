@@ -98,8 +98,8 @@ export function ModelsSection({ providerId }: ModelsSectionProps) {
       {modelsError && (
         <Alert dir={dir} variant="destructive" className="mt-4">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>{t("Error Loading Models")}</AlertTitle>
-          <AlertDescription>
+          <AlertTitle dir={dir}>{t("Error Loading Models")}</AlertTitle>
+          <AlertDescription dir={dir}>
             {t("provided_value", { value: modelsError.message })}
           </AlertDescription>
         </Alert>
@@ -118,7 +118,10 @@ export function ModelsSection({ providerId }: ModelsSectionProps) {
               onDoubleClick={() => handleModelDoubleClick(model)}
             >
               <div className="flex justify-between items-center">
-                <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                <h4
+                  dir={dir}
+                  className="text-lg font-semibold text-gray-800 dark:text-gray-100"
+                >
                   {model.displayName}
                 </h4>
                 {model.type === "custom" && (
@@ -161,11 +164,11 @@ export function ModelsSection({ providerId }: ModelsSectionProps) {
                   </div>
                 )}
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+              <p dir={dir} className="text-sm text-gray-500 dark:text-gray-400 italic">
                 {model.apiName}
               </p>
               {model.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                <p dir={dir} className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                   {model.description}
                 </p>
               )}
@@ -186,7 +189,10 @@ export function ModelsSection({ providerId }: ModelsSectionProps) {
                 )}
               </div>
               <div className="flex flex-wrap gap-x-2">
-                <span className="mt-2 inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
+                <span
+                  dir={dir}
+                  className="mt-2 inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300"
+                >
                   {model.type === "cloud" ? t("Built-in") : t("Custom")}
                 </span>
 
@@ -249,7 +255,7 @@ export function ModelsSection({ providerId }: ModelsSectionProps) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle dir={dir}>
               {t("Are you sure you want to delete this model?")}
             </AlertDialogTitle>
             <AlertDialogDescription dir={dir}>

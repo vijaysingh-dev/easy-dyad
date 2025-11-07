@@ -1,4 +1,5 @@
 import React from "react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import {
@@ -12,11 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface DeleteConfirmationDialogProps {
   itemName: string;
@@ -31,6 +28,8 @@ export function DeleteConfirmationDialog({
   onDelete,
   trigger,
 }: DeleteConfirmationDialogProps) {
+  const { t, dir } = useI18n();
+
   return (
     <AlertDialog>
       {trigger ? (
@@ -40,6 +39,7 @@ export function DeleteConfirmationDialog({
           <TooltipTrigger asChild>
             <AlertDialogTrigger asChild>
               <Button
+                dir={dir}
                 size="icon"
                 variant="ghost"
                 data-testid="delete-prompt-button"
@@ -49,21 +49,27 @@ export function DeleteConfirmationDialog({
             </AlertDialogTrigger>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Delete {itemType.toLowerCase()}</p>
+            <p dir={dir}>{t("Delete itemType", { itemType: itemType.toLowerCase() })}</p>
           </TooltipContent>
         </Tooltip>
       )}
-      <AlertDialogContent>
+      <AlertDialogContent dir={dir}>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {itemType}</AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to delete "{itemName}"? This action cannot be
-            undone.
+          <AlertDialogTitle dir={dir}>
+            {t("Delete itemType", { itemType })}
+          </AlertDialogTitle>
+          <AlertDialogDescription dir={dir}>
+            {t(
+              'Are you sure you want to delete "itemName"? This action cannot be undone.',
+              { itemName }
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onDelete}>Delete</AlertDialogAction>
+          <AlertDialogCancel dir={dir}>{t("Cancel")}</AlertDialogCancel>
+          <AlertDialogAction onClick={onDelete} dir={dir}>
+            {t("Delete")}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

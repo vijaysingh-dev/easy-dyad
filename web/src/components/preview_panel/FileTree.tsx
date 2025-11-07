@@ -2,6 +2,7 @@ import React from "react";
 import { Folder, FolderOpen } from "lucide-react";
 import { selectedFileAtom } from "@/atoms/viewAtoms";
 import { useSetAtom } from "jotai";
+import { useI18n } from "@/lib/i18n";
 
 interface FileTreeProps {
   files: string[];
@@ -52,11 +53,12 @@ const buildFileTree = (files: string[]): TreeNode[] => {
 
 // File tree component
 export const FileTree = ({ files }: FileTreeProps) => {
+  const { t, dir } = useI18n();
   const treeData = buildFileTree(files);
 
   return (
     <div className="file-tree mt-2">
-      <TreeNodes nodes={treeData} level={0} />
+      <TreeNodes nodes={treeData} level={0} dir={dir} t={t} />
     </div>
   );
 };
@@ -64,6 +66,8 @@ export const FileTree = ({ files }: FileTreeProps) => {
 interface TreeNodesProps {
   nodes: TreeNode[];
   level: number;
+  dir: string;
+  t: (key: string, options?: any) => string;
 }
 
 // Sort nodes to show directories first
@@ -77,10 +81,10 @@ const sortNodes = (nodes: TreeNode[]): TreeNode[] => {
 };
 
 // Tree nodes component
-const TreeNodes = ({ nodes, level }: TreeNodesProps) => (
-  <ul className="ml-4">
+const TreeNodes = ({ nodes, level, dir, t }: TreeNodesProps) => (
+  <ul dir={dir} className="ml-4">
     {sortNodes(nodes).map((node, index) => (
-      <TreeNode key={index} node={node} level={level} />
+      <TreeNode key={index} node={node} level={level} dir={dir} t={t} />
     ))}
   </ul>
 );
@@ -88,10 +92,12 @@ const TreeNodes = ({ nodes, level }: TreeNodesProps) => (
 interface TreeNodeProps {
   node: TreeNode;
   level: number;
+  dir: string;
+  t: (key: string, options?: any) => string;
 }
 
 // Individual tree node component
-const TreeNode = ({ node, level }: TreeNodeProps) => {
+const TreeNode = ({ node, level, dir, t }: TreeNodeProps) => {
   const [expanded, setExpanded] = React.useState(level < 2);
   const setSelectedFile = useSetAtom(selectedFileAtom);
 
@@ -108,6 +114,7 @@ const TreeNode = ({ node, level }: TreeNodeProps) => {
   return (
     <li className="py-0.5">
       <div
+        dir={dir}
         className="flex items-center hover:bg-(--sidebar) rounded cursor-pointer px-1.5 py-0.5 text-sm"
         onClick={handleClick}
       >
@@ -116,11 +123,11 @@ const TreeNode = ({ node, level }: TreeNodeProps) => {
             {expanded ? <FolderOpen size={16} /> : <Folder size={16} />}
           </span>
         )}
-        <span>{node.name}</span>
+        <span dir={dir}>{node.name}</span>
       </div>
 
       {node.isDirectory && expanded && node.children.length > 0 && (
-        <TreeNodes nodes={node.children} level={level + 1} />
+        <TreeNodes nodes={node.children} level={level + 1} dir={dir} t={t} />
       )}
     </li>
   );

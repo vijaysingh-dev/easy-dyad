@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, use } from "react";
+import { useI18n } from "@/lib/i18n";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useAtom, useSetAtom, useAtomValue } from "jotai";
 import { homeChatInputValueAtom } from "@/atoms/chatAtoms";
@@ -39,6 +40,7 @@ export interface HomeSubmitOptions {
 }
 
 export default function HomePage() {
+  const { t, dir } = useI18n();
   const [inputValue, setInputValue] = useAtom(homeChatInputValueAtom);
   const navigate = useNavigate();
   const search = useSearch({ from: "/" });
@@ -168,12 +170,18 @@ export default function HomePage() {
             <div className="absolute top-0 left-0 w-full h-full border-8 border-gray-200 dark:border-gray-700 rounded-full"></div>
             <div className="absolute top-0 left-0 w-full h-full border-8 border-t-primary rounded-full animate-spin"></div>
           </div>
-          <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-gray-200">
-            Building your app
+          <h2
+            dir={dir}
+            className="text-2xl font-bold mb-2 text-gray-800 dark:text-gray-200"
+          >
+            {t("Building your app")}
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-8">
-            We're setting up your app with AI magic. <br />
-            This might take a moment...
+          <p
+            dir={dir}
+            className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-8"
+          >
+            {t("We're setting up your app with AI magic.")} <br />
+            {t("This might take a moment...")}
           </p>
         </div>
       </div>
@@ -195,7 +203,9 @@ export default function HomePage() {
               <button
                 type="button"
                 key={index}
-                onClick={() => setInputValue(`Build me a ${item.label}`)}
+                onClick={() =>
+                  setInputValue(t("Build me a label", { label: item.label }))
+                }
                 className="flex items-center gap-3 px-4 py-2 rounded-xl border border-gray-200
                            bg-white/50 backdrop-blur-sm
                            transition-all duration-200
@@ -205,8 +215,11 @@ export default function HomePage() {
                            dark:hover:bg-gray-800 dark:hover:border-gray-600"
               >
                 <span className="text-gray-700 dark:text-gray-300">{item.icon}</span>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {item.label}
+                <span
+                  dir={dir}
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  {t("label", { label: item.label })}
                 </span>
               </button>
             ))}
@@ -236,8 +249,11 @@ export default function HomePage() {
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
               />
             </svg>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              More ideas
+            <span
+              dir={dir}
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              {t("More ideas")}
             </span>
           </button>
         </div>
@@ -249,7 +265,9 @@ export default function HomePage() {
       <Dialog open={releaseNotesOpen} onOpenChange={setReleaseNotesOpen}>
         <DialogContent className="max-w-4xl bg-(--docs-bg) pr-0 pt-4 pl-4 gap-1">
           <DialogHeader>
-            <DialogTitle>What's new in v{appVersion}?</DialogTitle>
+            <DialogTitle dir={dir}>
+              {t("What's new in vappVersion", { appVersion })}
+            </DialogTitle>
             <Button
               variant="ghost"
               size="sm"

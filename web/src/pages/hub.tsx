@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
@@ -9,6 +10,7 @@ import { CreateAppDialog } from "@/components/CreateAppDialog";
 import { NeonConnector } from "@/components/NeonConnector";
 
 const HubPage: React.FC = () => {
+  const { t, dir } = useI18n();
   const router = useRouter();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { templates, isLoading } = useTemplates();
@@ -23,10 +25,8 @@ const HubPage: React.FC = () => {
     setIsCreateDialogOpen(true);
   };
   // Separate templates into official and community
-  const officialTemplates =
-    templates?.filter((template) => template.isOfficial) || [];
-  const communityTemplates =
-    templates?.filter((template) => !template.isOfficial) || [];
+  const officialTemplates = templates?.filter((template) => template.isOfficial) || [];
+  const communityTemplates = templates?.filter((template) => !template.isOfficial) || [];
 
   return (
     <div className="min-h-screen px-8 py-4">
@@ -38,7 +38,7 @@ const HubPage: React.FC = () => {
           className="flex items-center gap-2 mb-4 bg-(--background-lightest) py-5"
         >
           <ArrowLeft className="h-4 w-4" />
-          Go Back
+          <span dir={dir}>{t("Go Back")}</span>
         </Button>
         <header className="mb-8 text-left">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -103,14 +103,15 @@ const HubPage: React.FC = () => {
 };
 
 function BackendSection() {
+  const { t, dir } = useI18n();
   return (
     <div className="">
       <header className="mb-4 text-left">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Backend Services
+        <h1 dir={dir} className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          {t("Backend Services")}
         </h1>
-        <p className="text-md text-gray-600 dark:text-gray-400">
-          Connect to backend services for your projects.
+        <p dir={dir} className="text-md text-gray-600 dark:text-gray-400">
+          {t("Connect to backend services for your projects.")}
         </p>
       </header>
 

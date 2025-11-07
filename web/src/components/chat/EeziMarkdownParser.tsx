@@ -93,7 +93,10 @@ export const EeziMarkdownParser: React.FC<EeziMarkdownParserProps> = ({ content 
                   {piece.content}
                 </ReactMarkdown>
               )
-            : renderCustomTag(piece.tagInfo, { isStreaming })}
+            : renderCustomTag(piece.tagInfo, {
+                index,
+                isStreaming,
+              })}
         </React.Fragment>
       ))}
     </>
@@ -279,7 +282,7 @@ function getState({
  */
 function renderCustomTag(
   tagInfo: CustomTagInfo,
-  { isStreaming }: { isStreaming: boolean }
+  { index, isStreaming }: { index: number; isStreaming: boolean }
 ): React.ReactNode {
   const { tag, attributes, content, inProgress } = tagInfo;
 
@@ -493,7 +496,7 @@ function renderCustomTag(
         const action = {
           id: attributes.type,
         } as SuggestedAction;
-        return <>{mapActionToButton(action)}</>;
+        return <>{mapActionToButton(action, index)}</>;
       }
       return null;
 

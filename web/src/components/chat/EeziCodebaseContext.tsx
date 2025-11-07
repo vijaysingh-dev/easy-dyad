@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { ChevronUp, ChevronDown, Code2, FileText } from "lucide-react";
 import { CustomTagState } from "./stateTypes";
@@ -13,6 +14,7 @@ interface EeziCodebaseContextProps {
 }
 
 export const EeziCodebaseContext: React.FC<EeziCodebaseContextProps> = ({ node }) => {
+  const { t, dir } = useI18n();
   const state = node?.properties?.state as CustomTagState;
   const inProgress = state === "pending";
   const [isExpanded, setIsExpanded] = useState(inProgress);
@@ -40,21 +42,29 @@ export const EeziCodebaseContext: React.FC<EeziCodebaseContextProps> = ({ node }
           setIsExpanded(!isExpanded);
         }
       }}
+      dir={dir}
     >
       {/* Top-left label badge */}
       <div
         className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold text-blue-500 bg-white dark:bg-zinc-900"
         style={{ zIndex: 1 }}
+        dir={dir}
       >
         <Code2 size={16} className="text-blue-500" />
-        <span>Codebase Context</span>
+        <span dir={dir}>{t("Codebase Context")}</span>
       </div>
 
       {/* File count when collapsed */}
       {files.length > 0 && (
-        <div className="absolute top-2 left-40 flex items-center">
-          <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-zinc-800 text-xs rounded text-gray-600 dark:text-gray-300">
-            Using {files.length} file{files.length !== 1 ? "s" : ""}
+        <div className="absolute top-2 left-40 flex items-center" dir={dir}>
+          <span
+            className="px-1.5 py-0.5 bg-gray-100 dark:bg-zinc-800 text-xs rounded text-gray-600 dark:text-gray-300"
+            dir={dir}
+          >
+            {t("Using file count", {
+              count: files.length,
+              s: files.length !== 1 ? "s" : "",
+            })}
           </span>
         </div>
       )}
@@ -72,6 +82,7 @@ export const EeziCodebaseContext: React.FC<EeziCodebaseContextProps> = ({ node }
           opacity: isExpanded ? 1 : 0,
           marginBottom: isExpanded ? "0" : "-6px", // Compensate for padding
         }}
+        dir={dir}
       >
         {/* File list when expanded */}
         {files.length > 0 && (
@@ -87,18 +98,25 @@ export const EeziCodebaseContext: React.FC<EeziCodebaseContextProps> = ({ node }
                   <div
                     key={index}
                     className="px-2 py-1     bg-gray-100 dark:bg-zinc-800 rounded-lg"
+                    dir={dir}
                   >
                     <div className="flex items-center gap-1.5">
                       <FileText
                         size={14}
                         className="text-gray-500 dark:text-gray-400 flex-shrink-0"
                       />
-                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <div
+                        className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        dir={dir}
+                      >
                         {fileName}
                       </div>
                     </div>
                     {pathPart && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400 ml-5">
+                      <div
+                        className="text-xs text-gray-500 dark:text-gray-400 ml-5"
+                        dir={dir}
+                      >
                         {pathPart}
                       </div>
                     )}

@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 // @ts-ignore
 import openAiLogo from "../../assets/ai-logos/openai-logo.svg";
 // @ts-ignore
@@ -13,6 +14,7 @@ import { Button } from "./ui/button";
 import api from "@/api";
 
 export function ProBanner() {
+  const { t, dir } = useI18n();
   const { settings } = useSettings();
   const { userBudget } = useUserBudgetInfo();
 
@@ -23,14 +25,14 @@ export function ProBanner() {
 
   if (settings?.enableEeziPro || userBudget) {
     return (
-      <div className="mt-6 max-w-2xl mx-auto">
+      <div dir={dir} className="mt-6 max-w-2xl mx-auto">
         <ManageEeziProButton />
       </div>
     );
   }
 
   return (
-    <div className="mt-6 max-w-2xl mx-auto">
+    <div dir={dir} className="mt-6 max-w-2xl mx-auto">
       {selectedBanner === "ai" ? (
         <AiAccessBanner />
       ) : selectedBanner === "smart" ? (
@@ -44,8 +46,10 @@ export function ProBanner() {
 }
 
 export function ManageEeziProButton() {
+  const { t, dir } = useI18n();
   return (
     <Button
+      dir={dir}
       variant="outline"
       size="lg"
       className="w-full mt-4 bg-(--background-lighter) text-primary"
@@ -54,14 +58,16 @@ export function ManageEeziProButton() {
       }}
     >
       <KeyRound aria-hidden="true" />
-      Manage Eezi Pro subscription
+      {t("Manage Eezi Pro subscription")}
     </Button>
   );
 }
 
 export function SetupEeziProButton() {
+  const { t, dir } = useI18n();
   return (
     <Button
+      dir={dir}
       variant="outline"
       size="lg"
       className="w-full mt-4 bg-(--background-lighter) text-primary"
@@ -70,14 +76,16 @@ export function SetupEeziProButton() {
       }}
     >
       <KeyRound aria-hidden="true" />
-      Already have Eezi Pro? Add your key
+      {t("Already have Eezi Pro? Add your key")}
     </Button>
   );
 }
 
 export function AiAccessBanner() {
+  const { t, dir } = useI18n();
   return (
     <div
+      dir={dir}
       className="w-full py-2 sm:py-2.5 md:py-3 rounded-lg bg-gradient-to-br from-white via-indigo-50 to-sky-100 dark:from-indigo-700 dark:via-indigo-700 dark:to-indigo-900 flex items-center justify-center relative overflow-hidden ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-[1px]"
       onClick={() => {
         api.app.openExternalUrl(
@@ -96,14 +104,14 @@ export function AiAccessBanner() {
       <div className="relative z-10 text-center flex flex-col items-center gap-0.5 sm:gap-1 md:gap-1.5 px-4 md:px-6 pr-6 md:pr-8">
         <div className="mt-0.5 sm:mt-1 flex items-center gap-2 sm:gap-3 justify-center">
           <div className="text-xl font-semibold tracking-tight text-indigo-900 dark:text-indigo-100">
-            Access leading AI models with one plan
+            {t("Access leading AI models with one plan")}
           </div>
           <button
             type="button"
-            aria-label="Subscribe to Eezi Pro"
+            aria-label={t("Subscribe to Eezi Pro")}
             className="inline-flex items-center rounded-md bg-white/90 text-indigo-800 hover:bg-white shadow px-3 py-1.5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white/50"
           >
-            Get Eezi Pro
+            {t("Get Eezi Pro")}
           </button>
         </div>
 
@@ -142,8 +150,10 @@ export function AiAccessBanner() {
 }
 
 export function SmartContextBanner() {
+  const { t, dir } = useI18n();
   return (
     <div
+      dir={dir}
       className="w-full py-2 sm:py-2.5 md:py-3 rounded-lg bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200 dark:from-emerald-700 dark:via-emerald-700 dark:to-emerald-900 flex items-center justify-center relative overflow-hidden ring-1 ring-inset ring-emerald-900/10 dark:ring-white/10 shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-[1px]"
       onClick={() => {
         api.app.openExternalUrl(
@@ -163,18 +173,18 @@ export function SmartContextBanner() {
         <div className="mt-0.5 sm:mt-1 flex items-center gap-2 sm:gap-3 justify-center">
           <div className="flex flex-col items-center text-center">
             <div className="text-xl font-semibold tracking-tight text-emerald-900 dark:text-emerald-100">
-              Up to 5x cheaper
+              {t("Up to 5x cheaper")}
             </div>
             <div className="text-sm sm:text-base mt-1 text-emerald-700 dark:text-emerald-200/80">
-              by using Smart Context
+              {t("by using Smart Context")}
             </div>
           </div>
           <button
             type="button"
-            aria-label="Get Eezi Pro"
+            aria-label={t("Get Eezi Pro")}
             className="inline-flex items-center rounded-md bg-white/90 text-emerald-800 hover:bg-white shadow px-3 py-1.5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white/50"
           >
-            Get Eezi Pro
+            {t("Get Eezi Pro")}
           </button>
         </div>
       </div>
@@ -183,8 +193,10 @@ export function SmartContextBanner() {
 }
 
 export function TurboBanner() {
+  const { t, dir } = useI18n();
   return (
     <div
+      dir={dir}
       className="w-full py-2 sm:py-2.5 md:py-3 rounded-lg bg-gradient-to-br from-rose-50 via-rose-100 to-rose-200 dark:from-rose-800 dark:via-fuchsia-800 dark:to-rose-800 flex items-center justify-center relative overflow-hidden ring-1 ring-inset ring-rose-900/10 dark:ring-white/5 shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-[1px]"
       onClick={() => {
         api.app.openExternalUrl(
@@ -204,18 +216,18 @@ export function TurboBanner() {
         <div className="mt-0.5 sm:mt-1 flex items-center gap-2 sm:gap-3 justify-center">
           <div className="flex flex-col items-center text-center">
             <div className="text-xl font-semibold tracking-tight text-rose-900 dark:text-rose-100">
-              Generate code 4–10x faster
+              {t("Generate code 4–10x faster")}
             </div>
             <div className="text-sm sm:text-base mt-1 text-rose-700 dark:text-rose-200/80">
-              with Turbo Models & Turbo Edits
+              {t("with Turbo Models & Turbo Edits")}
             </div>
           </div>
           <button
             type="button"
-            aria-label="Get Eezi Pro"
+            aria-label={t("Get Eezi Pro")}
             className="inline-flex items-center rounded-md bg-white/90 text-rose-800 hover:bg-white shadow px-3 py-1.5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white/50"
           >
-            Get Eezi Pro
+            {t("Get Eezi Pro")}
           </button>
         </div>
       </div>

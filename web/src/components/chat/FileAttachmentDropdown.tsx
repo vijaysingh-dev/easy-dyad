@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import { Paperclip, MessageSquare, Upload } from "lucide-react";
 import {
   DropdownMenu,
@@ -15,10 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useRef } from "react";
 
 interface FileAttachmentDropdownProps {
-  onFileSelect: (
-    files: FileList,
-    type: "chat-context" | "upload-to-codebase",
-  ) => void;
+  onFileSelect: (files: FileList, type: "chat-context" | "upload-to-codebase") => void;
   disabled?: boolean;
   className?: string;
 }
@@ -28,6 +26,7 @@ export function FileAttachmentDropdown({
   disabled,
   className,
 }: FileAttachmentDropdownProps) {
+  const { t, dir } = useI18n();
   const chatContextFileInputRef = useRef<HTMLInputElement>(null);
   const uploadToCodebaseFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -41,7 +40,7 @@ export function FileAttachmentDropdown({
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "chat-context" | "upload-to-codebase",
+    type: "chat-context" | "upload-to-codebase"
   ) => {
     if (e.target.files && e.target.files.length > 0) {
       onFileSelect(e.target.files, type);
@@ -61,8 +60,9 @@ export function FileAttachmentDropdown({
                   variant="ghost"
                   size="sm"
                   disabled={disabled}
-                  title="Attach files"
+                  title={t("Attach files")}
                   className={className}
+                  dir={dir}
                 >
                   <Paperclip size={20} />
                 </Button>
@@ -75,14 +75,16 @@ export function FileAttachmentDropdown({
                     <DropdownMenuItem
                       onClick={handleChatContextClick}
                       className="py-3 px-4"
+                      dir={dir}
                     >
                       <MessageSquare size={16} className="mr-2" />
-                      Attach file as chat context
+                      {t("Attach file as chat context")}
                     </DropdownMenuItem>
                   </TooltipTrigger>
-                  <TooltipContent side="right">
-                    Example use case: screenshot of the app to point out a UI
-                    issue
+                  <TooltipContent side="right" dir={dir}>
+                    {t(
+                      "Example use case: screenshot of the app to point out a UI issue"
+                    )}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -93,19 +95,20 @@ export function FileAttachmentDropdown({
                     <DropdownMenuItem
                       onClick={handleUploadToCodebaseClick}
                       className="py-3 px-4"
+                      dir={dir}
                     >
                       <Upload size={16} className="mr-2" />
-                      Upload file to codebase
+                      {t("Upload file to codebase")}
                     </DropdownMenuItem>
                   </TooltipTrigger>
-                  <TooltipContent side="right">
-                    Example use case: add an image to use for your app
+                  <TooltipContent side="right" dir={dir}>
+                    {t("Example use case: add an image to use for your app")}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </DropdownMenuContent>
           </DropdownMenu>
-          <TooltipContent>Attach files</TooltipContent>
+          <TooltipContent dir={dir}>{t("Attach files")}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
 

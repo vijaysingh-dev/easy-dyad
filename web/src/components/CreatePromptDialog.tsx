@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,11 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Plus, Save, Edit2 } from "lucide-react";
 
 interface CreateOrEditPromptDialogProps {
@@ -53,6 +50,7 @@ export function CreateOrEditPromptDialog({
     description: "",
     content: "",
   });
+  const { t, dir } = useI18n();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize textarea function
@@ -144,8 +142,8 @@ export function CreateOrEditPromptDialog({
         <DialogTrigger asChild>{trigger}</DialogTrigger>
       ) : mode === "create" ? (
         <DialogTrigger asChild>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" /> New Prompt
+          <Button dir={dir}>
+            <Plus className="mr-2 h-4 w-4" /> {t("New Prompt")}
           </Button>
         </DialogTrigger>
       ) : (
@@ -156,43 +154,44 @@ export function CreateOrEditPromptDialog({
                 size="icon"
                 variant="ghost"
                 data-testid="edit-prompt-button"
+                dir={dir}
               >
                 <Edit2 className="h-4 w-4" />
               </Button>
             </DialogTrigger>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Edit prompt</p>
+            <p dir={dir}>{t("Edit prompt")}</p>
           </TooltipContent>
         </Tooltip>
       )}
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "create" ? "Create New Prompt" : "Edit Prompt"}
+          <DialogTitle dir={dir}>
+            {mode === "create" ? t("Create New Prompt") : t("Edit Prompt")}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription dir={dir}>
             {mode === "create"
-              ? "Create a new prompt template for your library."
-              : "Edit your prompt template."}
+              ? t("Create a new prompt template for your library.")
+              : t("Edit your prompt template.")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <Input
-            placeholder="Title"
+            placeholder={t("Title")}
             value={draft.title}
             onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
+            dir={dir}
           />
           <Input
-            placeholder="Description (optional)"
+            placeholder={t("Description (optional)")}
             value={draft.description}
-            onChange={(e) =>
-              setDraft((d) => ({ ...d, description: e.target.value }))
-            }
+            onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
+            dir={dir}
           />
           <Textarea
             ref={textareaRef}
-            placeholder="Content"
+            placeholder={t("Content")}
             value={draft.content}
             onChange={(e) => {
               setDraft((d) => ({ ...d, content: e.target.value }));
@@ -201,17 +200,19 @@ export function CreateOrEditPromptDialog({
             }}
             className="resize-none overflow-y-auto"
             style={{ minHeight: "150px" }}
+            dir={dir}
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>
-            Cancel
+          <Button variant="outline" onClick={handleCancel} dir={dir}>
+            {t("Cancel")}
           </Button>
           <Button
             onClick={onSave}
             disabled={!draft.title.trim() || !draft.content.trim()}
+            dir={dir}
           >
-            <Save className="mr-2 h-4 w-4" /> Save
+            <Save className="mr-2 h-4 w-4" /> {t("Save")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -229,7 +230,5 @@ export function CreatePromptDialog({
     content: string;
   }) => Promise<any>;
 }) {
-  return (
-    <CreateOrEditPromptDialog mode="create" onCreatePrompt={onCreatePrompt} />
-  );
+  return <CreateOrEditPromptDialog mode="create" onCreatePrompt={onCreatePrompt} />;
 }

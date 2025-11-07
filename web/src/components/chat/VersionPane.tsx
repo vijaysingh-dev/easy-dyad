@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import { useAtom, useAtomValue } from "jotai";
 import { selectedAppIdAtom, selectedVersionIdAtom } from "@/atoms/appAtoms";
 import { useVersions } from "@/hooks/useVersions";
@@ -18,6 +19,7 @@ interface VersionPaneProps {
 }
 
 export function VersionPane({ isVisible, onClose }: VersionPaneProps) {
+  const { t, dir } = useI18n();
   const appId = useAtomValue(selectedAppIdAtom);
   const { refreshApp, app } = useLoadApp(appId);
   const { restartApp } = useRunApp();
@@ -97,14 +99,17 @@ export function VersionPane({ isVisible, onClose }: VersionPaneProps) {
   const versions = cachedVersions.length > 0 ? cachedVersions : liveVersions;
 
   return (
-    <div className="h-full border-t border-2 border-border w-full">
+    <div className="h-full border-t border-2 border-border w-full" dir={dir}>
       <div className="p-2 border-b border-border flex items-center justify-between">
-        <h2 className="text-base font-medium pl-2">Version History</h2>
+        <h2 className="text-base font-medium pl-2" dir={dir}>
+          {t("Version History")}
+        </h2>
         <div className="flex items-center gap-2">
           <button
             onClick={onClose}
             className="p-1 hover:bg-(--background-lightest) rounded-md  "
-            aria-label="Close version pane"
+            aria-label={t("Close version pane")}
+            dir={dir}
           >
             <X size={20} />
           </button>
@@ -112,7 +117,9 @@ export function VersionPane({ isVisible, onClose }: VersionPaneProps) {
       </div>
       <div className="overflow-y-auto h-[calc(100%-60px)]">
         {versions.length === 0 ? (
-          <div className="p-4 ">No versions available</div>
+          <div className="p-4 " dir={dir}>
+            {t("No versions available")}
+          </div>
         ) : (
           <div className="divide-y divide-border">
             {versions.map((version: Version, index: number) => (
@@ -130,11 +137,13 @@ export function VersionPane({ isVisible, onClose }: VersionPaneProps) {
                     handleVersionClick(version);
                   }
                 }}
+                dir={dir}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-xs">
-                      Version {versions.length - index} ({version.oid.slice(0, 7)})
+                    <span className="font-medium text-xs" dir={dir}>
+                      {t("Version")} {versions.length - index} ({version.oid.slice(0, 7)}
+                      )
                     </span>
                     {/* example format: '2025-07-25T21:52:01Z' */}
                     {version.dbTimestamp &&
@@ -151,15 +160,19 @@ export function VersionPane({ isVisible, onClose }: VersionPaneProps) {
                                     ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                                     : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
                                 )}
+                                dir={dir}
                               >
                                 <Database size={10} />
-                                <span>DB</span>
+                                <span dir={dir}>{t("DB")}</span>
                               </div>
                             </TooltipTrigger>
-                            <TooltipContent>
+                            <TooltipContent dir={dir}>
                               {isExpired
-                                ? "DB snapshot may have expired (older than 24 hours)"
-                                : `Database snapshot available at timestamp ${version.dbTimestamp}`}
+                                ? t("DB snapshot may have expired (older than 24 hours)")
+                                : t(
+                                    "Database snapshot available at timestamp: timestamp",
+                                    { timestamp: version.dbTimestamp }
+                                  )}
                             </TooltipContent>
                           </Tooltip>
                         );
@@ -169,9 +182,9 @@ export function VersionPane({ isVisible, onClose }: VersionPaneProps) {
                     {isCheckingOutVersion && selectedVersionId === version.oid && (
                       <Loader2 size={12} className="animate-spin text-primary" />
                     )}
-                    <span className="text-xs opacity-90">
+                    <span className="text-xs opacity-90" dir={dir}>
                       {isCheckingOutVersion && selectedVersionId === version.oid
-                        ? "Loading..."
+                        ? t("Loading...")
                         : formatDistanceToNow(new Date(version.timestamp * 1000), {
                             addSuffix: true,
                           })}
@@ -180,7 +193,7 @@ export function VersionPane({ isVisible, onClose }: VersionPaneProps) {
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   {version.message && (
-                    <p className="mt-1 text-sm">
+                    <p className="mt-1 text-sm" dir={dir}>
                       {version.message.startsWith(
                         "Reverted all changes back to version "
                       )
@@ -191,9 +204,9 @@ export function VersionPane({ isVisible, onClose }: VersionPaneProps) {
                                 (v) => v.oid === hash
                               );
                               return targetIndex !== -1
-                                ? `Reverted all changes back to version ${
-                                    versions.length - targetIndex
-                                  }`
+                                ? t("Reverted all changes back to version versionNum", {
+                                    versionNum: versions.length - targetIndex,
+                                  })
                                 : version.message;
                             }
                           )
@@ -225,20 +238,23 @@ export function VersionPane({ isVisible, onClose }: VersionPaneProps) {
                             selectedVersionId === version.oid && "visible",
                             isRevertingVersion && "opacity-50 cursor-not-allowed"
                           )}
-                          aria-label="Restore to this version"
+                          aria-label={t("Restore to this version")}
+                          dir={dir}
                         >
                           {isRevertingVersion ? (
                             <Loader2 size={12} className="animate-spin" />
                           ) : (
                             <RotateCcw size={12} />
                           )}
-                          <span>{isRevertingVersion ? "Restoring..." : "Restore"}</span>
+                          <span>
+                            {isRevertingVersion ? t("Restoring...") : t("Restore")}
+                          </span>
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent>
+                      <TooltipContent dir={dir}>
                         {isRevertingVersion
-                          ? "Restoring to this version..."
-                          : "Restore to this version"}
+                          ? t("Restoring to this version...")
+                          : t("Restore to this version")}
                       </TooltipContent>
                     </Tooltip>
                   </div>

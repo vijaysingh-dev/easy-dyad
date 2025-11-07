@@ -4,6 +4,7 @@ import {
   appOutputAtom,
   previewErrorMessageAtom,
 } from "@/atoms/appAtoms";
+import { useI18n } from "@/lib/i18n";
 import { useAtomValue, useSetAtom, useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -50,6 +51,7 @@ interface ErrorBannerProps {
 }
 
 const ErrorBanner = ({ error, onDismiss, onAIFix }: ErrorBannerProps) => {
+  const { t, dir } = useI18n();
   const [isCollapsed, setIsCollapsed] = useState(true);
   const { isStreaming } = useStreamChat();
   if (!error) return null;
@@ -66,6 +68,7 @@ const ErrorBanner = ({ error, onDismiss, onAIFix }: ErrorBannerProps) => {
 
   return (
     <div
+      dir={dir}
       className="absolute top-2 left-2 right-2 z-10 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-md shadow-sm p-2"
       data-testid="preview-error-banner"
     >
@@ -79,14 +82,21 @@ const ErrorBanner = ({ error, onDismiss, onAIFix }: ErrorBannerProps) => {
 
       {/* Add a little chip that says "Internal error" if source is "eezi-app" */}
       {error.source === "eezi-app" && (
-        <div className="absolute top-1 right-1 p-1 bg-red-100 dark:bg-red-900 rounded-md text-xs font-medium text-red-700 dark:text-red-300">
-          Internal Eezi error
+        <div
+          dir={dir}
+          className="absolute top-1 right-1 p-1 bg-red-100 dark:bg-red-900 rounded-md text-xs font-medium text-red-700 dark:text-red-300"
+        >
+          {t("Internal Eezi error")}
         </div>
       )}
 
       {/* Error message in the middle */}
-      <div className={cn("px-6 py-1 text-sm", error.source === "eezi-app" && "pt-6")}>
+      <div
+        dir={dir}
+        className={cn("px-6 py-1 text-sm", error.source === "eezi-app" && "pt-6")}
+      >
         <div
+          dir={dir}
           className="text-red-700 dark:text-red-300 text-wrap font-mono whitespace-pre-wrap break-words text-xs cursor-pointer flex gap-1 items-start"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
@@ -101,32 +111,34 @@ const ErrorBanner = ({ error, onDismiss, onAIFix }: ErrorBannerProps) => {
       </div>
 
       {/* Tip message */}
-      <div className="mt-2 px-6">
+      <div dir={dir} className="mt-2 px-6">
         <div className="relative p-2 bg-red-100 dark:bg-red-900 rounded-sm flex gap-1 items-center">
           <div>
             <Lightbulb size={16} className=" text-red-800 dark:text-red-300" />
           </div>
-          <span className="text-sm text-red-700 dark:text-red-200">
-            <span className="font-medium">Tip: </span>
+          <span dir={dir} className="text-sm text-red-700 dark:text-red-200">
+            <span className="font-medium">{t("Tip:")}</span>
             {isDockerError
-              ? "Make sure Docker Desktop is running and try restarting the app."
+              ? t("Make sure Docker Desktop is running and try restarting the app.")
               : error.source === "eezi-app"
-              ? "Try restarting the Eezi app or restarting your computer to see if that fixes the error."
-              : "Check if restarting the app fixes the error."}
+              ? t(
+                  "Try restarting the Eezi app or restarting your computer to see if that fixes the error."
+                )
+              : t("Check if restarting the app fixes the error.")}
           </span>
         </div>
       </div>
 
       {/* AI Fix button at the bottom */}
       {!isDockerError && error.source === "preview-app" && (
-        <div className="mt-2 flex justify-end">
+        <div dir={dir} className="mt-2 flex justify-end">
           <button
             disabled={isStreaming}
             onClick={onAIFix}
             className="cursor-pointer flex items-center space-x-1 px-2 py-0.5 bg-red-500 dark:bg-red-600 text-white rounded text-sm hover:bg-red-600 dark:hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Sparkles size={14} />
-            <span>Fix error with AI</span>
+            <span dir={dir}>{t("Fix error with AI")}</span>
           </button>
         </div>
       )}
@@ -136,6 +148,7 @@ const ErrorBanner = ({ error, onDismiss, onAIFix }: ErrorBannerProps) => {
 
 // Preview iframe component
 export const PreviewIframe = ({ loading }: { loading: boolean }) => {
+  const { t, dir } = useI18n();
   const selectedAppId = useAtomValue(selectedAppIdAtom);
   const { appUrl, originalUrl } = useAtomValue(appUrlAtom);
   const setAppOutput = useSetAtom(appOutputAtom);
@@ -396,14 +409,16 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
   // Display loading state
   if (loading) {
     return (
-      <div className="flex flex-col h-full relative">
+      <div dir={dir} className="flex flex-col h-full relative">
         <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 bg-gray-50 dark:bg-gray-950">
           <div className="relative w-5 h-5 animate-spin">
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-primary rounded-full"></div>
             <div className="absolute bottom-0 left-0 w-2 h-2 bg-primary rounded-full opacity-80"></div>
             <div className="absolute bottom-0 right-0 w-2 h-2 bg-primary rounded-full opacity-60"></div>
           </div>
-          <p className="text-gray-600 dark:text-gray-300">Preparing app preview...</p>
+          <p dir={dir} className="text-gray-600 dark:text-gray-300">
+            {t("Preparing app preview...")}
+          </p>
         </div>
       </div>
     );
@@ -412,8 +427,8 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
   // Display message if no app is selected
   if (selectedAppId === null) {
     return (
-      <div className="p-4 text-gray-500 dark:text-gray-400">
-        Select an app to see the preview.
+      <div dir={dir} className="p-4 text-gray-500 dark:text-gray-400">
+        {t("Select an app to see the preview.")}
       </div>
     );
   }
@@ -549,10 +564,13 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
         />
 
         {!appUrl ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 bg-gray-50 dark:bg-gray-950">
+          <div
+            dir={dir}
+            className="absolute inset-0 flex flex-col items-center justify-center space-y-4 bg-gray-50 dark:bg-gray-950"
+          >
             <Loader2 className="w-8 h-8 animate-spin text-gray-400 dark:text-gray-500" />
-            <p className="text-gray-600 dark:text-gray-300">
-              Starting your app server...
+            <p dir={dir} className="text-gray-600 dark:text-gray-300">
+              {t("Starting your app server...")}
             </p>
           </div>
         ) : (

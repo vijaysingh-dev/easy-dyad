@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import React, { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Globe, Loader } from "lucide-react";
 import { VanillaMarkdownParser } from "./EeziMarkdownParser";
@@ -12,6 +13,7 @@ export const EeziWebSearchResult: React.FC<EeziWebSearchResultProps> = ({
   children,
   node,
 }) => {
+  const { t, dir } = useI18n();
   const state = node?.properties?.state as CustomTagState;
   const inProgress = state === "pending";
   const [isExpanded, setIsExpanded] = useState(inProgress);
@@ -38,14 +40,16 @@ export const EeziWebSearchResult: React.FC<EeziWebSearchResultProps> = ({
           setIsExpanded(!isExpanded);
         }
       }}
+      dir={dir}
     >
       {/* Top-left label badge */}
       <div
         className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold text-blue-600 bg-white dark:bg-zinc-900"
         style={{ zIndex: 1 }}
+        dir={dir}
       >
         <Globe size={16} className="text-blue-600" />
-        <span>Web Search Result</span>
+        <span dir={dir}>{t("Web Search Result")}</span>
         {inProgress && <Loader size={14} className="ml-1 text-blue-600 animate-spin" />}
       </div>
 
@@ -62,8 +66,9 @@ export const EeziWebSearchResult: React.FC<EeziWebSearchResultProps> = ({
           opacity: isExpanded ? 1 : 0,
           marginBottom: isExpanded ? "0" : "-6px",
         }}
+        dir={dir}
       >
-        <div className="px-0 text-sm text-gray-600 dark:text-gray-300">
+        <div className="px-0 text-sm text-gray-600 dark:text-gray-300" dir={dir}>
           {typeof children === "string" ? (
             <VanillaMarkdownParser content={children} />
           ) : (

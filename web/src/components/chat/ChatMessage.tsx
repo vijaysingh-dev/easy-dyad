@@ -3,6 +3,7 @@ import { EeziMarkdownParser, VanillaMarkdownParser } from "./EeziMarkdownParser"
 import { motion } from "framer-motion";
 import { useStreamChat } from "@/hooks/useStreamChat";
 import { CheckCircle, XCircle, Clock, GitCommit, Copy, Check } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 import { formatDistanceToNow, format } from "date-fns";
 import { useVersions } from "@/hooks/useVersions";
 import { useAtomValue } from "jotai";
@@ -17,6 +18,7 @@ interface ChatMessageProps {
 }
 
 const ChatMessage = ({ message, isLastMessage }: ChatMessageProps) => {
+  const { t, dir } = useI18n();
   const { isStreaming } = useStreamChat();
   const appId = useAtomValue(selectedAppIdAtom);
   const { versions: liveVersions } = useVersions(appId);
@@ -57,11 +59,12 @@ const ChatMessage = ({ message, isLastMessage }: ChatMessageProps) => {
         message.role === "assistant" ? "justify-start" : "justify-end"
       }`}
     >
-      <div className={`mt-2 w-full max-w-3xl mx-auto group`}>
+      <div className={`mt-2 w-full max-w-3xl mx-auto group`} dir={dir}>
         <div
           className={`rounded-lg p-2 ${
             message.role === "assistant" ? "" : "ml-24 bg-(--sidebar-accent)"
           }`}
+          dir={dir}
         >
           {message.role === "assistant" &&
           !message.content &&
@@ -148,10 +151,12 @@ const ChatMessage = ({ message, isLastMessage }: ChatMessageProps) => {
                         ) : (
                           <Copy className="h-4 w-4" />
                         )}
-                        <span className="hidden sm:inline"></span>
+                        <span className="hidden sm:inline">{t("Copy")}</span>
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent>{copied ? "Copied!" : "Copy"}</TooltipContent>
+                    <TooltipContent dir={dir}>
+                      {copied ? t("Copied!") : t("Copy")}
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
@@ -160,12 +165,12 @@ const ChatMessage = ({ message, isLastMessage }: ChatMessageProps) => {
                   {message.approvalState === "approved" ? (
                     <>
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span>Approved</span>
+                      <span dir={dir}>{t("Approved")}</span>
                     </>
                   ) : message.approvalState === "rejected" ? (
                     <>
                       <XCircle className="h-4 w-4 text-red-500" />
-                      <span>Rejected</span>
+                      <span dir={dir}>{t("Rejected")}</span>
                     </>
                   ) : null}
                 </div>

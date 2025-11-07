@@ -1,4 +1,5 @@
 import React from "react";
+import { useI18n } from "@/lib/i18n";
 import api from "@/api";
 
 // Types for the message system
@@ -22,12 +23,13 @@ export interface MessageConfig {
 
 // Generic Message component
 export function Message({ spans }: MessageConfig) {
+  const { t, dir } = useI18n();
   return (
     <div className="max-w-3xl mx-auto mt-4 py-2 px-1 border border-blue-500 rounded-lg bg-blue-50 text-center">
-      <p className="text-sm text-blue-700">
-        {spans.map((span, index) => {
+      <p className="text-sm text-blue-700" dir={dir}>
+        {spans.map((span: MessageSpan, index: number) => {
           if (span.type === "text") {
-            return <span key={index}>{span.content}</span>;
+            return <span key={index}>{t(span.content)}</span>;
           } else if (span.type === "link") {
             return (
               <a
@@ -40,8 +42,9 @@ export function Message({ spans }: MessageConfig) {
                   }
                 }}
                 className="text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                dir={dir}
               >
-                {span.content}
+                {t(span.content)}
               </a>
             );
           }

@@ -1,10 +1,11 @@
 import { useAtom, useAtomValue } from "jotai";
+import { useI18n } from "@/lib/i18n";
 import {
   appOutputAtom,
   previewModeAtom,
   previewPanelKeyAtom,
   selectedAppIdAtom,
-} from "../../atoms/appAtoms";
+} from "@/atoms/appAtoms";
 
 import { CodeView } from "./CodeView";
 import { PreviewIframe } from "./PreviewIframe";
@@ -24,28 +25,33 @@ interface ConsoleHeaderProps {
 }
 
 // Console header component
-const ConsoleHeader = ({
-  isOpen,
-  onToggle,
-  latestMessage,
-}: ConsoleHeaderProps) => (
-  <div
-    onClick={onToggle}
-    className="flex items-start gap-2 px-4 py-1.5 border-t border-border cursor-pointer hover:bg-[var(--background-darkest)] transition-colors"
-  >
-    <Logs size={16} className="mt-0.5" />
-    <div className="flex flex-col">
-      <span className="text-sm font-medium">System Messages</span>
-      {!isOpen && latestMessage && (
-        <span className="text-xs text-gray-500 truncate max-w-[200px] md:max-w-[400px]">
-          {latestMessage}
+const ConsoleHeader = ({ isOpen, onToggle, latestMessage }: ConsoleHeaderProps) => {
+  const { t, dir } = useI18n();
+  return (
+    <div
+      dir={dir}
+      onClick={onToggle}
+      className="flex items-start gap-2 px-4 py-1.5 border-t border-border cursor-pointer hover:bg-[var(--background-darkest)] transition-colors"
+    >
+      <Logs size={16} className="mt-0.5" />
+      <div className="flex flex-col">
+        <span dir={dir} className="text-sm font-medium">
+          {t("System Messages")}
         </span>
-      )}
+        {!isOpen && latestMessage && (
+          <span
+            dir={dir}
+            className="text-xs text-gray-500 truncate max-w-[200px] md:max-w-[400px]"
+          >
+            {latestMessage}
+          </span>
+        )}
+      </div>
+      <div className="flex-1" />
+      {isOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
     </div>
-    <div className="flex-1" />
-    {isOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-  </div>
-);
+  );
+};
 
 // Main PreviewPanel component
 export function PreviewPanel() {
@@ -95,7 +101,7 @@ export function PreviewPanel() {
         if (currentRunningApp !== null) {
           console.debug(
             "Component unmounting or selectedAppId changing, stopping app",
-            currentRunningApp,
+            currentRunningApp
           );
           stopApp(currentRunningApp);
           runningAppIdRef.current = null; // Clear ref on stop

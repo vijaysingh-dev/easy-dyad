@@ -10,9 +10,11 @@ import {
   CopyAppParams,
   RespondToAppInputParams,
   AppOutput,
+  EnvVar,
   GetAppEnvVarsParams,
   SetAppEnvVarsParams,
   ImportAppParams,
+  AppUpgrade,
 } from "@shared/eeziTypes";
 import { showError } from "@/components/Toast";
 import eeziClient from "./client";
@@ -35,7 +37,7 @@ class AppApiService {
   }
 
   public async selectAppFolder() {
-    return { app: null, name: null };
+    return { name: null, path: null };
   }
 
   public async checkAiRules(params: { path: string }) {
@@ -182,7 +184,7 @@ class AppApiService {
   public async getAppEnvVars(params: GetAppEnvVarsParams) {
     const config: AxiosRequestConfig = { params };
     const { data } = await Api.get("/app/get-app-env-vars", { config });
-    return data;
+    return data as EnvVar[];
   }
 
   public async setAppEnvVars(params: SetAppEnvVarsParams) {
@@ -258,7 +260,7 @@ class AppApiService {
   public async getAppUpgrades(params: { appId: number }) {
     const config: AxiosRequestConfig = { params };
     const { data } = await Api.get("/app/get-app-upgrades", { config });
-    return data;
+    return data as AppUpgrade[];
   }
 
   public async executeAppUpgrade(params: { appId: number; upgradeId: string }) {

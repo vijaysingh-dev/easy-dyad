@@ -1,5 +1,6 @@
 import api from "@/api";
 import { Play } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export const OnboardingBanner = ({
   isVisible,
@@ -8,11 +9,12 @@ export const OnboardingBanner = ({
   isVisible: boolean;
   setIsVisible: (isVisible: boolean) => void;
 }) => {
+  const { t, dir } = useI18n();
   if (!isVisible) return null;
 
   return (
     // <div className="fixed top-0 left-0 right-0 z-50 flex justify-center mt-2">
-    <div className="max-w-xl w-full mx-4 relative mb-4">
+    <div dir={dir} className="max-w-xl w-full mx-4 relative mb-4">
       <a
         onClick={(e) => {
           e.preventDefault();
@@ -27,7 +29,7 @@ export const OnboardingBanner = ({
           <div className="relative p-2">
             <img
               src="https://img.youtube.com/vi/rgdNoHLaRN4/maxresdefault.jpg"
-              alt="Get started with Eezi in 3 minutes"
+              alt={t("Get started with Eezi in 3 minutes")}
               className="w-28 h-16 object-cover rounded-md"
             />
             <div className="absolute inset-0 flex items-center justify-center">
@@ -38,11 +40,11 @@ export const OnboardingBanner = ({
           </div>
           <div className="flex-1 px-4 py-3">
             <div className="text-foreground">
-              <p className="nfeji font-semibold text-base">
-                Get started with Eezi in 3 minutes
+              <p dir={dir} className="nfeji font-semibold text-base">
+                {t("Get started with Eezi in 3 minutes")}
               </p>
-              <p className="text-sm text-muted-foreground">
-                Start building your app for free
+              <p dir={dir} className="text-sm text-muted-foreground">
+                {t("Start building your app for free")}
               </p>
             </div>
           </div>

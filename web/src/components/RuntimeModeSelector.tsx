@@ -6,11 +6,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useI18n } from "@/lib/i18n";
 import { useSettings } from "@/hooks/useSettings";
 import { showError } from "@/components/Toast";
 import api from "@/api";
 
 export function RuntimeModeSelector() {
+  const { t, dir } = useI18n();
   const { settings, updateSettings } = useSettings();
 
   if (!settings) {
@@ -31,8 +33,8 @@ export function RuntimeModeSelector() {
     <div className="space-y-2">
       <div className="space-y-1">
         <div className="flex items-center space-x-2">
-          <Label className="text-sm font-medium" htmlFor="runtime-mode">
-            Runtime Mode
+          <Label dir={dir} className="text-sm font-medium" htmlFor="runtime-mode">
+            {t("Runtime Mode")}
           </Label>
           <Select
             value={settings.runtimeMode2 ?? "host"}
@@ -42,19 +44,32 @@ export function RuntimeModeSelector() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="host">Local (default)</SelectItem>
-              <SelectItem value="docker">Docker (experimental)</SelectItem>
+              <SelectItem dir={dir} value="host">
+                {t("Local (default)")}
+              </SelectItem>
+              <SelectItem dir={dir} value="docker">
+                {t("Docker (experimental)")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          Choose whether to run apps directly on the local machine or in Docker
-          containers
+          <span dir={dir}>
+            {t(
+              "Choose whether to run apps directly on the local machine or in Docker containers"
+            )}
+          </span>
         </div>
       </div>
       {isDockerMode && (
-        <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
-          ⚠️ Docker mode is <b>experimental</b> and requires{" "}
+        <div
+          dir={dir}
+          className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded"
+        >
+          <span role="img" aria-label="warning">
+            ⚠️
+          </span>{" "}
+          {t("Docker mode is")} <b>{t("experimental")}</b> {t("and requires")}{" "}
           <button
             type="button"
             className="underline font-medium cursor-pointer"
@@ -62,9 +77,9 @@ export function RuntimeModeSelector() {
               api.app.openExternalUrl("https://www.docker.com/products/docker-desktop/")
             }
           >
-            Docker Desktop
+            {t("Docker Desktop")}
           </button>{" "}
-          to be installed and running
+          {t("to be installed and running")}
         </div>
       )}
     </div>

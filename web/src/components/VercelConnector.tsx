@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
@@ -47,6 +48,7 @@ function ConnectedVercelConnector({
   app,
   refreshApp,
 }: ConnectedVercelConnectorProps) {
+  const { t, dir } = useI18n();
   const {
     deployments,
     isLoading: isLoadingDeployments,
@@ -63,9 +65,13 @@ function ConnectedVercelConnector({
   };
 
   return (
-    <div className="mt-4 w-full rounded-md" data-testid="vercel-connected-project">
-      <p className="text-sm text-gray-600 dark:text-gray-300">
-        Connected to Vercel Project:
+    <div
+      className="mt-4 w-full rounded-md"
+      data-testid="vercel-connected-project"
+      dir={dir}
+    >
+      <p className="text-sm text-gray-600 dark:text-gray-300" dir={dir}>
+        {t("Connected to Vercel Project:")}
       </p>
       <a
         onClick={(e) => {
@@ -77,13 +83,14 @@ function ConnectedVercelConnector({
         className="cursor-pointer text-blue-600 hover:underline dark:text-blue-400"
         target="_blank"
         rel="noopener noreferrer"
+        dir={dir}
       >
         {app.vercelProjectName}
       </a>
       {app.vercelDeploymentUrl && (
-        <div className="mt-2">
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            Live URL:{" "}
+        <div className="mt-2" dir={dir}>
+          <p className="text-sm text-gray-600 dark:text-gray-300" dir={dir}>
+            {t("Live URL:")}{" "}
             <a
               onClick={(e) => {
                 e.preventDefault();
@@ -94,13 +101,14 @@ function ConnectedVercelConnector({
               className="cursor-pointer text-blue-600 hover:underline dark:text-blue-400 font-mono"
               target="_blank"
               rel="noopener noreferrer"
+              dir={dir}
             >
               {app.vercelDeploymentUrl}
             </a>
           </p>
         </div>
       )}
-      <div className="mt-2 flex gap-2">
+      <div className="mt-2 flex gap-2" dir={dir}>
         <Button onClick={handleGetDeployments} disabled={isLoadingDeployments}>
           {isLoadingDeployments ? (
             <>
@@ -125,10 +133,10 @@ function ConnectedVercelConnector({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              Getting Deployments...
+              {t("Getting Deployments...")}
             </>
           ) : (
-            "Refresh Deployments"
+            t("Refresh Deployments")
           )}
         </Button>
         <Button
@@ -136,37 +144,43 @@ function ConnectedVercelConnector({
           disabled={isDisconnecting}
           variant="outline"
         >
-          {isDisconnecting ? "Disconnecting..." : "Disconnect from project"}
+          {isDisconnecting ? t("Disconnecting...") : t("Disconnect from project")}
         </Button>
       </div>
       {deploymentsError && (
-        <div className="mt-2">
-          <p className="text-red-600">{deploymentsError}</p>
+        <div className="mt-2" dir={dir}>
+          <p className="text-red-600" dir={dir}>
+            {deploymentsError}
+          </p>
         </div>
       )}
       {deployments.length > 0 && (
-        <div className="mt-4">
-          <h4 className="font-medium mb-2">Recent Deployments:</h4>
-          <div className="space-y-2">
+        <div className="mt-4" dir={dir}>
+          <h4 className="font-medium mb-2" dir={dir}>
+            {t("Recent Deployments:")}
+          </h4>
+          <div className="space-y-2" dir={dir}>
             {deployments.map((deployment) => (
               <div
                 key={deployment.uid}
                 className="bg-gray-50 dark:bg-gray-800 rounded-md p-3"
+                dir={dir}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between" dir={dir}>
+                  <div className="flex items-center gap-2" dir={dir}>
                     <span
                       className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                         deployment.readyState === "READY"
                           ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
                           : deployment.readyState === "BUILDING"
-                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
-                            : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
+                          : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
                       }`}
+                      dir={dir}
                     >
                       {deployment.readyState}
                     </span>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                    <span className="text-sm text-gray-600 dark:text-gray-300" dir={dir}>
                       {new Date(deployment.createdAt).toLocaleString()}
                     </span>
                   </div>
@@ -178,9 +192,10 @@ function ConnectedVercelConnector({
                     className="cursor-pointer text-blue-600 hover:underline dark:text-blue-400 text-sm"
                     target="_blank"
                     rel="noopener noreferrer"
+                    dir={dir}
                   >
                     <Globe className="h-4 w-4 inline mr-1" />
-                    View
+                    {t("View")}
                   </a>
                 </div>
               </div>
@@ -188,7 +203,11 @@ function ConnectedVercelConnector({
           </div>
         </div>
       )}
-      {disconnectError && <p className="text-red-600 mt-2">{disconnectError}</p>}
+      {disconnectError && (
+        <p className="text-red-600 mt-2" dir={dir}>
+          {disconnectError}
+        </p>
+      )}
     </div>
   );
 }
@@ -200,6 +219,7 @@ function UnconnectedVercelConnector({
   refreshSettings,
   refreshApp,
 }: UnconnectedVercelConnectorProps) {
+  const { t, dir } = useI18n();
   // --- Manual Token Entry State ---
   const [accessToken, setAccessToken] = useState("");
   const [isSavingToken, setIsSavingToken] = useState(false);
@@ -342,24 +362,34 @@ function UnconnectedVercelConnector({
 
   if (!settings?.vercelAccessToken) {
     return (
-      <div className="mt-1 w-full" data-testid="vercel-unconnected-project">
-        <div className="w-ful">
-          <div className="flex items-center gap-2 mb-4">
-            <h3 className="font-medium">Connect to Vercel</h3>
+      <div className="mt-1 w-full" data-testid="vercel-unconnected-project" dir={dir}>
+        <div className="w-ful" dir={dir}>
+          <div className="flex items-center gap-2 mb-4" dir={dir}>
+            <h3 className="font-medium" dir={dir}>
+              {t("Connect to Vercel")}
+            </h3>
           </div>
 
-          <div className="space-y-4">
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
-              <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
-                To connect your app to Vercel, you'll need to create an access token:
+          <div className="space-y-4" dir={dir}>
+            <div
+              className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3"
+              dir={dir}
+            >
+              <p className="text-sm text-blue-800 dark:text-blue-200 mb-2" dir={dir}>
+                {t(
+                  "To connect your app to Vercel, you'll need to create an access token:"
+                )}
               </p>
-              <ol className="list-decimal list-inside text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                <li>If you don't have a Vercel account, sign up first</li>
-                <li>Go to Vercel settings to create a token</li>
-                <li>Copy the token and paste it below</li>
+              <ol
+                className="list-decimal list-inside text-sm text-blue-700 dark:text-blue-300 space-y-1"
+                dir={dir}
+              >
+                <li>{t("If you don't have a Vercel account, sign up first")}</li>
+                <li>{t("Go to Vercel settings to create a token")}</li>
+                <li>{t("Copy the token and paste it below")}</li>
               </ol>
 
-              <div className="flex gap-2 mt-3">
+              <div className="flex gap-2 mt-3" dir={dir}>
                 <Button
                   onClick={() => {
                     api.app.openExternalUrl("https://vercel.com/signup");
@@ -367,7 +397,7 @@ function UnconnectedVercelConnector({
                   variant="outline"
                   className="flex-1"
                 >
-                  Sign Up for Vercel
+                  {t("Sign Up for Vercel")}
                 </Button>
                 <Button
                   onClick={() => {
@@ -377,23 +407,24 @@ function UnconnectedVercelConnector({
                   }}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  Open Vercel Settings
+                  {t("Open Vercel Settings")}
                 </Button>
               </div>
             </div>
 
-            <form onSubmit={handleSaveAccessToken} className="space-y-3">
+            <form onSubmit={handleSaveAccessToken} className="space-y-3" dir={dir}>
               <div>
-                <Label className="block text-sm font-medium mb-1">
-                  Vercel Access Token
+                <Label className="block text-sm font-medium mb-1" dir={dir}>
+                  {t("Vercel Access Token")}
                 </Label>
                 <Input
                   type="password"
-                  placeholder="Enter your Vercel access token"
+                  placeholder={t("Enter your Vercel access token") as string}
                   value={accessToken}
                   onChange={(e) => setAccessToken(e.target.value)}
                   disabled={isSavingToken}
                   className="w-full"
+                  dir={dir}
                 />
               </div>
 
@@ -424,25 +455,34 @@ function UnconnectedVercelConnector({
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Saving Token...
+                    {t("Saving Token...")}
                   </>
                 ) : (
-                  "Save Access Token"
+                  t("Save Access Token")
                 )}
               </Button>
             </form>
 
             {tokenError && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
-                <p className="text-sm text-red-800 dark:text-red-200">{tokenError}</p>
+              <div
+                className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3"
+                dir={dir}
+              >
+                <p className="text-sm text-red-800 dark:text-red-200" dir={dir}>
+                  {tokenError}
+                </p>
               </div>
             )}
 
             {tokenSuccess && (
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-3">
-                <p className="text-sm text-green-800 dark:text-green-200">
-                  Successfully connected to Vercel! You can now set up your project
-                  below.
+              <div
+                className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-3"
+                dir={dir}
+              >
+                <p className="text-sm text-green-800 dark:text-green-200" dir={dir}>
+                  {t(
+                    "Successfully connected to Vercel! You can now set up your project below."
+                  )}
                 </p>
               </div>
             )}
@@ -453,16 +493,24 @@ function UnconnectedVercelConnector({
   }
 
   return (
-    <div className="mt-4 w-full rounded-md" data-testid="vercel-setup-project">
+    <div className="mt-4 w-full rounded-md" data-testid="vercel-setup-project" dir={dir}>
       {/* Collapsible Header */}
-      <div className="font-medium mb-2">Set up your Vercel project</div>
+      <div className="font-medium mb-2" dir={dir}>
+        {t("Set up your Vercel project")}
+      </div>
 
       {/* Collapsible Content */}
-      <div className={`overflow-hidden transition-all duration-300 ease-in-out`}>
-        <div className="pt-0 space-y-4">
+      <div
+        className={`overflow-hidden transition-all duration-300 ease-in-out`}
+        dir={dir}
+      >
+        <div className="pt-0 space-y-4" dir={dir}>
           {/* Mode Selection */}
-          <div>
-            <div className="flex rounded-md border border-gray-200 dark:border-gray-700">
+          <div dir={dir}>
+            <div
+              className="flex rounded-md border border-gray-200 dark:border-gray-700"
+              dir={dir}
+            >
               <Button
                 type="button"
                 variant={projectSetupMode === "create" ? "default" : "ghost"}
@@ -476,8 +524,9 @@ function UnconnectedVercelConnector({
                   setCreateProjectError(null);
                   setCreateProjectSuccess(false);
                 }}
+                dir={dir}
               >
-                Create new project
+                {t("Create new project")}
               </Button>
               <Button
                 type="button"
@@ -492,17 +541,20 @@ function UnconnectedVercelConnector({
                   setCreateProjectError(null);
                   setCreateProjectSuccess(false);
                 }}
+                dir={dir}
               >
-                Connect to existing project
+                {t("Connect to existing project")}
               </Button>
             </div>
           </div>
 
-          <form className="space-y-4" onSubmit={handleSetupProject}>
+          <form className="space-y-4" onSubmit={handleSetupProject} dir={dir}>
             {projectSetupMode === "create" ? (
               <>
                 <div>
-                  <Label className="block text-sm font-medium">Project Name</Label>
+                  <Label className="block text-sm font-medium" dir={dir}>
+                    {t("Project Name")}
+                  </Label>
                   <Input
                     data-testid="vercel-create-project-name-input"
                     className="w-full mt-1"
@@ -515,26 +567,31 @@ function UnconnectedVercelConnector({
                       debouncedCheckProjectAvailability(newValue);
                     }}
                     disabled={isCreatingProject}
+                    dir={dir}
                   />
                   {isCheckingProject && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Checking availability...
+                    <p className="text-xs text-gray-500 mt-1" dir={dir}>
+                      {t("Checking availability...")}
                     </p>
                   )}
                   {projectAvailable === true && (
-                    <p className="text-xs text-green-600 mt-1">
-                      Project name is available!
+                    <p className="text-xs text-green-600 mt-1" dir={dir}>
+                      {t("Project name is available!")}
                     </p>
                   )}
                   {projectAvailable === false && (
-                    <p className="text-xs text-red-600 mt-1">{projectCheckError}</p>
+                    <p className="text-xs text-red-600 mt-1" dir={dir}>
+                      {projectCheckError}
+                    </p>
                   )}
                 </div>
               </>
             ) : (
               <>
                 <div>
-                  <Label className="block text-sm font-medium">Select Project</Label>
+                  <Label className="block text-sm font-medium" dir={dir}>
+                    {t("Select Project")}
+                  </Label>
                   <Select
                     value={selectedProject}
                     onValueChange={setSelectedProject}
@@ -543,16 +600,20 @@ function UnconnectedVercelConnector({
                     <SelectTrigger
                       className="w-full mt-1"
                       data-testid="vercel-project-select"
+                      dir={dir}
                     >
                       <SelectValue
                         placeholder={
-                          isLoadingProjects ? "Loading projects..." : "Select a project"
+                          isLoadingProjects
+                            ? t("Loading projects...")
+                            : t("Select a project")
                         }
+                        dir={dir}
                       />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent dir={dir}>
                       {availableProjects.map((project) => (
-                        <SelectItem key={project.id} value={project.id}>
+                        <SelectItem key={project.id} value={project.id} dir={dir}>
                           {project.name} {project.framework && `(${project.framework})`}
                         </SelectItem>
                       ))}
@@ -570,25 +631,28 @@ function UnconnectedVercelConnector({
                   (projectAvailable === false || !projectName)) ||
                 (projectSetupMode === "existing" && !selectedProject)
               }
+              dir={dir}
             >
               {isCreatingProject
                 ? projectSetupMode === "create"
-                  ? "Creating..."
-                  : "Connecting..."
+                  ? t("Creating...")
+                  : t("Connecting...")
                 : projectSetupMode === "create"
-                  ? "Create Project"
-                  : "Connect to Project"}
+                ? t("Create Project")
+                : t("Connect to Project")}
             </Button>
           </form>
 
           {createProjectError && (
-            <p className="text-red-600 mt-2">{createProjectError}</p>
+            <p className="text-red-600 mt-2" dir={dir}>
+              {createProjectError}
+            </p>
           )}
           {createProjectSuccess && (
-            <p className="text-green-600 mt-2">
+            <p className="text-green-600 mt-2" dir={dir}>
               {projectSetupMode === "create"
-                ? "Project created and linked!"
-                : "Connected to project!"}
+                ? t("Project created and linked!")
+                : t("Connected to project!")}
             </p>
           )}
         </div>

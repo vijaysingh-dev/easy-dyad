@@ -1,5 +1,6 @@
 import { useAtom, useAtomValue } from "jotai";
-import { previewModeAtom, selectedAppIdAtom } from "../../atoms/appAtoms";
+import { useI18n } from "@/lib/i18n";
+import { previewModeAtom, selectedAppIdAtom } from "@/atoms/appAtoms";
 
 import {
   Eye,
@@ -41,6 +42,7 @@ const BUTTON_CLASS_NAME =
 
 // Preview Header component with preview mode toggle
 export const ActionHeader = () => {
+  const { t, dir } = useI18n();
   const [previewMode, setPreviewMode] = useAtom(previewModeAtom);
   const [isPreviewOpen, setIsPreviewOpen] = useAtom(isPreviewOpenAtom);
   const selectedAppId = useAtomValue(selectedAppIdAtom);
@@ -196,7 +198,10 @@ export const ActionHeader = () => {
 
   return (
     <TooltipProvider>
-      <div className="flex items-center justify-between px-1 py-2 mt-1 border-b border-border">
+      <div
+        className="flex items-center justify-between px-1 py-2 mt-1 border-b border-border"
+        dir={dir}
+      >
         <div className="relative flex rounded-md p-0.5 gap-0.5">
           <motion.div
             className="absolute top-0.5 bottom-0.5 bg-[var(--background-lightest)] shadow rounded-md"
@@ -215,34 +220,43 @@ export const ActionHeader = () => {
             "preview",
             previewRef,
             <Eye size={14} />,
-            "Preview",
+            t("Preview"),
             "preview-mode-button"
           )}
           {renderButton(
             "problems",
             problemsRef,
             <AlertTriangle size={14} />,
-            "Problems",
+            t("Problems"),
             "problems-mode-button",
             displayCount && (
-              <span className="ml-0.5 px-1 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full min-w-[16px] text-center">
+              <span
+                dir={dir}
+                className="ml-0.5 px-1 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full min-w-[16px] text-center"
+              >
                 {displayCount}
               </span>
             )
           )}
-          {renderButton("code", codeRef, <Code size={14} />, "Code", "code-mode-button")}
+          {renderButton(
+            "code",
+            codeRef,
+            <Code size={14} />,
+            t("Code"),
+            "code-mode-button"
+          )}
           {renderButton(
             "configure",
             configureRef,
             <Wrench size={14} />,
-            "Configure",
+            t("Configure"),
             "configure-mode-button"
           )}
           {renderButton(
             "publish",
             publishRef,
             <Globe size={14} />,
-            "Publish",
+            t("Publish"),
             "publish-mode-button"
           )}
         </div>
@@ -254,7 +268,8 @@ export const ActionHeader = () => {
               <button
                 data-testid="preview-more-options-button"
                 className="no-app-region-drag flex items-center justify-center p-1.5 rounded-md text-sm hover:bg-[var(--background-darkest)] transition-colors"
-                title="More options"
+                title={t("More options")}
+                dir={dir}
               >
                 <MoreVertical size={16} />
               </button>
@@ -263,18 +278,18 @@ export const ActionHeader = () => {
               <DropdownMenuItem onClick={onCleanRestart}>
                 <Cog size={16} />
                 <div className="flex flex-col">
-                  <span>Rebuild</span>
-                  <span className="text-xs text-muted-foreground">
-                    Re-installs node_modules and restarts
+                  <span dir={dir}>{t("Rebuild")}</span>
+                  <span dir={dir} className="text-xs text-muted-foreground">
+                    {t("Re-installs node_modules and restarts")}
                   </span>
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onClearSessionData}>
                 <Trash2 size={16} />
                 <div className="flex flex-col">
-                  <span>Clear Cache</span>
-                  <span className="text-xs text-muted-foreground">
-                    Clears cookies and local storage and other app cache
+                  <span dir={dir}>{t("Clear Cache")}</span>
+                  <span dir={dir} className="text-xs text-muted-foreground">
+                    {t("Clears cookies and local storage and other app cache")}
                   </span>
                 </div>
               </DropdownMenuItem>

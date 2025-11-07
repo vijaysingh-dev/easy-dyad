@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import type React from "react";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -21,19 +22,24 @@ export const EeziAddDependency: React.FC<EeziAddDependencyProps> = ({
   const [isContentVisible, setIsContentVisible] = useState(false);
   const hasChildren = !!children;
 
+  const { t, dir } = useI18n();
+
   return (
     <div
       className={`bg-(--background-lightest) dark:bg-gray-900 hover:bg-(--background-lighter) rounded-lg px-4 py-3 border my-2 border-border ${
         hasChildren ? "cursor-pointer" : ""
       }`}
       onClick={hasChildren ? () => setIsContentVisible(!isContentVisible) : undefined}
+      dir={dir}
     >
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-2" dir={dir}>
         <div className="flex items-center gap-2">
           <Package size={18} className="text-gray-600 dark:text-gray-400" />
           {packages.length > 0 && (
             <div className="text-gray-800 dark:text-gray-200 font-semibold text-base">
-              <div className="font-normal">Do you want to install these packages?</div>{" "}
+              <div className="font-normal" dir={dir}>
+                {t("Do you want to install these packages?")}
+              </div>{" "}
               <div className="flex flex-wrap gap-2 mt-2">
                 {packages.map((p: string) => (
                   <span
@@ -42,6 +48,7 @@ export const EeziAddDependency: React.FC<EeziAddDependencyProps> = ({
                     onClick={() => {
                       api.app.openExternalUrl(`https://www.npmjs.com/package/${p}`);
                     }}
+                    dir={dir}
                   >
                     {p}
                   </span>
@@ -68,14 +75,14 @@ export const EeziAddDependency: React.FC<EeziAddDependencyProps> = ({
       </div>
 
       {packages.length > 0 && (
-        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-          Make sure these packages are what you want.{" "}
+        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1" dir={dir}>
+          {t("Make sure these packages are what you want.")}
         </div>
       )}
 
       {/* Show content if it's visible and has children */}
       {isContentVisible && hasChildren && (
-        <div className="mt-2">
+        <div className="mt-2" dir={dir}>
           <div className="text-xs">
             <CodeHighlight className="language-shell">{children}</CodeHighlight>
           </div>

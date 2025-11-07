@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import { useNavigate } from "@tanstack/react-router";
 import {
   ChevronRight,
@@ -39,6 +40,7 @@ type NodeInstallStep =
   | "finished-checking";
 
 export function SetupBanner() {
+  const { t, dir } = useI18n();
   const posthog = usePostHog();
   const navigate = useNavigate();
   const [isOnboardingVisible, setIsOnboardingVisible] = useState(true);
@@ -121,8 +123,11 @@ export function SetupBanner() {
 
   if (itemsNeedAction.length === 0) {
     return (
-      <h1 className="text-center text-5xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 tracking-tight">
-        Build your dream app
+      <h1
+        dir={dir}
+        className="text-center text-5xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 tracking-tight"
+      >
+        {t("Build your dream app")}
       </h1>
     );
   }
@@ -145,8 +150,8 @@ export function SetupBanner() {
 
   return (
     <>
-      <p className="text-xl font-medium text-zinc-700 dark:text-zinc-300 p-4">
-        Setup Eezi
+      <p dir={dir} className="text-xl font-medium text-zinc-700 dark:text-zinc-300 p-4">
+        {t("Setup Eezi")}
       </p>
       <OnboardingBanner
         isVisible={isOnboardingVisible}
@@ -168,44 +173,53 @@ export function SetupBanner() {
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(isNodeSetupComplete, nodeCheckError)}
-                  <span className="font-medium text-sm">
-                    1. Install Node.js (App Runtime)
+                  <span dir={dir} className="font-medium text-sm">
+                    {t("1. Install Node.js (App Runtime)")}
                   </span>
                 </div>
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-4 pt-2 pb-4 bg-white dark:bg-zinc-900 border-t border-inherit">
               {nodeCheckError && (
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  Error checking Node.js status. Try installing Node.js.
+                <p dir={dir} className="text-sm text-red-600 dark:text-red-400">
+                  {t("Error checking Node.js status. Try installing Node.js.")}
                 </p>
               )}
               {isNodeSetupComplete ? (
-                <p className="text-sm">
-                  Node.js ({nodeSystemInfo!.nodeVersion}) installed.{" "}
+                <p dir={dir} className="text-sm">
+                  {t("Node.js version installed", {
+                    version: nodeSystemInfo!.nodeVersion,
+                  })}
                   {nodeSystemInfo!.pnpmVersion && (
-                    <span className="text-xs text-gray-500">
-                      {" "}
-                      (optional) pnpm ({nodeSystemInfo!.pnpmVersion}) installed.
+                    <span dir={dir} className="text-xs text-gray-500">
+                      {t("(optional) pnpm version installed", {
+                        version: nodeSystemInfo!.pnpmVersion,
+                      })}
                     </span>
                   )}
                 </p>
               ) : (
                 <div className="text-sm">
-                  <p>Node.js is required to run apps locally.</p>
+                  <p dir={dir}>{t("Node.js is required to run apps locally.")}</p>
                   {nodeInstallStep === "waiting-for-continue" && (
-                    <p className="mt-1">
-                      After you have installed Node.js, click "Continue". If the
-                      installer didn't work, try{" "}
-                      <a
-                        className="text-blue-500 dark:text-blue-400 hover:underline"
-                        onClick={() => {
-                          api.app.openExternalUrl("https://nodejs.org/en/download");
-                        }}
-                      >
-                        more download options
-                      </a>
-                      .
+                    <p dir={dir} className="mt-1">
+                      {t(
+                        'After you have installed Node.js, click "Continue". If the installer didn\'t work, try more download options.',
+                        {
+                          more: (
+                            <a
+                              className="text-blue-500 dark:text-blue-400 hover:underline"
+                              onClick={() => {
+                                api.app.openExternalUrl(
+                                  "https://nodejs.org/en/download"
+                                );
+                              }}
+                            >
+                              {t("more download options")}
+                            </a>
+                          ),
+                        }
+                      )}
                     </p>
                   )}
                   <NodeInstallButton
@@ -238,8 +252,8 @@ export function SetupBanner() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-4 pt-2 pb-4 bg-white dark:bg-zinc-900 border-t border-inherit">
-              <p className="text-sm mb-3">
-                Connect your preferred AI provider to start generating code.
+              <p dir={dir} className="text-sm mb-3">
+                {t("Connect your preferred AI provider to start generating code.")}
               </p>
               <SetupProviderCard
                 variant="google"
@@ -248,11 +262,11 @@ export function SetupBanner() {
                 leadingIcon={
                   <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 }
-                title="Setup Google Gemini API Key"
+                title={t("Setup Google Gemini API Key")}
                 subtitle={
                   <>
                     <GiftIcon className="w-3 h-3" />
-                    Use Google Gemini for free
+                    {t("Use Google Gemini for free")}
                   </>
                 }
               />
@@ -265,11 +279,11 @@ export function SetupBanner() {
                 leadingIcon={
                   <Sparkles className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                 }
-                title="Setup OpenRouter API Key"
+                title={t("Setup OpenRouter API Key")}
                 subtitle={
                   <>
                     <GiftIcon className="w-3 h-3" />
-                    Free models available
+                    {t("Free models available")}
                   </>
                 }
               />
@@ -282,11 +296,11 @@ export function SetupBanner() {
                 leadingIcon={
                   <img src={logo} alt="Eezi Logo" className="w-6 h-6 mr-0.5" />
                 }
-                title="Setup Eezi Pro"
+                title={t("Setup Eezi Pro")}
                 subtitle={
                   <>
                     <GlobeIcon className="w-3 h-3" />
-                    Access all AI models with one plan
+                    {t("Access all AI models with one plan")}
                   </>
                 }
               />
@@ -303,11 +317,14 @@ export function SetupBanner() {
                       <Settings className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-sm text-gray-800 dark:text-gray-300">
-                        Setup other AI providers
+                      <h4
+                        dir={dir}
+                        className="font-medium text-sm text-gray-800 dark:text-gray-300"
+                      >
+                        {t("Setup other AI providers")}
                       </h4>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        OpenAI, Anthropic, OpenRouter and more
+                      <p dir={dir} className="text-xs text-gray-600 dark:text-gray-400">
+                        {t("OpenAI, Anthropic, OpenRouter and more")}
                       </p>
                     </div>
                   </div>
@@ -323,23 +340,30 @@ export function SetupBanner() {
 }
 
 function NodeJsHelpCallout() {
+  const { t, dir } = useI18n();
   return (
-    <div className="mt-3 p-3 bg-(--background-lighter) border rounded-lg text-sm">
-      <p>
-        If you run into issues, read our{" "}
-        <a
-          onClick={() => {
-            api.app.openExternalUrl("https://www.dyad.sh/docs/help/nodejs");
-          }}
-          className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-        >
-          Node.js troubleshooting guide
-        </a>
-        .{" "}
+    <div
+      dir={dir}
+      className="mt-3 p-3 bg-(--background-lighter) border rounded-lg text-sm"
+    >
+      <p dir={dir}>
+        {t("If you run into issues, read our troubleshooting guide", {
+          guide: (
+            <a
+              onClick={() => {
+                api.app.openExternalUrl("https://www.dyad.sh/docs/help/nodejs");
+              }}
+              className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+            >
+              {t("Node.js troubleshooting guide")}
+            </a>
+          ),
+        })}
       </p>
-      <p className="mt-2">
-        Still stuck? Click the <b>Help</b> button in the bottom-left corner and then{" "}
-        <b>Report a Bug</b>.
+      <p dir={dir} className="mt-2">
+        {t(
+          "Still stuck? Click the Help button in the bottom-left corner and then Report a Bug."
+        )}
       </p>
     </div>
   );
@@ -354,32 +378,35 @@ function NodeInstallButton({
   handleNodeInstallClick: () => void;
   finishNodeInstall: () => void;
 }) {
+  const { t, dir } = useI18n();
   switch (nodeInstallStep) {
     case "install":
       return (
-        <Button className="mt-3" onClick={handleNodeInstallClick}>
-          Install Node.js Runtime
+        <Button dir={dir} className="mt-3" onClick={handleNodeInstallClick}>
+          {t("Install Node.js Runtime")}
         </Button>
       );
     case "continue-processing":
       return (
-        <Button className="mt-3" onClick={finishNodeInstall} disabled>
+        <Button dir={dir} className="mt-3" onClick={finishNodeInstall} disabled>
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Checking Node.js setup...
+            {t("Checking Node.js setup...")}
           </div>
         </Button>
       );
     case "waiting-for-continue":
       return (
-        <Button className="mt-3" onClick={finishNodeInstall}>
-          <div className="flex items-center gap-2">Continue | I installed Node.js</div>
+        <Button dir={dir} className="mt-3" onClick={finishNodeInstall}>
+          <div className="flex items-center gap-2">
+            {t("Continue | I installed Node.js")}
+          </div>
         </Button>
       );
     case "finished-checking":
       return (
-        <div className="mt-3 text-sm text-red-600 dark:text-red-400">
-          Node.js not detected. Closing and re-opening Eezi usually fixes this.
+        <div dir={dir} className="mt-3 text-sm text-red-600 dark:text-red-400">
+          {t("Node.js not detected. Closing and re-opening Eezi usually fixes this.")}
         </div>
       );
     default:
@@ -388,6 +415,7 @@ function NodeInstallButton({
 }
 
 export const OpenRouterSetupBanner = ({ className }: { className?: string }) => {
+  const { t, dir } = useI18n();
   const posthog = usePostHog();
   const navigate = useNavigate();
   return (
@@ -403,11 +431,11 @@ export const OpenRouterSetupBanner = ({ className }: { className?: string }) => 
       }}
       tabIndex={0}
       leadingIcon={<Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
-      title="Setup OpenRouter API Key"
+      title={t("Setup OpenRouter API Key")}
       subtitle={
         <>
           <GiftIcon className="w-3 h-3" />
-          Free models available
+          {t("Free models available")}
         </>
       }
     />

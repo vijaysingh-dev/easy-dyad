@@ -1,4 +1,5 @@
 import { usePrompts } from "@/hooks/usePrompts";
+import { useI18n } from "@/lib/i18n";
 import {
   CreatePromptDialog,
   CreateOrEditPromptDialog,
@@ -6,22 +7,24 @@ import {
 import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 
 export default function LibraryPage() {
-  const { prompts, isLoading, createPrompt, updatePrompt, deletePrompt } =
-    usePrompts();
+  const { t, dir } = useI18n();
+  const { prompts, isLoading, createPrompt, updatePrompt, deletePrompt } = usePrompts();
 
   return (
     <div className="min-h-screen px-8 py-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold mr-4">Library: Prompts</h1>
+          <h1 dir={dir} className="text-3xl font-bold mr-4">
+            {t("Library: Prompts")}
+          </h1>
           <CreatePromptDialog onCreatePrompt={createPrompt} />
         </div>
 
         {isLoading ? (
-          <div>Loading...</div>
+          <div dir={dir}>{t("Loading...")}</div>
         ) : prompts.length === 0 ? (
-          <div className="text-muted-foreground">
-            No prompts yet. Create one to get started.
+          <div dir={dir} className="text-muted-foreground">
+            {t("No prompts yet. Create one to get started.")}
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -59,6 +62,7 @@ function PromptCard({
   }) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
 }) {
+  const { t, dir } = useI18n();
   return (
     <div
       data-testid="prompt-card"
@@ -67,9 +71,11 @@ function PromptCard({
       <div className="space-y-2">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-lg font-semibold">{prompt.title}</h3>
+            <h3 dir={dir} className="text-lg font-semibold">
+              {prompt.title}
+            </h3>
             {prompt.description && (
-              <p className="text-sm text-muted-foreground">
+              <p dir={dir} className="text-sm text-muted-foreground">
                 {prompt.description}
               </p>
             )}
@@ -82,12 +88,15 @@ function PromptCard({
             />
             <DeleteConfirmationDialog
               itemName={prompt.title}
-              itemType="Prompt"
+              itemType={t("Prompt")}
               onDelete={() => onDelete(prompt.id)}
             />
           </div>
         </div>
-        <pre className="text-sm whitespace-pre-wrap bg-transparent border rounded p-2 max-h-48 overflow-auto">
+        <pre
+          dir={dir}
+          className="text-sm whitespace-pre-wrap bg-transparent border rounded p-2 max-h-48 overflow-auto"
+        >
           {prompt.content}
         </pre>
       </div>

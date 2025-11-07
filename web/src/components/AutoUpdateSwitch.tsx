@@ -3,34 +3,40 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import api from "@/api";
+import { useI18n } from "@/lib/i18n";
 
 export function AutoUpdateSwitch() {
   const { settings, updateSettings } = useSettings();
+  const { t, dir } = useI18n();
 
   if (!settings) {
     return null;
   }
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center space-x-2" dir={dir}>
       <Switch
         id="enable-auto-update"
         checked={settings.enableAutoUpdate}
         onCheckedChange={(checked) => {
           updateSettings({ enableAutoUpdate: checked });
-          toast("Auto-update settings changed", {
-            description:
-              "You will need to restart Eezi for your settings to take effect.",
+          toast(t("Auto-update settings changed"), {
+            description: t(
+              "You will need to restart Eezi for your settings to take effect."
+            ),
             action: {
-              label: "Restart Eezi",
+              label: t("Restart Eezi"),
               onClick: () => {
                 api.app.restartEezi();
               },
             },
           });
         }}
+        dir={dir}
       />
-      <Label htmlFor="enable-auto-update">Auto-update</Label>
+      <Label htmlFor="enable-auto-update" dir={dir}>
+        {t("Auto-update")}
+      </Label>
     </div>
   );
 }

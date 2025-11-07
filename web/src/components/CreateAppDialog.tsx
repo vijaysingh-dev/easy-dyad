@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,7 @@ interface CreateAppDialogProps {
 }
 
 export function CreateAppDialog({ open, onOpenChange, template }: CreateAppDialogProps) {
+  const { t, dir } = useI18n();
   const setSelectedAppId = useSetAtom(selectedAppIdAtom);
   const [appName, setAppName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,50 +80,55 @@ export function CreateAppDialog({ open, onOpenChange, template }: CreateAppDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Create New App</DialogTitle>
-          <DialogDescription>
-            {`Create a new app using the ${template?.title} template.`}
+      <DialogContent className="sm:max-w-[425px]" dir={dir}>
+        <DialogHeader dir={dir}>
+          <DialogTitle dir={dir}>{t("Create New App")}</DialogTitle>
+          <DialogDescription dir={dir}>
+            {t("Create a new app using the template.", { template: template?.title })}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="appName">App Name</Label>
+        <form onSubmit={handleSubmit} dir={dir}>
+          <div className="grid gap-4 py-4" dir={dir}>
+            <div className="grid gap-2" dir={dir}>
+              <Label htmlFor="appName" dir={dir}>
+                {t("App Name")}
+              </Label>
               <Input
                 id="appName"
                 value={appName}
                 onChange={(e) => setAppName(e.target.value)}
-                placeholder="Enter app name..."
+                placeholder={t("Enter app name...")}
                 className={nameExists ? "border-red-500" : ""}
                 disabled={isSubmitting}
+                dir={dir}
               />
               {nameExists && (
-                <p className="text-sm text-red-500">
-                  An app with this name already exists
+                <p className="text-sm text-red-500" dir={dir}>
+                  {t("An app with this name already exists")}
                 </p>
               )}
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter dir={dir}>
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
+              dir={dir}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               type="submit"
               disabled={!canSubmit}
               className="bg-indigo-600 hover:bg-indigo-700"
+              dir={dir}
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSubmitting ? "Creating..." : "Create App"}
+              {isSubmitting ? t("Creating...") : t("Create App")}
             </Button>
           </DialogFooter>
         </form>

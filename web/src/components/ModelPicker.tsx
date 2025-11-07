@@ -13,6 +13,7 @@ import {
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import { useLocalModels } from "@/hooks/useLocalModels";
 import { useLocalLMSModels } from "@/hooks/useLMStudioModels";
 import { useLanguageModelsByProviders } from "@/hooks/useLanguageModelsByProviders";
@@ -25,6 +26,7 @@ import { TURBO_MODELS } from "@shared/constants";
 import { cn } from "@/lib/utils";
 
 export function ModelPicker() {
+  const { t, dir } = useI18n();
   const { settings, updateSettings } = useSettings();
   const onModelSelect = (model: LargeLanguageModel) => {
     updateSettings({ selectedModel: model });
@@ -158,10 +160,12 @@ export function ModelPicker() {
               size="sm"
               className="flex items-center gap-2 h-8 max-w-[130px] px-1.5 text-xs-sm"
             >
-              <span className="truncate">
+              <span className="truncate" dir={dir}>
                 {modelDisplayName === "Auto" && (
                   <>
-                    <span className="text-xs text-muted-foreground">Model:</span>{" "}
+                    <span className="text-xs text-muted-foreground" dir={dir}>
+                      {t("Model:")}
+                    </span>{" "}
                   </>
                 )}
                 {modelDisplayName}
@@ -169,24 +173,24 @@ export function ModelPicker() {
             </Button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent>{modelDisplayName}</TooltipContent>
+        <TooltipContent dir={dir}>{modelDisplayName}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent
         className="w-64"
         align="start"
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
-        <DropdownMenuLabel>Cloud Models</DropdownMenuLabel>
+        <DropdownMenuLabel dir={dir}>{t("Cloud Models")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
 
         {/* Cloud models - loading state */}
         {loading ? (
-          <div className="text-xs text-center py-2 text-muted-foreground">
-            Loading models...
+          <div className="text-xs text-center py-2 text-muted-foreground" dir={dir}>
+            {t("Loading models...")}
           </div>
         ) : !modelsByProviders || Object.keys(modelsByProviders).length === 0 ? (
-          <div className="text-xs text-center py-2 text-muted-foreground">
-            No cloud models available
+          <div className="text-xs text-center py-2 text-muted-foreground" dir={dir}>
+            {t("No cloud models available")}
           </div>
         ) : (
           /* Cloud models loaded */
@@ -211,20 +215,24 @@ export function ModelPicker() {
                           });
                           setOpen(false);
                         }}
+                        dir={dir}
                       >
                         <div className="flex justify-between items-start w-full">
-                          <span className="flex flex-col items-start">
+                          <span className="flex flex-col items-start" dir={dir}>
                             <span>
                               {isSmartAutoEnabled && model.apiName === "auto"
-                                ? "Smart Auto"
+                                ? t("Smart Auto")
                                 : model.displayName}
                             </span>
                           </span>
                           <div className="flex items-center gap-1.5">
                             {isSmartAutoEnabled &&
                               !model.displayName.includes("(Pro)") && (
-                                <span className="text-[11px] bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 bg-[length:200%_100%] animate-[shimmer_5s_ease-in-out_infinite] text-white px-1.5 py-0.5 rounded-full font-medium">
-                                  Pro only
+                                <span
+                                  className="text-[11px] bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 bg-[length:200%_100%] animate-[shimmer_5s_ease-in-out_infinite] text-white px-1.5 py-0.5 rounded-full font-medium"
+                                  dir={dir}
+                                >
+                                  {t("Pro only")}
                                 </span>
                               )}
                             {model.tag && (
@@ -233,6 +241,7 @@ export function ModelPicker() {
                                   "text-[11px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium",
                                   model.tagColor
                                 )}
+                                dir={dir}
                               >
                                 {model.tag}
                               </span>
@@ -241,12 +250,13 @@ export function ModelPicker() {
                         </div>
                       </DropdownMenuItem>
                     </TooltipTrigger>
-                    <TooltipContent side="right">
+                    <TooltipContent side="right" dir={dir}>
                       {isSmartAutoEnabled && model.apiName === "auto" ? (
-                        <p>
-                          <strong>Smart Auto</strong> uses a cheaper model for easier
-                          tasks
-                          <br /> and a flagship model for harder tasks
+                        <p dir={dir}>
+                          <strong>{t("Smart Auto")}</strong>{" "}
+                          {t(
+                            "uses a cheaper model for easier tasks and a flagship model for harder tasks"
+                          )}
                         </p>
                       ) : (
                         model.description
@@ -271,34 +281,40 @@ export function ModelPicker() {
               });
               const provider = providers?.find((p) => p.id === providerId);
               const providerDisplayName =
-                provider?.id === "auto" ? "Eezi Turbo" : provider?.name ?? providerId;
+                provider?.id === "auto" ? t("Eezi Turbo") : provider?.name ?? providerId;
               return (
                 <DropdownMenuSub key={providerId}>
-                  <DropdownMenuSubTrigger className="w-full font-normal">
+                  <DropdownMenuSubTrigger className="w-full font-normal" dir={dir}>
                     <div className="flex flex-col items-start w-full">
                       <div className="flex items-center gap-2">
-                        <span>{providerDisplayName}</span>
+                        <span dir={dir}>{providerDisplayName}</span>
                         {provider?.type === "cloud" &&
                           !provider?.secondary &&
                           isEeziProEnabled(settings) && (
-                            <span className="text-[10px] bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 bg-[length:200%_100%] animate-[shimmer_5s_ease-in-out_infinite] text-white px-1.5 py-0.5 rounded-full font-medium">
-                              Pro
+                            <span
+                              className="text-[10px] bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 bg-[length:200%_100%] animate-[shimmer_5s_ease-in-out_infinite] text-white px-1.5 py-0.5 rounded-full font-medium"
+                              dir={dir}
+                            >
+                              {t("Pro")}
                             </span>
                           )}
                         {provider?.type === "custom" && (
-                          <span className="text-[10px] bg-amber-500/20 text-amber-700 px-1.5 py-0.5 rounded-full font-medium">
-                            Custom
+                          <span
+                            className="text-[10px] bg-amber-500/20 text-amber-700 px-1.5 py-0.5 rounded-full font-medium"
+                            dir={dir}
+                          >
+                            {t("Custom")}
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {models.length} models
+                      <span className="text-xs text-muted-foreground" dir={dir}>
+                        {t("models count", { count: models.length })}
                       </span>
                     </div>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent className="w-56 max-h-100 overflow-y-auto">
-                    <DropdownMenuLabel>
-                      {providerDisplayName + " Models"}
+                    <DropdownMenuLabel dir={dir}>
+                      {providerDisplayName + " " + t("Models")}
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {models.map((model) => (
@@ -321,19 +337,25 @@ export function ModelPicker() {
                               });
                               setOpen(false);
                             }}
+                            dir={dir}
                           >
                             <div className="flex justify-between items-start w-full">
-                              <span>{model.displayName}</span>
+                              <span dir={dir}>{model.displayName}</span>
                               <PriceBadge dollarSigns={model.dollarSigns} />
                               {model.tag && (
-                                <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">
+                                <span
+                                  className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium"
+                                  dir={dir}
+                                >
                                   {model.tag}
                                 </span>
                               )}
                             </div>
                           </DropdownMenuItem>
                         </TooltipTrigger>
-                        <TooltipContent side="right">{model.description}</TooltipContent>
+                        <TooltipContent side="right" dir={dir}>
+                          {model.description}
+                        </TooltipContent>
                       </Tooltip>
                     ))}
                   </DropdownMenuSubContent>
@@ -344,39 +366,44 @@ export function ModelPicker() {
             {/* Secondary providers grouped under Other AI providers */}
             {secondaryProviders.length > 0 && (
               <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="w-full font-normal">
+                <DropdownMenuSubTrigger className="w-full font-normal" dir={dir}>
                   <div className="flex flex-col items-start">
-                    <span>Other AI providers</span>
-                    <span className="text-xs text-muted-foreground">
-                      {secondaryProviders.length} providers
+                    <span dir={dir}>{t("Other AI providers")}</span>
+                    <span className="text-xs text-muted-foreground" dir={dir}>
+                      {t("providers count", { count: secondaryProviders.length })}
                     </span>
                   </div>
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="w-56">
-                  <DropdownMenuLabel>Other AI providers</DropdownMenuLabel>
+                  <DropdownMenuLabel dir={dir}>
+                    {t("Other AI providers")}
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {secondaryProviders.map(([providerId, models]) => {
                     const provider = providers?.find((p) => p.id === providerId);
                     return (
                       <DropdownMenuSub key={providerId}>
-                        <DropdownMenuSubTrigger className="w-full font-normal">
+                        <DropdownMenuSubTrigger className="w-full font-normal" dir={dir}>
                           <div className="flex flex-col items-start w-full">
                             <div className="flex items-center gap-2">
-                              <span>{provider?.name ?? providerId}</span>
+                              <span dir={dir}>{provider?.name ?? providerId}</span>
                               {provider?.type === "custom" && (
-                                <span className="text-[10px] bg-amber-500/20 text-amber-700 px-1.5 py-0.5 rounded-full font-medium">
-                                  Custom
+                                <span
+                                  className="text-[10px] bg-amber-500/20 text-amber-700 px-1.5 py-0.5 rounded-full font-medium"
+                                  dir={dir}
+                                >
+                                  {t("Custom")}
                                 </span>
                               )}
                             </div>
-                            <span className="text-xs text-muted-foreground">
-                              {models.length} models
+                            <span className="text-xs text-muted-foreground" dir={dir}>
+                              {t("models count", { count: models.length })}
                             </span>
                           </div>
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent className="w-56">
-                          <DropdownMenuLabel>
-                            {(provider?.name ?? providerId) + " Models"}
+                          <DropdownMenuLabel dir={dir}>
+                            {(provider?.name ?? providerId) + " " + t("Models")}
                           </DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           {models.map((model) => (
@@ -399,18 +426,22 @@ export function ModelPicker() {
                                     });
                                     setOpen(false);
                                   }}
+                                  dir={dir}
                                 >
                                   <div className="flex justify-between items-start w-full">
-                                    <span>{model.displayName}</span>
+                                    <span dir={dir}>{model.displayName}</span>
                                     {model.tag && (
-                                      <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">
+                                      <span
+                                        className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium"
+                                        dir={dir}
+                                      >
                                         {model.tag}
                                       </span>
                                     )}
                                   </div>
                                 </DropdownMenuItem>
                               </TooltipTrigger>
-                              <TooltipContent side="right">
+                              <TooltipContent side="right" dir={dir}>
                                 {model.description}
                               </TooltipContent>
                             </Tooltip>
@@ -428,10 +459,12 @@ export function ModelPicker() {
         <DropdownMenuSeparator />
         {/* Local Models Parent SubMenu */}
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger className="w-full font-normal">
+          <DropdownMenuSubTrigger className="w-full font-normal" dir={dir}>
             <div className="flex flex-col items-start">
-              <span>Local models</span>
-              <span className="text-xs text-muted-foreground">LM Studio, Ollama</span>
+              <span dir={dir}>{t("Local models")}</span>
+              <span className="text-xs text-muted-foreground" dir={dir}>
+                {t("LM Studio, Ollama")}
+              </span>
             </div>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="w-56">
@@ -440,45 +473,55 @@ export function ModelPicker() {
               <DropdownMenuSubTrigger
                 disabled={ollamaLoading && !hasOllamaModels} // Disable if loading and no models yet
                 className="w-full font-normal"
+                dir={dir}
               >
                 <div className="flex flex-col items-start">
-                  <span>Ollama</span>
+                  <span dir={dir}>{t("Ollama")}</span>
                   {ollamaLoading ? (
-                    <span className="text-xs text-muted-foreground">Loading...</span>
+                    <span className="text-xs text-muted-foreground" dir={dir}>
+                      {t("Loading...")}
+                    </span>
                   ) : ollamaError ? (
-                    <span className="text-xs text-red-500">Error loading</span>
+                    <span className="text-xs text-red-500" dir={dir}>
+                      {t("Error loading")}
+                    </span>
                   ) : !hasOllamaModels ? (
-                    <span className="text-xs text-muted-foreground">None available</span>
+                    <span className="text-xs text-muted-foreground" dir={dir}>
+                      {t("None available")}
+                    </span>
                   ) : (
-                    <span className="text-xs text-muted-foreground">
-                      {ollamaModels.length} models
+                    <span className="text-xs text-muted-foreground" dir={dir}>
+                      {t("models count", { count: ollamaModels.length })}
                     </span>
                   )}
                 </div>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-56 max-h-100 overflow-y-auto">
-                <DropdownMenuLabel>Ollama Models</DropdownMenuLabel>
+                <DropdownMenuLabel dir={dir}>{t("Ollama Models")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
                 {ollamaLoading && ollamaModels.length === 0 ? ( // Show loading only if no models are loaded yet
-                  <div className="text-xs text-center py-2 text-muted-foreground">
-                    Loading models...
+                  <div
+                    className="text-xs text-center py-2 text-muted-foreground"
+                    dir={dir}
+                  >
+                    {t("Loading models...")}
                   </div>
                 ) : ollamaError ? (
-                  <div className="px-2 py-1.5 text-sm text-red-600">
+                  <div className="px-2 py-1.5 text-sm text-red-600" dir={dir}>
                     <div className="flex flex-col">
-                      <span>Error loading models</span>
-                      <span className="text-xs text-muted-foreground">
-                        Is Ollama running?
+                      <span dir={dir}>{t("Error loading models")}</span>
+                      <span className="text-xs text-muted-foreground" dir={dir}>
+                        {t("Is Ollama running?")}
                       </span>
                     </div>
                   </div>
                 ) : !hasOllamaModels ? (
-                  <div className="px-2 py-1.5 text-sm">
+                  <div className="px-2 py-1.5 text-sm" dir={dir}>
                     <div className="flex flex-col">
-                      <span>No local models found</span>
-                      <span className="text-xs text-muted-foreground">
-                        Ensure Ollama is running and models are pulled.
+                      <span dir={dir}>{t("No local models found")}</span>
+                      <span className="text-xs text-muted-foreground" dir={dir}>
+                        {t("Ensure Ollama is running and models are pulled.")}
                       </span>
                     </div>
                   </div>
@@ -499,10 +542,14 @@ export function ModelPicker() {
                         });
                         setOpen(false);
                       }}
+                      dir={dir}
                     >
                       <div className="flex flex-col">
-                        <span>{model.displayName}</span>
-                        <span className="text-xs text-muted-foreground truncate">
+                        <span dir={dir}>{model.displayName}</span>
+                        <span
+                          className="text-xs text-muted-foreground truncate"
+                          dir={dir}
+                        >
                           {model.modelName}
                         </span>
                       </div>
@@ -517,45 +564,55 @@ export function ModelPicker() {
               <DropdownMenuSubTrigger
                 disabled={lmStudioLoading && !hasLMStudioModels} // Disable if loading and no models yet
                 className="w-full font-normal"
+                dir={dir}
               >
                 <div className="flex flex-col items-start">
-                  <span>LM Studio</span>
+                  <span dir={dir}>{t("LM Studio")}</span>
                   {lmStudioLoading ? (
-                    <span className="text-xs text-muted-foreground">Loading...</span>
+                    <span className="text-xs text-muted-foreground" dir={dir}>
+                      {t("Loading...")}
+                    </span>
                   ) : lmStudioError ? (
-                    <span className="text-xs text-red-500">Error loading</span>
+                    <span className="text-xs text-red-500" dir={dir}>
+                      {t("Error loading")}
+                    </span>
                   ) : !hasLMStudioModels ? (
-                    <span className="text-xs text-muted-foreground">None available</span>
+                    <span className="text-xs text-muted-foreground" dir={dir}>
+                      {t("None available")}
+                    </span>
                   ) : (
-                    <span className="text-xs text-muted-foreground">
-                      {lmStudioModels.length} models
+                    <span className="text-xs text-muted-foreground" dir={dir}>
+                      {t("models count", { count: lmStudioModels.length })}
                     </span>
                   )}
                 </div>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-56 max-h-100 overflow-y-auto">
-                <DropdownMenuLabel>LM Studio Models</DropdownMenuLabel>
+                <DropdownMenuLabel dir={dir}>{t("LM Studio Models")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
                 {lmStudioLoading && lmStudioModels.length === 0 ? ( // Show loading only if no models are loaded yet
-                  <div className="text-xs text-center py-2 text-muted-foreground">
-                    Loading models...
+                  <div
+                    className="text-xs text-center py-2 text-muted-foreground"
+                    dir={dir}
+                  >
+                    {t("Loading models...")}
                   </div>
                 ) : lmStudioError ? (
-                  <div className="px-2 py-1.5 text-sm text-red-600">
+                  <div className="px-2 py-1.5 text-sm text-red-600" dir={dir}>
                     <div className="flex flex-col">
-                      <span>Error loading models</span>
-                      <span className="text-xs text-muted-foreground">
-                        {lmStudioError.message} {/* Display specific error */}
+                      <span dir={dir}>{t("Error loading models")}</span>
+                      <span className="text-xs text-muted-foreground" dir={dir}>
+                        {lmStudioError.message}
                       </span>
                     </div>
                   </div>
                 ) : !hasLMStudioModels ? (
-                  <div className="px-2 py-1.5 text-sm">
+                  <div className="px-2 py-1.5 text-sm" dir={dir}>
                     <div className="flex flex-col">
-                      <span>No loaded models found</span>
-                      <span className="text-xs text-muted-foreground">
-                        Ensure LM Studio is running and models are loaded.
+                      <span dir={dir}>{t("No loaded models found")}</span>
+                      <span className="text-xs text-muted-foreground" dir={dir}>
+                        {t("Ensure LM Studio is running and models are loaded.")}
                       </span>
                     </div>
                   </div>
@@ -576,12 +633,16 @@ export function ModelPicker() {
                         });
                         setOpen(false);
                       }}
+                      dir={dir}
                     >
                       <div className="flex flex-col">
                         {/* Display the user-friendly name */}
-                        <span>{model.displayName}</span>
+                        <span dir={dir}>{model.displayName}</span>
                         {/* Show the path as secondary info */}
-                        <span className="text-xs text-muted-foreground truncate">
+                        <span
+                          className="text-xs text-muted-foreground truncate"
+                          dir={dir}
+                        >
                           {model.modelName}
                         </span>
                       </div>

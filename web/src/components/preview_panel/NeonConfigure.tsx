@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
+import { useI18n } from "@/lib/i18n";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ const formatDate = (dateString: string) => {
 };
 
 export const NeonConfigure = () => {
+  const { t, dir } = useI18n();
   const selectedAppId = useAtomValue(selectedAppIdAtom);
   const { app } = useLoadApp(selectedAppId);
 
@@ -42,7 +44,7 @@ export const NeonConfigure = () => {
   } = useQuery<GetNeonProjectResponse, Error>({
     queryKey: ["neon-project", selectedAppId],
     queryFn: async () => {
-      if (!selectedAppId) throw new Error("No app selected");
+      if (!selectedAppId) throw new Error(t("No app selected"));
       return await api.integration.getNeonProject({ appId: selectedAppId });
     },
     enabled: !!selectedAppId && !!app?.neonProjectId,
@@ -57,17 +59,17 @@ export const NeonConfigure = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <Card>
+      <Card dir={dir}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle dir={dir} className="flex items-center gap-2">
             <Database size={20} />
-            Neon Database
+            {t("Neon Database")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <div className="text-sm text-muted-foreground">
-              Loading Neon project information...
+            <div dir={dir} className="text-sm text-muted-foreground">
+              {t("Loading Neon project information...")}
             </div>
           </div>
         </CardContent>
@@ -78,17 +80,17 @@ export const NeonConfigure = () => {
   // Show error state
   if (error) {
     return (
-      <Card>
+      <Card dir={dir}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle dir={dir} className="flex items-center gap-2">
             <Database size={20} />
-            Neon Database
+            {t("Neon Database")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <div className="text-sm text-red-500">
-              Error loading Neon project: {error.message}
+            <div dir={dir} className="text-sm text-red-500">
+              {t("Error loading Neon project: error", { error: error.message })}
             </div>
           </div>
         </CardContent>
@@ -101,51 +103,66 @@ export const NeonConfigure = () => {
   }
 
   return (
-    <Card>
+    <Card dir={dir}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 justify-between">
+        <CardTitle dir={dir} className="flex items-center gap-2 justify-between">
           <div className="flex items-center gap-2">
             <Database size={20} />
-            Neon Database
+            {t("Neon Database")}
           </div>
           <NeonDisconnectButton />
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent dir={dir} className="space-y-4">
         {/* Project Information */}
         <div className="space-y-2">
-          <div className="text-sm font-medium">Project Information</div>
+          <div dir={dir} className="text-sm font-medium">
+            {t("Project Information")}
+          </div>
           <div className="bg-muted/50 p-3 rounded-md space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Project Name:</span>
-              <span className="font-medium">{neonProject.projectName}</span>
+              <span dir={dir} className="text-muted-foreground">
+                {t("Project Name:")}
+              </span>
+              <span dir={dir} className="font-medium">
+                {neonProject.projectName}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Project ID:</span>
-              <span className="font-mono text-xs">{neonProject.projectId}</span>
+              <span dir={dir} className="text-muted-foreground">
+                {t("Project ID:")}
+              </span>
+              <span dir={dir} className="font-mono text-xs">
+                {neonProject.projectId}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Organization:</span>
-              <span className="font-mono text-xs">{neonProject.orgId}</span>
+              <span dir={dir} className="text-muted-foreground">
+                {t("Organization:")}
+              </span>
+              <span dir={dir} className="font-mono text-xs">
+                {neonProject.orgId}
+              </span>
             </div>
           </div>
         </div>
 
         {/* Branches */}
         <div className="space-y-2">
-          <div className="text-sm font-medium flex items-center gap-2">
+          <div dir={dir} className="text-sm font-medium flex items-center gap-2">
             <GitBranch size={16} />
-            Branches ({neonProject.branches.length})
+            {t("Branches count", { count: neonProject.branches.length })}
           </div>
           <div className="space-y-2">
             {neonProject.branches.map((branch) => (
               <div
                 key={branch.branchId}
                 className="flex items-center justify-between p-3 border rounded-md"
+                dir={dir}
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm truncate">
+                    <span dir={dir} className="font-medium text-sm truncate">
                       {branch.branchName}
                     </span>
                     <Badge
@@ -155,16 +172,16 @@ export const NeonConfigure = () => {
                       {branch.type}
                     </Badge>
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">
-                    ID: {branch.branchId}
+                  <div dir={dir} className="text-xs text-muted-foreground truncate">
+                    {t("ID:")} {branch.branchId}
                   </div>
                   {branch.parentBranchName && (
-                    <div className="text-xs text-muted-foreground">
-                      Parent: {branch.parentBranchName.slice(0, 20)}...
+                    <div dir={dir} className="text-xs text-muted-foreground">
+                      {t("Parent:")} {branch.parentBranchName.slice(0, 20)}...
                     </div>
                   )}
-                  <div className="text-xs text-muted-foreground">
-                    Updated: {formatDate(branch.lastUpdated)}
+                  <div dir={dir} className="text-xs text-muted-foreground">
+                    {t("Updated:")} {formatDate(branch.lastUpdated)}
                   </div>
                 </div>
               </div>

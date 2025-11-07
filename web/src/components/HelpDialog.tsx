@@ -18,6 +18,7 @@ import {
   SparklesIcon,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useI18n } from "@/lib/i18n";
 import { useAtomValue } from "jotai";
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { showError } from "@/components/Toast";
@@ -32,6 +33,7 @@ interface HelpDialogProps {
 }
 
 export function HelpDialog({ isOpen, onClose }: HelpDialogProps) {
+  const { t, dir } = useI18n();
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [reviewMode, setReviewMode] = useState(false);
@@ -237,13 +239,15 @@ Session ID: ${sessionId}
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload Complete</DialogTitle>
+            <DialogTitle dir={dir}>{t("Upload Complete")}</DialogTitle>
           </DialogHeader>
-          <div className="py-6 flex flex-col items-center space-y-4">
+          <div dir={dir} className="py-6 flex flex-col items-center space-y-4">
             <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-full">
               <CheckIcon className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="text-lg font-medium">Chat Logs Uploaded Successfully</h3>
+            <h3 dir={dir} className="text-lg font-medium">
+              {t("Chat Logs Uploaded Successfully")}
+            </h3>
             <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded flex items-center space-x-2 font-mono text-sm">
               <FileIcon
                 className="h-4 w-4 cursor-pointer"
@@ -257,14 +261,15 @@ Session ID: ${sessionId}
               />
               <span>{sessionId}</span>
             </div>
-            <p className="text-center text-sm">
-              You must open a GitHub issue for us to investigate. Without a linked issue,
-              your report will not be reviewed.
+            <p dir={dir} className="text-center text-sm">
+              {t(
+                "You must open a GitHub issue for us to investigate. Without a linked issue, your report will not be reviewed."
+              )}
             </p>
           </div>
           <DialogFooter>
-            <Button onClick={handleOpenGitHubIssue} className="w-full">
-              Open GitHub Issue
+            <Button dir={dir} onClick={handleOpenGitHubIssue} className="w-full">
+              {t("Open GitHub Issue")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -277,7 +282,7 @@ Session ID: ${sessionId}
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle className="flex items-center">
+            <DialogTitle dir={dir} className="flex items-center">
               <Button
                 variant="ghost"
                 className="mr-2 p-0 h-8 w-8"
@@ -285,22 +290,25 @@ Session ID: ${sessionId}
               >
                 <ChevronLeftIcon className="h-4 w-4" />
               </Button>
-              OK to upload chat session?
+              {t("OK to upload chat session?")}
             </DialogTitle>
           </DialogHeader>
-          <DialogDescription>
-            Please review the information that will be submitted. Your chat messages,
-            system information, and a snapshot of your codebase will be included.
+          <DialogDescription dir={dir}>
+            {t(
+              "Please review the information that will be submitted. Your chat messages, system information, and a snapshot of your codebase will be included."
+            )}
           </DialogDescription>
 
-          <div className="space-y-4 overflow-y-auto flex-grow">
+          <div dir={dir} className="space-y-4 overflow-y-auto flex-grow">
             <div className="border rounded-md p-3">
-              <h3 className="font-medium mb-2">Chat Messages</h3>
+              <h3 dir={dir} className="font-medium mb-2">
+                {t("Chat Messages")}
+              </h3>
               <div className="text-sm bg-slate-50 dark:bg-slate-900 rounded p-2 max-h-40 overflow-y-auto">
                 {chatLogsData.chat.messages.map((msg) => (
                   <div key={msg.id} className="mb-2">
                     <span className="font-semibold">
-                      {msg.role === "user" ? "You" : "Assistant"}:{" "}
+                      {msg.role === "user" ? t("You") : t("Assistant")}:{" "}
                     </span>
                     <span>{msg.content}</span>
                   </div>
@@ -309,50 +317,67 @@ Session ID: ${sessionId}
             </div>
 
             <div className="border rounded-md p-3">
-              <h3 className="font-medium mb-2">Codebase Snapshot</h3>
+              <h3 dir={dir} className="font-medium mb-2">
+                {t("Codebase Snapshot")}
+              </h3>
               <div className="text-sm bg-slate-50 dark:bg-slate-900 rounded p-2 max-h-40 overflow-y-auto font-mono">
                 {chatLogsData.codebase}
               </div>
             </div>
 
             <div className="border rounded-md p-3">
-              <h3 className="font-medium mb-2">Logs</h3>
+              <h3 dir={dir} className="font-medium mb-2">
+                {t("Logs")}
+              </h3>
               <div className="text-sm bg-slate-50 dark:bg-slate-900 rounded p-2 max-h-40 overflow-y-auto font-mono">
                 {chatLogsData.debugInfo.logs}
               </div>
             </div>
 
             <div className="border rounded-md p-3">
-              <h3 className="font-medium mb-2">System Information</h3>
+              <h3 dir={dir} className="font-medium mb-2">
+                {t("System Information")}
+              </h3>
               <div className="text-sm bg-slate-50 dark:bg-slate-900 rounded p-2 max-h-32 overflow-y-auto">
-                <p>Eezi Version: {chatLogsData.debugInfo.eeziVersion}</p>
-                <p>Platform: {chatLogsData.debugInfo.platform}</p>
-                <p>Architecture: {chatLogsData.debugInfo.architecture}</p>
-                <p>
-                  Node Version: {chatLogsData.debugInfo.nodeVersion || "Not available"}
+                <p dir={dir}>
+                  {t("Eezi Version:")} {chatLogsData.debugInfo.eeziVersion}
+                </p>
+                <p dir={dir}>
+                  {t("Platform:")} {chatLogsData.debugInfo.platform}
+                </p>
+                <p dir={dir}>
+                  {t("Architecture:")} {chatLogsData.debugInfo.architecture}
+                </p>
+                <p dir={dir}>
+                  {t("Node Version:")}{" "}
+                  {chatLogsData.debugInfo.nodeVersion || t("Not available")}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-between mt-4 pt-2 sticky bottom-0 bg-background">
+          <div
+            dir={dir}
+            className="flex justify-between mt-4 pt-2 sticky bottom-0 bg-background"
+          >
             <Button
               variant="outline"
               onClick={handleCancelReview}
               className="flex items-center"
             >
-              <XIcon className="mr-2 h-4 w-4" /> Cancel
+              <XIcon className="mr-2 h-4 w-4" /> {t("Cancel")}
             </Button>
             <Button
+              dir={dir}
               onClick={handleSubmitChatLogs}
               className="flex items-center"
               disabled={isUploading}
             >
               {isUploading ? (
-                "Uploading..."
+                t("Uploading...")
               ) : (
                 <>
-                  <CheckIcon className="mr-2 h-4 w-4" /> Upload
+                  <CheckIcon className="mr-2 h-4 w-4" /> {t("Upload")}
                 </>
               )}
             </Button>
@@ -366,72 +391,81 @@ Session ID: ${sessionId}
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Need help with Eezi?</DialogTitle>
+          <DialogTitle dir={dir}>{t("Need help with Eezi?")}</DialogTitle>
         </DialogHeader>
-        <DialogDescription className="">
-          If you need help or want to report an issue, here are some options:
+        <DialogDescription dir={dir} className="">
+          {t("If you need help or want to report an issue, here are some options:")}
         </DialogDescription>
-        <div className="flex flex-col space-y-4 w-full">
+        <div dir={dir} className="flex flex-col space-y-4 w-full">
           {isEeziProUser ? (
             <div className="flex flex-col space-y-2">
               <Button
+                dir={dir}
                 variant="default"
                 onClick={() => {
                   setIsHelpBotOpen(true);
                 }}
                 className="w-full py-6 border-primary/50 shadow-sm shadow-primary/10 transition-all hover:shadow-md hover:shadow-primary/15"
               >
-                <SparklesIcon className="mr-2 h-5 w-5" /> Chat with Eezi help bot (Pro)
+                <SparklesIcon className="mr-2 h-5 w-5" />{" "}
+                {t("Chat with Eezi help bot (Pro)")}
               </Button>
-              <p className="text-sm text-muted-foreground px-2">
-                Opens an in-app help chat assistant that searches through Eezi's docs.
+              <p dir={dir} className="text-sm text-muted-foreground px-2">
+                {t(
+                  "Opens an in-app help chat assistant that searches through Eezi's docs."
+                )}
               </p>
             </div>
           ) : (
             <div className="flex flex-col space-y-2">
               <Button
+                dir={dir}
                 variant="outline"
                 onClick={() => {
                   api.app.openExternalUrl("https://www.dyad.sh/docs");
                 }}
                 className="w-full py-6 bg-(--background-lightest)"
               >
-                <BookOpenIcon className="mr-2 h-5 w-5" /> Open Docs
+                <BookOpenIcon className="mr-2 h-5 w-5" /> {t("Open Docs")}
               </Button>
-              <p className="text-sm text-muted-foreground px-2">
-                Get help with common questions and issues.
+              <p dir={dir} className="text-sm text-muted-foreground px-2">
+                {t("Get help with common questions and issues.")}
               </p>
             </div>
           )}
 
           <div className="flex flex-col space-y-2">
             <Button
+              dir={dir}
               variant="outline"
               onClick={handleReportBug}
               disabled={isLoading}
               className="w-full py-6 bg-(--background-lightest)"
             >
               <BugIcon className="mr-2 h-5 w-5" />{" "}
-              {isLoading ? "Preparing Report..." : "Report a Bug"}
+              {isLoading ? t("Preparing Report...") : t("Report a Bug")}
             </Button>
-            <p className="text-sm text-muted-foreground px-2">
-              We'll auto-fill your report with system info and logs. You can review it
-              for any sensitive info before submitting.
+            <p dir={dir} className="text-sm text-muted-foreground px-2">
+              {t(
+                "We'll auto-fill your report with system info and logs. You can review it for any sensitive info before submitting."
+              )}
             </p>
           </div>
           <div className="flex flex-col space-y-2">
             <Button
+              dir={dir}
               variant="outline"
               onClick={handleUploadChatSession}
               disabled={isUploading || !selectedChatId}
               className="w-full py-6 bg-(--background-lightest)"
             >
               <UploadIcon className="mr-2 h-5 w-5" />{" "}
-              {isUploading ? "Preparing Upload..." : "Upload Chat Session"}
+              {isUploading ? t("Preparing Upload...") : t("Upload Chat Session")}
             </Button>
-            <p className="text-sm text-muted-foreground px-2">
-              Share chat logs and code for troubleshooting. Data is used only to resolve
-              your issue and auto-deleted after a limited time.
+            <p dir={dir} className="text-sm text-muted-foreground px-2">
+              {t(
+                "Share chat logs and code for troubleshooting. Data is used only to resolve your issue and auto-deleted after a limited time."
+              )}
             </p>
           </div>
         </div>

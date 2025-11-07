@@ -1,16 +1,11 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  memo,
-  type ReactNode,
-} from "react";
+import React, { useState, useEffect, useRef, memo, type ReactNode } from "react";
 import { isInlineCode, useShikiHighlighter } from "react-shiki";
 import github from "@shikijs/themes/github-light-default";
 import githubDark from "@shikijs/themes/github-dark-default";
 import type { Element as HastElement } from "hast";
-import { useTheme } from "../../contexts/ThemeContext";
 import { Copy, Check } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface CodeHighlightProps {
   className?: string | undefined;
@@ -23,6 +18,9 @@ export const CodeHighlight = memo(
     const code = String(children).trim();
     const language = className?.match(/language-(\w+)/)?.[1];
     const isInline = node ? isInlineCode(node) : false;
+
+    const { t, dir } = useI18n();
+
     //handle copying code to clipboard with transition effect
     const [copied, setCopied] = useState(false);
     const handleCopy = () => {
@@ -43,7 +41,7 @@ export const CodeHighlight = memo(
       isDarkMode ? githubDark : github,
       {
         delay: 150,
-      },
+      }
     );
 
     // Update the cache whenever we get a new highlighted code
@@ -57,22 +55,25 @@ export const CodeHighlight = memo(
     const displayedCode = highlightedCode || highlightedCodeCache.current;
     return !isInline ? (
       <div
-        className="shiki not-prose relative [&_pre]:overflow-auto 
+        className="shiki not-prose relative [&_pre]:overflow-auto
       [&_pre]:rounded-lg [&_pre]:px-6 [&_pre]:py-7"
+        dir={dir}
       >
         {language ? (
-          <div className="absolute top-2 left-2 right-2 text-xs flex justify-between">
-            <span className="tracking-tighter text-muted-foreground/85">
-              {language}
-            </span>
+          <div
+            className="absolute top-2 left-2 right-2 text-xs flex justify-between"
+            dir={dir}
+          >
+            <span className="tracking-tighter text-muted-foreground/85">{language}</span>
             {code && (
               <button
                 className="mr-2 flex items-center text-xs cursor-pointer"
                 onClick={handleCopy}
                 type="button"
+                dir={dir}
               >
                 {copied ? <Check size={14} /> : <Copy size={14} />}
-                <span className="ml-1">{copied ? "Copied" : "Copy"}</span>
+                <span className="ml-1">{copied ? t("Copied") : t("Copy")}</span>
               </button>
             )}
           </div>
@@ -80,12 +81,12 @@ export const CodeHighlight = memo(
         {displayedCode}
       </div>
     ) : (
-      <code className={className} {...props}>
+      <code className={className} {...props} dir={dir}>
         {children}
       </code>
     );
   },
   (prevProps, nextProps) => {
     return prevProps.children === nextProps.children;
-  },
+  }
 );

@@ -156,7 +156,7 @@ export function ChatList({ show }: { show?: boolean }) {
         className="overflow-y-auto h-[calc(100vh-112px)]"
         data-testid="chat-list-container"
       >
-        <SidebarGroupLabel>{t("Recent Chats")}</SidebarGroupLabel>
+        <SidebarGroupLabel dir={dir}>{t("Recent Chats")}</SidebarGroupLabel>
         <SidebarGroupContent>
           <div className="flex flex-col space-y-4">
             <Button
@@ -166,7 +166,7 @@ export function ChatList({ show }: { show?: boolean }) {
               className="flex items-center justify-start gap-2 mx-2 py-3"
             >
               <PlusCircle size={16} />
-              <span>{t("New Chat")}</span>
+              <span dir={dir}>{t("New Chat")}</span>
             </Button>
             <Button
               dir={dir}
@@ -176,15 +176,15 @@ export function ChatList({ show }: { show?: boolean }) {
               data-testid="search-chats-button"
             >
               <Search size={16} />
-              <span>{t("Search Chats")}</span>
+              <span dir={dir}>{t("Search Chats")}</span>
             </Button>
 
             {loading ? (
-              <div className="py-3 px-4 text-sm text-gray-500">
+              <div className="py-3 px-4 text-sm text-gray-500" dir={dir}>
                 {t("Loading chats...")}
               </div>
             ) : chats.length === 0 ? (
-              <div className="py-3 px-4 text-sm text-gray-500">
+              <div className="py-3 px-4 text-sm text-gray-500" dir={dir}>
                 {t("No chats found")}
               </div>
             ) : (
@@ -212,10 +212,12 @@ export function ChatList({ show }: { show?: boolean }) {
                           }`}
                         >
                           <div className="flex flex-col w-full">
-                            <span className="truncate">
+                            <span className="truncate" dir={dir}>
                               {chat.title || t("New Chat")}
                             </span>
-                            <span className="text-xs text-gray-500">{relative}</span>
+                            <span className="text-xs text-gray-500" dir={dir}>
+                              {relative}
+                            </span>
                           </div>
                         </Button>
 
@@ -243,7 +245,7 @@ export function ChatList({ show }: { show?: boolean }) {
                                 className="px-3 py-2"
                               >
                                 <Edit3 className="mr-2 h-4 w-4" />
-                                <span>{t("Rename Chat")}</span>
+                                <span dir={dir}>{t("Rename Chat")}</span>
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 dir={dir}
@@ -256,7 +258,7 @@ export function ChatList({ show }: { show?: boolean }) {
                                 className="px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 focus:bg-red-50 dark:focus:bg-red-950/50"
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                <span>{t("Delete Chat")}</span>
+                                <span dir={dir}>{t("Delete Chat")}</span>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
