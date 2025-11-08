@@ -50,8 +50,8 @@ export function ReleaseChannelSelector() {
   };
 
   return (
-    <div dir={dir} className="space-y-1">
-      <div className="flex items-center space-x-2">
+    <div dir={dir} className="gap-y-1">
+      <div className="flex items-center gap-x-2">
         <label
           dir={dir}
           htmlFor="release-channel"

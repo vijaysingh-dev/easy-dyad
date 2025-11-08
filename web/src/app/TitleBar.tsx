@@ -66,48 +66,34 @@ export const TitleBar = () => {
 
   return (
     <>
-      <div className="@container z-11 w-full h-11 bg-(--sidebar) absolute top-0 left-0 app-region-drag flex items-center">
-        <img src={logo} alt="Eezi Logo" className="w-6 h-6 pl-18 mr-0.5" />
-        <Button
-          dir={dir}
-          data-testid="title-bar-app-name-button"
-          variant="outline"
-          size="sm"
-          className={`hidden @2xl:block no-app-region-drag text-xs max-w-38 truncate font-medium ${
-            selectedApp ? "cursor-pointer" : ""
-          }`}
-          onClick={handleAppClick}
-        >
-          {displayText}
-        </Button>
-        {isEeziPro && <EeziProButton isEeziProEnabled={isEeziProEnabled} />}
-
-        {/* Preview Header */}
-        {location.pathname === "/chat" && (
-          <div className="flex-1 flex justify-end">
-            <ActionHeader />
-          </div>
-        )}
-
-        <button
-          onClick={toggleLanguage}
-          className="m-5 flex border border-primary/30 rounded-md overflow-hidden text-sm font-medium transition-all bg-white"
-        >
-          <span
-            className={`px-3 py-1 transition-all duration-300 ${
-              i18n.language === "en" ? "bg-[#8777DA] text-white" : "text-primary"
+      <div className="@container z-11 w-full h-11 bg-(--sidebar) absolute top-0 left-0 app-region-drag flex items-center justify-between">
+        <div className="flex items-center">
+          <img src={logo} alt="Eezi Logo" className="w-6 h-6 pl-18 mr-0.5" />
+          <Button
+            dir={dir}
+            data-testid="title-bar-app-name-button"
+            variant="outline"
+            size="sm"
+            className={`hidden @2xl:block no-app-region-drag text-xs max-w-38 truncate font-medium ${
+              selectedApp ? "cursor-pointer" : ""
             }`}
+            onClick={handleAppClick}
           >
-            EN
-          </span>
-          <span
-            className={`px-3 py-1 transition-all duration-300 ${
-              i18n.language === "ar" ? "bg-[#8777DA] text-white" : "text-primary"
-            }`}
-          >
-            AR
-          </span>
-        </button>
+            {displayText}
+          </Button>
+          {isEeziPro && <EeziProButton isEeziProEnabled={isEeziProEnabled} />}
+        </div>
+        <div className="flex items-center">
+          {/* Preview Header */}
+          {location.pathname === "/chat" && (
+            <div className="flex-1 flex justify-end">
+              <ActionHeader />
+            </div>
+          )}
+          <button onClick={toggleLanguage} className="mr-5 flex transition-all">
+            {i18n.language === "en" ? "AR" : "EN"}
+          </button>
+        </div>
       </div>
 
       <EeziProSuccessDialog

@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue } from "jotai";
-import { useI18n } from "@/lib/i18n";
+import i18n, { useI18n } from "@/lib/i18n";
 import { previewModeAtom, selectedAppIdAtom } from "@/atoms/appAtoms";
 
 import {
@@ -159,7 +159,7 @@ export const ActionHeader = () => {
     // Small delay to ensure DOM is updated
     const timeoutId = setTimeout(updateIndicator, 10);
     return () => clearTimeout(timeoutId);
-  }, [previewMode, displayCount, isPreviewOpen, isCompact]);
+  }, [previewMode, displayCount, isPreviewOpen, isCompact, i18n.language]);
 
   const renderButton = (
     mode: PreviewMode,
@@ -187,7 +187,7 @@ export const ActionHeader = () => {
         <Tooltip>
           <TooltipTrigger asChild>{buttonContent}</TooltipTrigger>
           <TooltipContent>
-            <p>{text}</p>
+            <p dir={dir}>{text}</p>
           </TooltipContent>
         </Tooltip>
       );
@@ -199,8 +199,8 @@ export const ActionHeader = () => {
   return (
     <TooltipProvider>
       <div
-        className="flex items-center justify-between px-1 py-2 mt-1 border-b border-border"
         dir={dir}
+        className="flex items-center justify-between px-2 py-2 mt-1 border-b border-border"
       >
         <div className="relative flex rounded-md p-0.5 gap-0.5">
           <motion.div

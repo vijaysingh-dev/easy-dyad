@@ -212,12 +212,11 @@ export function ChatList({ show }: { show?: boolean }) {
                           }`}
                         >
                           <div className="flex flex-col w-full">
-                            <span className="truncate" dir={dir}>
-                              {chat.title || t("New Chat")}
+                            <span className="truncate">
+                              {t("provided_value", { value: chat.title }) ||
+                                t("New Chat")}
                             </span>
-                            <span className="text-xs text-gray-500" dir={dir}>
-                              {relative}
-                            </span>
+                            <span className="text-xs text-gray-500">{relative}</span>
                           </div>
                         </Button>
 
@@ -242,9 +241,9 @@ export function ChatList({ show }: { show?: boolean }) {
                                 onClick={() =>
                                   handleRenameChat(chat.id, chat.title || "")
                                 }
-                                className="px-3 py-2"
+                                className="py-2"
                               >
-                                <Edit3 className="mr-2 h-4 w-4" />
+                                <Edit3 className="mx-2 h-4 w-4" />
                                 <span dir={dir}>{t("Rename Chat")}</span>
                               </DropdownMenuItem>
                               <DropdownMenuItem
@@ -255,9 +254,9 @@ export function ChatList({ show }: { show?: boolean }) {
                                     chat.title || t("New Chat")
                                   )
                                 }
-                                className="px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 focus:bg-red-50 dark:focus:bg-red-950/50"
+                                className="py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 focus:bg-red-50 dark:focus:bg-red-950/50"
                               >
-                                <Trash2 className="mr-2 h-4 w-4" />
+                                <Trash2 className="mx-2 h-4 w-4" />
                                 <span dir={dir}>{t("Delete Chat")}</span>
                               </DropdownMenuItem>
                             </DropdownMenuContent>

@@ -1,15 +1,18 @@
-import { ThemeProvider } from "../contexts/ThemeContext";
+import { useEffect } from "react";
+import { useAtomValue } from "jotai";
+import { DirectionProvider } from "@radix-ui/react-direction";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { DeepLinkProvider } from "../contexts/DeepLinkContext";
+import { DeepLinkProvider } from "@/contexts/DeepLinkContext";
 import { Toaster } from "sonner";
 import { TitleBar } from "./TitleBar";
-import { useEffect } from "react";
 import { useRunApp } from "@/hooks/useRunApp";
-import { useAtomValue } from "jotai";
 import { previewModeAtom } from "@/atoms/appAtoms";
+import { useI18n } from "@/lib/i18n";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const { dir } = useI18n();
   const { refreshAppIframe } = useRunApp();
   const previewMode = useAtomValue(previewModeAtom);
   // Global keyboard listener for refresh events
@@ -34,20 +37,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }, [refreshAppIframe, previewMode]);
 
   return (
-    <ThemeProvider>
-      <DeepLinkProvider>
-        <SidebarProvider>
-          <TitleBar />
-          <AppSidebar />
-          <div
-            id="layout-main-content-container"
-            className="flex h-screenish w-full overflow-x-hidden mt-12 mb-4 mr-4 border-t border-l border-border rounded-lg bg-background"
-          >
-            {children}
-          </div>
-          <Toaster richColors />
-        </SidebarProvider>
-      </DeepLinkProvider>
-    </ThemeProvider>
+    <DirectionProvider dir={dir}>
+      <ThemeProvider>
+        <DeepLinkProvider>
+          <SidebarProvider>
+            <TitleBar />
+            <AppSidebar />
+            <div
+              id="layout-main-content-container"
+              className="flex h-screenish w-full overflow-x-hidden mt-12 mb-4 mr-4 border-t border-l border-border rounded-lg bg-background"
+            >
+              {children}
+            </div>
+            <Toaster richColors />
+          </SidebarProvider>
+        </DeepLinkProvider>
+      </ThemeProvider>
+    </DirectionProvider>
   );
 }

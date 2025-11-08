@@ -230,11 +230,8 @@ export function GeneralSettings({ appVersion }: { appVersion: string | null }) {
       </h2>
 
       <div className="space-y-4 mb-4">
-        <div className="flex items-center gap-4">
-          <label
-            dir={dir}
-            className="text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
+        <div dir={dir} className="flex items-center gap-4">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
             {t("Theme")}
           </label>
 
@@ -253,7 +250,9 @@ export function GeneralSettings({ appVersion }: { appVersion: string | null }) {
                 }
               `}
               >
-                {t(option.charAt(0).toUpperCase() + option.slice(1))}
+                {t("provided_value", {
+                  value: t(option.charAt(0).toUpperCase() + option.slice(1)),
+                })}
               </button>
             ))}
           </div>

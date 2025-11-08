@@ -89,7 +89,11 @@ export function ProviderSettingsHeader({
             />
           )}
           <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-            {isLoading ? "Loading..." : isConfigured ? "Setup Complete" : "Not Setup"}
+            {isLoading
+              ? t("Loading...")
+              : isConfigured
+              ? t("Setup Complete")
+              : t("Not Setup")}
           </span>
         </div>
         {!isLoading && hasFreeTier && (

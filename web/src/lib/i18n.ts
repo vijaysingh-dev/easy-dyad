@@ -42,7 +42,7 @@ i18n.on("languageChanged", (lng) => {
 
 export function useI18n() {
   const { t, i18n } = useTranslation();
-  const dir = i18n.language === "ar" ? "rtl" : "ltr";
+  const dir: "ltr" | "rtl" = i18n.language === "ar" ? "rtl" : "ltr";
   return useMemo(() => ({ t, dir }), [t, dir]);
 }
 

@@ -9,25 +9,6 @@ export function useLoadApps() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Run initial load once
-  useEffect(() => {
-    const loadApps = async () => {
-      setLoading(true);
-      try {
-        const loadedApps = await api.app.listApps();
-        setApps(loadedApps.apps);
-        setAppBasePath(loadedApps.appBasePath);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching apps:", err);
-        setError(err instanceof Error ? err : new Error(String(err)));
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadApps();
-  }, [setApps, setAppBasePath]);
-
   const refreshApps = useCallback(async () => {
     setLoading(true);
     try {
@@ -35,13 +16,17 @@ export function useLoadApps() {
       setApps(appListResponse.apps);
       setAppBasePath(appListResponse.appBasePath);
       setError(null);
-    } catch (err) {
-      console.error("Error fetching apps:", err);
-      setError(err instanceof Error ? err : new Error(String(err)));
+    } catch (error) {
+      console.error("Error refreshing apps:", error);
+      setError(error instanceof Error ? error : new Error(String(error)));
     } finally {
       setLoading(false);
     }
-  }, [setApps, setAppBasePath]);
+  }, [setApps, setError, setLoading]);
+
+  useEffect(() => {
+    refreshApps();
+  }, [refreshApps]);
 
   return { apps, loading, error, refreshApps };
 }

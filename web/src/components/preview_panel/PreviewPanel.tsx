@@ -28,27 +28,22 @@ interface ConsoleHeaderProps {
 const ConsoleHeader = ({ isOpen, onToggle, latestMessage }: ConsoleHeaderProps) => {
   const { t, dir } = useI18n();
   return (
-    <div
-      dir={dir}
-      onClick={onToggle}
-      className="flex items-start gap-2 px-4 py-1.5 border-t border-border cursor-pointer hover:bg-[var(--background-darkest)] transition-colors"
-    >
-      <Logs size={16} className="mt-0.5" />
-      <div className="flex flex-col">
-        <span dir={dir} className="text-sm font-medium">
-          {t("System Messages")}
-        </span>
-        {!isOpen && latestMessage && (
-          <span
-            dir={dir}
-            className="text-xs text-gray-500 truncate max-w-[200px] md:max-w-[400px]"
-          >
-            {latestMessage}
-          </span>
-        )}
+    <div className="pb-2 flex flex-col">
+      <div
+        dir={dir}
+        onClick={onToggle}
+        className="flex items-start gap-2 px-4 pt-1.5 border-t border-border cursor-pointer hover:bg-[var(--background-darkest)] transition-colors"
+      >
+        <Logs size={16} className="mt-0.5" />
+        <span className="text-sm font-medium">{t("System Messages")}</span>
+        <div className="flex-1" />
+        {isOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
       </div>
-      <div className="flex-1" />
-      {isOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+      {!isOpen && latestMessage && (
+        <span className="px-5 text-xs text-gray-500 truncate max-w-[200px] md:max-w-[400px]">
+          {latestMessage}
+        </span>
+      )}
     </div>
   );
 };

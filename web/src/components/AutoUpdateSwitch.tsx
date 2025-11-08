@@ -14,7 +14,9 @@ export function AutoUpdateSwitch() {
   }
 
   return (
-    <div className="flex items-center space-x-2" dir={dir}>
+    <div
+      className={`flex items-center gap-x-2 ${dir === "rtl" ? "flex-row-reverse" : ""}`}
+    >
       <Switch
         id="enable-auto-update"
         checked={settings.enableAutoUpdate}
@@ -32,11 +34,8 @@ export function AutoUpdateSwitch() {
             },
           });
         }}
-        dir={dir}
       />
-      <Label htmlFor="enable-auto-update" dir={dir}>
-        {t("Auto-update")}
-      </Label>
+      <Label htmlFor="enable-auto-update">{t("Auto-update")}</Label>
     </div>
   );
 }
