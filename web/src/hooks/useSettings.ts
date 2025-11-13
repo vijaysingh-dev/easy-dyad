@@ -64,22 +64,19 @@ export function useSettings() {
 
   // Run initial load once
   useEffect(() => {
-    const loadSettings = async () => {
-      setLoading(true);
-      try {
-        setSettingsAtom(data.settings);
-        setEnvVarsAtom(data.envVars);
-        trackInitialLoad(data.settings, appVersion, posthog);
-        setError(null);
-      } catch (err) {
-        console.error("Error loading settings:", err);
-        setError(err instanceof Error ? err : new Error(String(err)));
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadSettings();
-  }, [appVersion, data, posthog, setSettingsAtom, setEnvVarsAtom]);
+    setLoading(true);
+    try {
+      setSettingsAtom((prev) => prev ?? data.settings);
+      setEnvVarsAtom((prev) => prev ?? data.envVars);
+      trackInitialLoad(data.settings, appVersion, posthog);
+      setError(null);
+    } catch (err) {
+      console.error("Error loading settings:", err);
+      setError(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const refreshSettings = useCallback(async () => {
     setLoading(true);

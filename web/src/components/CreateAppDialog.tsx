@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useLoadApps } from "@/hooks/useLoadApps";
 import { useCreateApp } from "@/hooks/useCreateApp";
 import { useCheckName } from "@/hooks/useCheckName";
 import { useSetAtom } from "jotai";
@@ -35,6 +36,7 @@ export function CreateAppDialog({ open, onOpenChange, template }: CreateAppDialo
   const [appName, setAppName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createApp } = useCreateApp();
+  const { refreshApps } = useLoadApps();
   const { data: nameCheckResult } = useCheckName(appName);
   const router = useRouter();
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,6 +60,7 @@ export function CreateAppDialog({ open, onOpenChange, template }: CreateAppDialo
         });
       }
       setSelectedAppId(result.app.id);
+      await refreshApps();
       // Navigate to the new app's first chat
       router.navigate({
         to: "/chat",

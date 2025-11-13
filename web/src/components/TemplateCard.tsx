@@ -89,13 +89,11 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
             }`}
           />
           {isSelected && (
-            <span className="absolute top-3 right-3 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-md shadow-lg">
-              <span
-                className="absolute top-3 right-3 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-md shadow-lg"
-                dir={dir}
-              >
-                {t("Selected")}
-              </span>
+            <span
+              className="absolute top-3 right-3 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-md shadow-lg"
+              dir={dir}
+            >
+              {t("Selected")}
             </span>
           )}
         </div>

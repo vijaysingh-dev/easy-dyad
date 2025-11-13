@@ -672,6 +672,7 @@
   "Build your dream app": "Build your dream app",
   "Setup Eezi": "Setup Eezi",
   "1. Install Node.js (App Runtime)": "1. Install Node.js (App Runtime)",
+  "2. Setup AI Model Access": "2. Setup AI Model Access",
   "Error checking Node.js status. Try installing Node.js.": "Error checking Node.js status. Try installing Node.js.",
   "Node.js version installed": "Node.js ({{version}}) installed.",
   "(optional) pnpm version installed": "(optional) pnpm ({{version}}) installed.",

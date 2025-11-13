@@ -605,6 +605,7 @@
   "Build your dream app": "ابنِ تطبيق أحلامك",
   "Setup Eezi": "إعداد إيزي",
   "1. Install Node.js (App Runtime)": "1. تثبيت Node.js (بيئة التطبيق)",
+  "2. Setup AI Model Access": "2. إعداد الوصول إلى نموذج الذكاء الاصطناعي",
   "Error checking Node.js status. Try installing Node.js.": "حدث خطأ أثناء التحقق من حالة Node.js. حاول تثبيت Node.js.",
   "Node.js version installed": "Node.js ({{version}}) تم تثبيته.",
   "(optional) pnpm version installed": "(اختياري) pnpm ({{version}}) تم تثبيته.",

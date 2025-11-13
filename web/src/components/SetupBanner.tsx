@@ -29,7 +29,7 @@ import { usePostHog } from "posthog-js/react";
 import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";
 import { useScrollAndNavigateTo } from "@/hooks/useScrollAndNavigateTo";
 // @ts-ignore
-import logo from "../../assets/logo.svg";
+import logo from "../../assets/icon/eezi.png";
 import { OnboardingBanner } from "./home/OnboardingBanner";
 import api from "@/api";
 
@@ -247,7 +247,9 @@ export function SetupBanner() {
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(isAnyProviderSetup())}
-                  <span className="font-medium text-sm">2. Setup AI Model Access</span>
+                  <span className="font-medium text-sm">
+                    {t("2. Setup AI Model Access")}
+                  </span>
                 </div>
               </div>
             </AccordionTrigger>
@@ -306,6 +308,7 @@ export function SetupBanner() {
               />
 
               <div
+                dir={dir}
                 className="mt-2 p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800/70 transition-colors"
                 onClick={handleOtherProvidersClick}
                 role="button"
@@ -317,10 +320,7 @@ export function SetupBanner() {
                       <Settings className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                     </div>
                     <div>
-                      <h4
-                        dir={dir}
-                        className="font-medium text-sm text-gray-800 dark:text-gray-300"
-                      >
+                      <h4 className="font-medium text-sm text-gray-800 dark:text-gray-300">
                         {t("Setup other AI providers")}
                       </h4>
                       <p dir={dir} className="text-xs text-gray-600 dark:text-gray-400">
