@@ -8,10 +8,9 @@ import { platform, arch } from "os";
 import util from "util";
 import killPort from "kill-port";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import fs, { promises as fsPromises } from "node:fs";
 import { ChildProcess, spawn } from "node:child_process";
-import { readSettings } from "@/services/settings";
+import { readSettings } from "@/shared/settings";
 import {
   runningApps,
   processCounter,
@@ -25,7 +24,9 @@ import { runShellCommand } from "@/utils/runShellCommand";
 import { safeSend } from "@/utils/safe_sender";
 import { withLock } from "@/utils/lock_utils";
 import { Worker } from "worker_threads";
-import { LargeLanguageModel } from "@shared/schemas";
+import { LargeLanguageModel } from "@/shared/schemas";
+
+import { IS_TEST_BUILD, PUBLIC_IP } from "@/config";
 
 export async function copyDir(
   source: string,
@@ -48,14 +49,14 @@ export async function copyDir(
 
 export function getAppVersion(): string {
   // Read version from package.json at project root
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  // const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
   return packageJson.version;
 }
 
 const DEFAULT_COMMAND =
-  "(pnpm install && pnpm run dev --port 32100) || (npm install --legacy-peer-deps && npm run dev -- --port 32100)";
+  "(pnpm install && pnpm run dev -- --host 0.0.0.0 --port 32100) || (npm install --legacy-peer-deps && npm run dev -- --host 0.0.0.0 --port 32100)";
 
 function getCommand({
   installCommand,
@@ -121,7 +122,7 @@ export async function getSystemDebugInfo({
   }
 
   // Get Eezi version from package.json
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  // const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
   let eeziVersion = "unknown";
   try {
@@ -300,6 +301,7 @@ async function executeAppLocalNode({
   installCommand?: string | null;
   startCommand?: string | null;
 }): Promise<void> {
+  logger.info(`Starting app ${appId} in local Node.js mode`);
   const command = getCommand({ installCommand, startCommand });
   const spawnedProcess = spawn(command, [], {
     cwd: appPath,
@@ -410,13 +412,20 @@ function listenToProcess({
         appId,
       });
 
-      const urlMatch = message.match(/(https?:\/\/localhost:\d+\/?)/);
+      const urlMatch = message.match(/(https?:\/\/localhost:(\d+)\/?)/);
       if (urlMatch) {
-        proxyWorker = await startProxy(urlMatch[1], {
+        const originalUrl = urlMatch[1];
+        const port = urlMatch[2];
+        const publicUrl = !IS_TEST_BUILD ? `http://${PUBLIC_IP}:${port}` : originalUrl;
+
+        proxyWorker = await startProxy(originalUrl, {
           onStarted: (proxyUrl) => {
+            const match = proxyUrl.match(/^https?:\/\/[^:]+:(\d+)\/?$/);
+            const publicProxyUrl =
+              !IS_TEST_BUILD && match ? `http://${PUBLIC_IP}:${match[1]}` : proxyUrl;
             safeSend(res, "app:output", {
               type: "stdout",
-              message: `[eezi-proxy-server]started=[${proxyUrl}] original=[${urlMatch[1]}]`,
+              message: `[eezi-proxy-server]started=[${publicProxyUrl}] original=[${publicUrl}]`,
               appId,
             });
           },
@@ -469,6 +478,7 @@ async function executeAppInDocker({
   installCommand?: string | null;
   startCommand?: string | null;
 }): Promise<void> {
+  logger.info(`Starting app ${appId} in Docker mode`);
   const containerName = `eezi-app-${appId}`;
 
   // First, check if Docker is available
@@ -557,19 +567,27 @@ RUN npm install -g pnpm
   });
 
   // Run the Docker container
+  const args = [
+    "run",
+    "--rm",
+    "--name",
+    containerName,
+    "-p",
+    "8080:8080",
+    "-p",
+    "32100:32100",
+    "-v",
+    `${appPath}:/app`,
+    "-v",
+    `eezi-pnpm-${appId}:/app/.pnpm-store`,
+  ];
+  if (!IS_TEST_BUILD) args.push("-e", "HOST=0.0.0.0");
   const process = spawn(
     "docker",
     [
-      "run",
-      "--rm",
-      "--name",
-      containerName,
-      "-p",
-      "32100:32100",
-      "-v",
-      `${appPath}:/app`,
-      "-v",
-      `eezi-pnpm-${appId}:/app/.pnpm-store`,
+      ...args,
+      "-e",
+      "PORT=32100",
       "-e",
       "PNPM_STORE_PATH=/app/.pnpm-store",
       "-w",

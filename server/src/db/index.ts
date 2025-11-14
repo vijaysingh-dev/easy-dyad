@@ -4,9 +4,8 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { type BetterSQLite3Database, drizzle } from "drizzle-orm/better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "url";
 import * as schema from "./schema";
-import { getPath, getEeziAppPath, ensureDir } from "@/services/paths";
+import { PROJECT_ROOT, getPath, getEeziAppPath, ensureDir } from "@/shared/paths";
 
 // Database connection factory
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -51,8 +50,7 @@ export function initializeDatabase(): BetterSQLite3Database<typeof schema> & {
   _db = drizzle(sqlite, { schema });
 
   try {
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const migrationsFolder = path.join(__dirname, "..", "..", "drizzle");
+    const migrationsFolder = path.join(PROJECT_ROOT, "drizzle");
     if (!fs.existsSync(migrationsFolder)) {
       logger.error("Migrations folder not found:", migrationsFolder);
     } else {

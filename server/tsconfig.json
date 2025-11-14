@@ -1,16 +1,16 @@
 {
   "extends": "../tsconfig.json",
+
   "compilerOptions": {
-    "incremental": true,
-    "tsBuildInfoFile": "./.tsbuildinfo",
-    "rootDir": "../",
-    "outDir": "./dist",
-    "baseUrl": "./src",
+    "rootDir": "src",
+    "outDir": "dist",
+
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["*"],
-      "@shared/*": ["../../shared/*"],
-      "@eezi-sh/*": ["../../packages/@eezi-sh/*"]
+      "@/*": ["src/*"]
     }
   },
-  "include": ["drizzle", "src", "worker", "../shared", "../packages"]
+
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }

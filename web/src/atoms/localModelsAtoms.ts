@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { type LocalModel } from "@shared/eeziTypes";
+import { type LocalModel } from "@/shared/eeziTypes";
 
 export const localModelsAtom = atom<LocalModel[]>([]);
 export const localModelsLoadingAtom = atom<boolean>(false);

@@ -4,6 +4,7 @@ import { mcpServers } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { Response } from "express";
 import { ModelMessage, TextPart, ImagePart, ToolSet, TextStreamPart } from "ai";
+import type { FlexibleSchema } from "@ai-sdk/provider-utils";
 import * as path from "path";
 import { readFile } from "fs/promises";
 
@@ -323,18 +324,20 @@ export async function getMcpTools(
       const client = await mcpManager.getClient(s.id);
       const toolSet = await client.tools();
       for (const [name, tool] of Object.entries(toolSet)) {
-        const key = `${String(s.name || "").replace(/[^a-zA-Z0-9_-]/g, "-")}__${String(name).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+        const key = `${String(s.name || "").replace(/[^a-zA-Z0-9_-]/g, "-")}__${String(
+          name
+        ).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
         const original = tool;
         mcpToolSet[key] = {
           description: original?.description,
-          inputSchema: original?.inputSchema,
+          inputSchema: original?.inputSchema as FlexibleSchema<any>,
           execute: async (args: any, execCtx: any) => {
             const inputPreview =
               typeof args === "string"
                 ? args
                 : Array.isArray(args)
-                  ? args.join(" ")
-                  : JSON.stringify(args).slice(0, 500);
+                ? args.join(" ")
+                : JSON.stringify(args).slice(0, 500);
             const ok = await requireMcpToolConsent(expressResponse, chatId, {
               serverId: s.id,
               serverName: s.name,

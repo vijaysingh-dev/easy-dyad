@@ -1,0 +1,13 @@
+<mxfile host="65bd71144e">
+    <diagram id="DFP67dkPcD3tlFPbAMiK" name="Page-1">
+        <mxGraphModel dx="540" dy="452" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="10000" pageHeight="10000" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="┌─────────────────────┐&#xa;               │   Object Storage     │     &lt;- optional backup&#xa;               │ (Azure Blob/S3/GCS)  │&#xa;               └─────────────────────┘&#xa;                         ▲&#xa;                         │&#xa;                 Backup Sync (Cron)&#xa;&#xa;&#xa;┌──────────────────────────────────────────────────────────────┐&#xa;│                       KUBERNETES                             │&#xa;│                                                              │&#xa;│   ┌──────────────┐     ┌──────────────────────────┐&#xa;│   │  User App    │&lt;---&gt;│ Persistent Volume (PVC)  │ &lt;- Primary&#xa;│   │  Container    │     │ (fast, block storage)    │    Storage&#xa;│   └──────────────┘     └──────────────────────────┘&#xa;│         ▲    │&#xa;│         │    │ File Watcher / API to update files&#xa;│   Start/Stop │&#xa;│         │    ▼&#xa;│   ┌───────────────────────────┐&#xa;│   │   Orchestrator Backend    │&#xa;│   └───────────────────────────┘&#xa;│                                                              │&#xa;└──────────────────────────────────────────────────────────────┘" style="text;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="110" width="560" height="380" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

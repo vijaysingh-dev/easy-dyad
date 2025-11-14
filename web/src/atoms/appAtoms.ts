@@ -1,6 +1,6 @@
 import { atom } from "jotai";
-import type { App, AppOutput, Version } from "@shared/eeziTypes";
-import type { UserSettings } from "@shared/schemas";
+import type { App, AppOutput, Version } from "@/shared/eeziTypes";
+import type { UserSettings } from "@/shared/schemas";
 import api from "@/api";
 
 export const currentAppAtom = atom<App | null>(null);

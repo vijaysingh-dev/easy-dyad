@@ -15,7 +15,7 @@ import {
   UserSettings,
   AzureProviderSetting,
   VertexProviderSetting,
-} from "@shared/schemas";
+} from "@/shared/schemas";
 
 import { ProviderSettingsHeader } from "./ProviderSettingsHeader";
 import { ApiKeyConfiguration } from "./ApiKeyConfiguration";

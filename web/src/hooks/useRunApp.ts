@@ -10,9 +10,8 @@ import {
 } from "@/atoms/appAtoms";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { showInputRequest } from "@/components/Toast";
-import { AppOutput } from "@shared/eeziTypes";
+import { AppOutput } from "@/shared/eeziTypes";
 import api from "@/api";
-import { a } from "vitest/dist/chunks/suite.d.FvehnV49.js";
 
 const useRunAppLoadingAtom = atom(false);
 

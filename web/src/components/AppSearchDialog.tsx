@@ -9,7 +9,7 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { useState, useEffect } from "react";
 import { useSearchApps } from "@/hooks/useSearchApps";
-import type { AppSearchResult } from "@shared/schemas";
+import type { AppSearchResult } from "@/shared/schemas";
 
 type AppSearchDialogProps = {
   open: boolean;

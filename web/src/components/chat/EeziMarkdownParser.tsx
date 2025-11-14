@@ -22,7 +22,7 @@ import { EeziWebSearchResult } from "./EeziWebSearchResult";
 import { EeziWebSearch } from "./EeziWebSearch";
 import { EeziRead } from "./EeziRead";
 import { mapActionToButton } from "./ChatInput";
-import { SuggestedAction } from "@shared/schemas";
+import { SuggestedAction } from "@/shared/schemas";
 import api from "@/api";
 
 interface EeziMarkdownParserProps {

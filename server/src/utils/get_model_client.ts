@@ -24,8 +24,8 @@ import type {
   UserSettings,
   VertexProviderSetting,
   AzureProviderSetting,
-} from "@shared/schemas";
-import { LanguageModelProvider } from "@shared/eeziTypes";
+} from "@/shared/schemas";
+import { LanguageModelProvider } from "@/shared/eeziTypes";
 
 const eeziEngineUrl = process.env.DYAD_ENGINE_URL;
 const eeziGatewayUrl = process.env.DYAD_GATEWAY_URL;
@@ -269,7 +269,9 @@ function getRegularModelClient(
 
       // Use a baseURL that does NOT pin to publishers/google so that
       // full publisher model IDs (e.g. publishers/deepseek-ai/models/...) work.
-      const regionHost = `${location === "global" ? "" : `${location}-`}aiplatform.googleapis.com`;
+      const regionHost = `${
+        location === "global" ? "" : `${location}-`
+      }aiplatform.googleapis.com`;
       const baseURL = `https://${regionHost}/v1/projects/${project}/locations/${location}`;
       const provider = createGoogleVertex({
         project,

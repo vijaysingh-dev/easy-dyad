@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { ComponentSelection, Message, FileAttachment } from "@shared/eeziTypes";
+import type { ComponentSelection, Message, FileAttachment } from "@/shared/eeziTypes";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   chatErrorByIdAtom,
@@ -9,7 +9,7 @@ import {
   recentStreamChatIdsAtom,
 } from "@/atoms/chatAtoms";
 import { isPreviewOpenAtom } from "@/atoms/viewAtoms";
-import type { ChatResponseEnd } from "@shared/eeziTypes";
+import type { ChatResponseEnd } from "@/shared/eeziTypes";
 import { useChats } from "./useChats";
 import { useLoadApp } from "./useLoadApp";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
@@ -194,8 +194,8 @@ export function useStreamChat({ hasChatId = true }: { hasChatId?: boolean } = {}
   return {
     streamMessage,
     isStreaming:
-      hasChatId && chatId !== undefined ? (isStreamingById.get(chatId) ?? false) : false,
-    error: hasChatId && chatId !== undefined ? (errorById.get(chatId) ?? null) : null,
+      hasChatId && chatId !== undefined ? isStreamingById.get(chatId) ?? false : false,
+    error: hasChatId && chatId !== undefined ? errorById.get(chatId) ?? null : null,
     setError: (value: string | null) =>
       setErrorById((prev) => {
         const next = new Map(prev);

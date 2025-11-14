@@ -4,8 +4,8 @@ import { fileURLToPath } from "url";
 import fs from "fs-extra";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
-import { getPath } from "@/services/paths";
-import { readSettings } from "@/services/settings";
+import { getPath } from "@/shared/paths";
+import { readSettings } from "@/shared/settings";
 import { copyDirectoryRecursive } from "@/utils/file_utils";
 import { getTemplateOrThrow } from "@/utils/template_utils";
 
@@ -14,7 +14,7 @@ export async function createFromTemplate({ fullAppPath }: { fullAppPath: string 
   const templateId = settings.selectedTemplateId;
 
   if (templateId === "react") {
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    // const __dirname = path.dirname(fileURLToPath(import.meta.url));
     await copyDirectoryRecursive(
       path.join(__dirname, "..", "..", "..", "scaffold"),
       fullAppPath

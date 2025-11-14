@@ -331,7 +331,7 @@ function UnconnectedGitHubConnector({
   // Assume org is the authenticated user for now (could add org input later)
   const githubOrg = ""; // Use empty string for now (GitHub API will default to the authenticated user)
 
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleConnectToGithub = async () => {
     if (!appId) return;

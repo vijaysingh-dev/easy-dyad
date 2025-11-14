@@ -1,6 +1,6 @@
 import type React from "react";
 import { useI18n } from "@/lib/i18n";
-import type { Message } from "@shared/eeziTypes";
+import type { Message } from "@/shared/eeziTypes";
 import { forwardRef, useState } from "react";
 import ChatMessage from "./ChatMessage";
 import { OpenRouterSetupBanner, SetupBanner } from "../SetupBanner";

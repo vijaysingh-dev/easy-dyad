@@ -1,20 +1,31 @@
 {
-  "name": "eezi-server",
+  "name": "@eezi/server",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
+  "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/index.js"
+    "dev": "cross-env NODE_ENV=development TSX_TSCONFIG_PATHS=true tsx watch src/index.ts",
+    "copy-worker": "cp -r src/worker dist/",
+    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json && npm run copy-worker",
+    "start": "node --experimental-specifier-resolution=node dist/index.js"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
+    "@types/fs-extra": "^11.0.4",
+    "@types/kill-port": "^2.0.3",
     "@types/morgan": "^1.9.10",
-    "typescript": "^5.9.3"
+    "@types/node": "^24.10.1",
+    "@types/webpack": "^5.28.5",
+    "eslint": "^9.39.1",
+    "tsc-alias": "^1.8.16",
+    "tsup": "^8.5.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^3.0.50",
@@ -27,6 +38,7 @@
     "@ai-sdk/openai-compatible": "^1.0.25",
     "@ai-sdk/provider-utils": "^3.0.15",
     "@ai-sdk/xai": "^2.0.30",
+    "@babel/parser": "^7.28.5",
     "@dyad-sh/supabase-management-js": "^1.0.0",
     "@modelcontextprotocol/sdk": "^1.17.5",
     "@neondatabase/api-client": "^2.2.0",
@@ -39,21 +51,26 @@
     "cross-env": "^10.1.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
+    "estree-walker": "^3.0.3",
     "express": "^5.1.0",
     "fix-path": "^5.0.0",
     "fs-extra": "^11.3.2",
     "glob": "^11.0.3",
     "isomorphic-git": "^1.34.2",
     "kill-port": "^2.0.1",
+    "magic-string": "^0.30.21",
     "morgan": "^1.10.1",
     "openai": "^6.7.0",
     "tree-kill": "^1.2.2",
-    "tsx": "^4.20.6",
-    "winston": "^3.18.3"
+    "uuid": "^13.0.0",
+    "webpack": "^5.102.1",
+    "winston": "^3.18.3",
+    "zod": "^4.1.12"
   },
   "overrides": {
     "@vercel/sdk": {
       "@modelcontextprotocol/sdk": "^1.17.5"
     }
-  }
+  },
+  "packageManager": "pnpm@8.8.0+sha1.9922e8b650d393700209ccd81e0ebdbcbe43b0d3"
 }

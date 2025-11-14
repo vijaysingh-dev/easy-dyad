@@ -2,7 +2,6 @@
 import logger from "@/logger";
 import { Worker } from "worker_threads";
 import path from "path";
-import { fileURLToPath } from "url";
 import { findAvailablePort } from "./port_utils";
 
 export async function startProxy(
@@ -24,15 +23,15 @@ export async function startProxy(
     onStarted,
   } = opts;
 
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const proxyServerJS = path.resolve(__dirname, "..", "..", "worker", "proxy_server.js");
+  const proxyServerJS = path.resolve(__dirname, "..", "worker", "proxy_server.mjs");
   logger.info("Starting proxy worker:", proxyServerJS);
   const worker = new Worker(proxyServerJS, {
+    type: "module",
     workerData: {
       targetOrigin,
       port,
     },
-  });
+  } as any);
 
   worker.on("message", (m) => {
     logger.info("[proxy]", m);

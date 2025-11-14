@@ -4,8 +4,8 @@ import {
   cloudProviders,
   VertexProviderSetting,
   AzureProviderSetting,
-} from "@shared/schemas";
-import type { LanguageModelProvider } from "@shared/eeziTypes";
+} from "@/shared/schemas";
+import type { LanguageModelProvider } from "@/shared/eeziTypes";
 import api from "@/api";
 
 export function useLanguageModelProviders() {

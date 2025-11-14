@@ -1,18 +1,45 @@
 import winston from "winston";
-import path from "path";
 import fs from "fs";
+import path from "path";
+import { SERVER_ROOT, getPath } from "@/shared/paths";
 
-const PROJECT_ROOT = path.resolve("server/src");
+const LOG_DIR = getPath("logs");
+if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
 
-const LOG_DIR = path.join(path.resolve(), "..", "logs");
-if (!fs.existsSync(LOG_DIR)) {
-  fs.mkdirSync(LOG_DIR, { recursive: true });
+const CURRENT_FILE = __filename.replace(/\\/g, "/");
+
+function getCaller(): string | undefined {
+  const stack = new Error().stack?.split("\n") ?? [];
+
+  const callerLine = stack.find((line) => {
+    if (!line.includes("at ")) return false;
+    if (line.includes("Error")) return false;
+    return !line.includes(CURRENT_FILE);
+  });
+
+  if (!callerLine) return undefined;
+
+  const match =
+    callerLine.match(/\((.*):(\d+):(\d+)\)/) ||
+    callerLine.match(/at (.*):(\d+):(\d+)\b/);
+
+  if (!match) return undefined;
+
+  const absoluteFile = match[1].replace(/\\/g, "/");
+  const rel = path.relative(SERVER_ROOT, absoluteFile).replace(/\\/g, "/");
+
+  return `server/${rel}:${match[2]}`;
 }
+
+const formatMsg = (msg: any, args: any[]) =>
+  [msg, ...args]
+    .map((x) => (typeof x === "object" ? JSON.stringify(x) : String(x)))
+    .join(" ");
 
 const winstonLogger = winston.createLogger({
   level: process.env.NODE_ENV === "production" ? "info" : "debug",
   format: winston.format.combine(
-    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" }),
     winston.format.printf(({ level, timestamp, message, caller }) => {
       const lvl = level.toUpperCase().padEnd(5);
       const fileStr = caller ? `${caller} - ` : "";
@@ -23,40 +50,22 @@ const winstonLogger = winston.createLogger({
     new winston.transports.Console(),
     new winston.transports.File({
       filename: path.join(LOG_DIR, "combined.log"),
-      maxsize: 10 * 1024 * 1024, // 10MB per file
-      maxFiles: 5,
+      level: "info",
+      maxsize: 5 * 1024 * 1024,
+      maxFiles: 10,
+      tailable: true,
+      zippedArchive: true,
     }),
     new winston.transports.File({
       filename: path.join(LOG_DIR, "error.log"),
       level: "error",
-      maxsize: 5 * 1024 * 1024, // 5MB per file
-      maxFiles: 5,
+      maxsize: 5 * 1024 * 1024,
+      maxFiles: 10,
+      tailable: true,
+      zippedArchive: true,
     }),
   ],
 });
-
-const formatMsg = (msg: any, args: any[]) =>
-  [msg, ...args]
-    .map((x) => (typeof x === "object" ? JSON.stringify(x) : String(x)))
-    .join(" ");
-
-function getCaller(): string | undefined {
-  const stack = new Error().stack?.split("\n") || [];
-  const callerLine = stack[3] || stack[2] || "";
-  const match =
-    callerLine.match(/\((.*):(\d+):(\d+)\)$/) || callerLine.match(/at (.*):(\d+):(\d+)/);
-  if (!match) return undefined;
-  const filePath = match[1];
-  const line = match[2];
-
-  let relativePath = path.relative(PROJECT_ROOT, filePath).replace(/\\/g, "/");
-  if (relativePath.startsWith("..")) {
-    relativePath = relativePath.replace(/^(\.\.\/)+/, "server/");
-  } else {
-    relativePath = `server/${relativePath}`;
-  }
-  return `${relativePath}:${line}`;
-}
 
 const logger = {
   log: (msg: any, ...args: any[]) =>

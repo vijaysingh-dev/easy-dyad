@@ -15,7 +15,7 @@ import {
 import {} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { App } from "@shared/eeziTypes";
+import { App } from "@/shared/eeziTypes";
 import api from "@/api";
 
 interface VercelConnectorProps {
@@ -243,7 +243,7 @@ function UnconnectedVercelConnector({
   const [createProjectError, setCreateProjectError] = useState<string | null>(null);
   const [createProjectSuccess, setCreateProjectSuccess] = useState<boolean>(false);
 
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load available projects when Vercel is connected
   useEffect(() => {

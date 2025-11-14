@@ -12,7 +12,7 @@ import { useDeepLink } from "@/contexts/DeepLinkContext";
 import { useEffect, useState } from "react";
 import { EeziProSuccessDialog } from "@/components/EeziProSuccessDialog";
 import { useUserBudgetInfo } from "@/hooks/useUserBudgetInfo";
-import { UserBudgetInfo } from "@shared/eeziTypes";
+import { UserBudgetInfo } from "@/shared/eeziTypes";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ActionHeader } from "@/components/preview_panel/ActionHeader";
 import i18n, { useI18n } from "@/lib/i18n";

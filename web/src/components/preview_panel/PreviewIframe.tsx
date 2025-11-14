@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useStreamChat } from "@/hooks/useStreamChat";
 import { selectedComponentPreviewAtom } from "@/atoms/previewAtoms";
-import { ComponentSelection } from "@shared/eeziTypes";
+import { ComponentSelection } from "@/shared/eeziTypes";
 import {
   Tooltip,
   TooltipContent,

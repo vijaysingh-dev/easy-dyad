@@ -38,7 +38,7 @@ import {
   SuggestedAction,
   FileChange,
   SqlQuery,
-} from "@shared/schemas";
+} from "@/shared/schemas";
 
 import { isPreviewOpenAtom } from "@/atoms/viewAtoms";
 import { useRunApp } from "@/hooks/useRunApp";

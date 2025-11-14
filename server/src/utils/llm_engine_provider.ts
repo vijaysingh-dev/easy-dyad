@@ -4,7 +4,7 @@ import { LanguageModelV2 } from "@ai-sdk/provider";
 import { FetchFunction, loadApiKey, withoutTrailingSlash } from "@ai-sdk/provider-utils";
 
 import { getExtraProviderOptions } from "./thinking_utils";
-import type { UserSettings } from "@shared/schemas";
+import type { UserSettings } from "@/shared/schemas";
 
 export type ExampleChatModelId = string & {};
 

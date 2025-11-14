@@ -1,6 +1,6 @@
 import logger from "@/logger";
 import db from "@/db";
-import { getEeziAppPath } from "@/services/paths";
+import { getEeziAppPath } from "@/shared/paths";
 import { CodebaseFile, extractCodebase } from "./codebase";
 import { validateChatContext } from "./context_paths_utils";
 

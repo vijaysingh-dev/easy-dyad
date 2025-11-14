@@ -5,8 +5,8 @@ import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";
 
 export default defineConfig(() => ({
   server: {
-    host: "::",
-    port: 8080,
+    host: process.env.HOST || "::",
+    port: Number(process.env.PORT) || 8080,
   },
   plugins: [dyadComponentTagger(), react()],
   resolve: {

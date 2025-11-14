@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import type { FileAttachment } from "@shared/eeziTypes";
+import type { FileAttachment } from "@/shared/eeziTypes";
 
 export function useAttachments() {
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
@@ -12,7 +12,7 @@ export function useAttachments() {
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "chat-context" | "upload-to-codebase" = "chat-context",
+    type: "chat-context" | "upload-to-codebase" = "chat-context"
   ) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
@@ -28,7 +28,7 @@ export function useAttachments() {
 
   const handleFileSelect = (
     fileList: FileList,
-    type: "chat-context" | "upload-to-codebase",
+    type: "chat-context" | "upload-to-codebase"
   ) => {
     const files = Array.from(fileList);
     const fileAttachments: FileAttachment[] = files.map((file) => ({
@@ -71,7 +71,7 @@ export function useAttachments() {
 
   const addAttachments = (
     files: File[],
-    type: "chat-context" | "upload-to-codebase" = "chat-context",
+    type: "chat-context" | "upload-to-codebase" = "chat-context"
   ) => {
     const fileAttachments: FileAttachment[] = files.map((file) => ({
       file,

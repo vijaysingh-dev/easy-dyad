@@ -1,5 +1,3 @@
-import { LanguageModel } from "@shared/eeziTypes";
-
 export const PROVIDERS_THAT_SUPPORT_THINKING: (keyof typeof MODEL_OPTIONS)[] = [
   "google",
   "vertex",

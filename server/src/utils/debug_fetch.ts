@@ -1,4 +1,4 @@
-import log from "electron-log";
+import logger from "@/logger";
 
 interface DebugFetchOptions extends RequestInit {
   debugTag?: string;

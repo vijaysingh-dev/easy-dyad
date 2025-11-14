@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   CreateCustomLanguageModelProviderParams,
   LanguageModelProvider,
-} from "@shared/eeziTypes";
+} from "@/shared/eeziTypes";
 import { showError } from "@/components/Toast";
 import api from "@/api";
 
@@ -23,7 +23,7 @@ export function useCustomLanguageModelProvider() {
         throw new Error("API base URL is required");
       }
 
-      return api.mcp.createCustomLanguageModelProvider({
+      return api.llm.createCustomLanguageModelProvider({
         id: params.id.trim(),
         name: params.name.trim(),
         apiBaseUrl: params.apiBaseUrl.trim(),
@@ -53,7 +53,7 @@ export function useCustomLanguageModelProvider() {
         throw new Error("API base URL is required");
       }
 
-      return api.mcp.editCustomLanguageModelProvider({
+      return api.llm.editCustomLanguageModelProvider({
         id: params.id.trim(),
         name: params.name.trim(),
         apiBaseUrl: params.apiBaseUrl.trim(),
@@ -75,7 +75,7 @@ export function useCustomLanguageModelProvider() {
         throw new Error("Provider ID is required");
       }
 
-      return api.mcp.deleteCustomLanguageModelProvider(providerId);
+      return api.llm.deleteCustomLanguageModelProvider(providerId);
     },
     onSuccess: () => {
       // Invalidate and refetch

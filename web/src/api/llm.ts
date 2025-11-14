@@ -3,7 +3,7 @@ import {
   CreateCustomLanguageModelParams,
   CreateCustomLanguageModelProviderParams,
   DeleteCustomModelParams,
-} from "@shared/eeziTypes";
+} from "@/shared/eeziTypes";
 import Api from "./api";
 
 class LLMApiService {

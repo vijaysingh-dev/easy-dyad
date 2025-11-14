@@ -4,7 +4,7 @@ import { versions, apps } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import fs from "node:fs";
 import git from "isomorphic-git";
-import { getEeziAppPath } from "@/services/paths";
+import { getEeziAppPath } from "@/shared/paths";
 import { neon } from "@neondatabase/serverless";
 import { getNeonClient } from "@/services/neon_admin/neon_management_client";
 

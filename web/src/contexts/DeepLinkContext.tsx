@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { DeepLinkData } from "@shared/eeziTypes";
+import { DeepLinkData } from "@/shared/eeziTypes";
 import api from "@/api";
 
 type DeepLinkContextType = {

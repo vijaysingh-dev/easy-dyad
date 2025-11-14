@@ -16,7 +16,7 @@ import { useCreateApp } from "@/hooks/useCreateApp";
 import { useCheckName } from "@/hooks/useCheckName";
 import { useSetAtom } from "jotai";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
-import { NEON_TEMPLATE_IDS, Template } from "@shared/templates";
+import { NEON_TEMPLATE_IDS, Template } from "@/shared/templates";
 
 import { useRouter } from "@tanstack/react-router";
 

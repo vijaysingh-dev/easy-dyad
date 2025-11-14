@@ -3,7 +3,7 @@ import { messages } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
-import { Message } from "@shared/eeziTypes";
+import { Message } from "@/shared/eeziTypes";
 
 export const execPromise = promisify(exec);
 

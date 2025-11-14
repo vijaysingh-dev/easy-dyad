@@ -5,7 +5,7 @@ import {
   GitHubDeviceFlowUpdateData,
   GitHubDeviceFlowSuccessData,
   GitHubDeviceFlowErrorData,
-} from "@shared/eeziTypes";
+} from "@/shared/eeziTypes";
 
 export interface AppStreamCallbacks {
   onOutput: (output: AppOutput) => void;

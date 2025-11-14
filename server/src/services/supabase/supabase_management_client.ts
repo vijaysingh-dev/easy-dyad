@@ -3,7 +3,7 @@ import {
   SupabaseManagementAPI,
   SupabaseManagementAPIError,
 } from "@dyad-sh/supabase-management-js";
-import { readSettings, writeSettings } from "@/services/settings";
+import { readSettings, writeSettings } from "@/shared/settings";
 import { IS_TEST_BUILD } from "@/config";
 import { withLock } from "@/utils/lock_utils";
 
@@ -69,9 +69,11 @@ export async function refreshSupabaseToken(): Promise<void> {
       supabase: {
         accessToken: {
           value: accessToken,
+          encryptionType: "aes-256-gcm",
         },
         refreshToken: {
           value: newRefreshToken,
+          encryptionType: "aes-256-gcm",
         },
         expiresIn,
         tokenTimestamp: Math.floor(Date.now() / 1000), // Store current timestamp

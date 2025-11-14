@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { atom, useAtom } from "jotai";
-import type { TokenCountResult } from "@shared/eeziTypes";
+import type { TokenCountResult } from "@/shared/eeziTypes";
 import api from "@/api";
 
 // Create atoms to store the token count state

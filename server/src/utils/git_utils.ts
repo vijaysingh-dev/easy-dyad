@@ -5,7 +5,7 @@ import pathModule from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { getGithubUser } from "@/utils/integration_utils";
-import { readSettings } from "@/services/settings";
+import { readSettings } from "@/shared/settings";
 
 const execAsync = promisify(exec);
 

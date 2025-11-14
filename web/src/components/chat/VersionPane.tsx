@@ -4,7 +4,7 @@ import { selectedAppIdAtom, selectedVersionIdAtom } from "@/atoms/appAtoms";
 import { useVersions } from "@/hooks/useVersions";
 import { formatDistanceToNow } from "date-fns";
 import { RotateCcw, X, Database, Loader2 } from "lucide-react";
-import type { Version } from "@shared/eeziTypes";
+import type { Version } from "@/shared/eeziTypes";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { useCheckoutVersion } from "@/hooks/useCheckoutVersion";

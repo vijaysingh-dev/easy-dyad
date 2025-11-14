@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info, CheckCircle2 } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
-import type { UserSettings, VertexProviderSetting } from "@shared/schemas";
+import type { UserSettings, VertexProviderSetting } from "@/shared/schemas";
 import { useI18n } from "@/lib/i18n";
 
 export function VertexConfiguration() {

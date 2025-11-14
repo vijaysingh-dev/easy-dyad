@@ -13,6 +13,7 @@ import llmRoutes from "./routes/llm.route";
 import settingsRoutes from "./routes/settings.route";
 import versionRoutes from "./routes/version.route";
 
+import { requestLogger } from "./middleware/requestLogger";
 import { runningApps } from "./utils/process_manager";
 import { stopRunningApp } from "./utils/app_utils";
 
@@ -35,6 +36,8 @@ app.use(
 app.disable("etag");
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan(NODE_ENV === "production" ? "combined" : "dev"));
+
+app.use(requestLogger);
 
 // API Routes
 app.use("/api/app", appRoutes);

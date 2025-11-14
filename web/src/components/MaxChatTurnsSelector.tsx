@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MAX_CHAT_TURNS_IN_CONTEXT } from "@shared/constants";
+import { MAX_CHAT_TURNS_IN_CONTEXT } from "@/shared/constants";
 
 interface OptionInfo {
   value: string;

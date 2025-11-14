@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useSettings } from "./useSettings";
 import { useShortcut } from "./useShortcut";
 import { usePostHog } from "posthog-js/react";
-import { ChatModeSchema } from "@shared/schemas";
+import { ChatModeSchema } from "@/shared/schemas";
 
 export function useChatModeToggle() {
   const { settings, updateSettings } = useSettings();

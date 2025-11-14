@@ -13,7 +13,7 @@ import { ModelMessage, streamText, Tool, ToolSet, stepCountIs, hasToolCall } fro
 import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import { readFile, writeFile, unlink } from "fs/promises";
 import { openai, createOpenAI, OpenAIResponsesProviderOptions } from "@ai-sdk/openai";
-import z from "zod";
+import { z } from "zod";
 
 import {
   getSupabaseContext,
@@ -26,14 +26,14 @@ import {
 import { isServerFunction } from "@/services/supabase/supabase_utils";
 import { constructSystemPrompt, readAiRules } from "@/services/prompts/system_prompt";
 import { SUMMARIZE_CHAT_SYSTEM_PROMPT } from "@/services/prompts/summarize_chat_system_prompt";
-import { createProblemFixPrompt } from "@shared/problem_prompt";
-import { parseAppMentions } from "@shared/parse_mention_apps";
+import { createProblemFixPrompt } from "@/shared/problem_prompt";
+import { parseAppMentions } from "@/shared/parse_mention_apps";
 import { processFullResponseActions } from "@/services/processors/response_processor";
 import { executeAddDependency } from "@/services/processors/executeAddDependency";
-import { generateProblemReport } from "@/services/workers/tsc";
-import { getEeziAppPath } from "@/services/paths";
-import { AsyncVirtualFileSystem } from "@/services/workers/VirtualFilesystem";
-import { readSettings } from "@/services/settings";
+import { generateProblemReport } from "@/workers/tsc";
+import { getEeziAppPath } from "@/shared/paths";
+import { AsyncVirtualFileSystem } from "@/workers/VirtualFilesystem";
+import { readSettings } from "@/shared/settings";
 
 import { withLock } from "@/utils/lock_utils";
 import { fileExists } from "@/utils/file_utils";
@@ -81,9 +81,9 @@ import {
   ActionProposal,
   AppChatContextSchema,
   ContextPathResults,
-} from "@shared/schemas";
-import { MAX_CHAT_TURNS_IN_CONTEXT } from "@shared/constants";
-import { ChatStreamParams, ChatResponseEnd } from "@shared/eeziTypes";
+} from "@/shared/schemas";
+import { MAX_CHAT_TURNS_IN_CONTEXT } from "@/shared/constants";
+import { ChatStreamParams, ChatResponseEnd } from "@/shared/eeziTypes";
 
 const router = Router();
 
@@ -487,13 +487,12 @@ router.get("/:chatId/stream", async (req, res) => {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    if (!activeChatStreams.has(chatId) && !activeChatStreams.get(chatId)?.data) {
+    const currentStream = activeChatStreams.get(chatId);
+    if (!currentStream || !currentStream.data)
       throw new Error(`Stream not initiated: ${chatId}`);
-    }
 
-    const abortController = activeChatStreams.get(chatId).controller;
-    const { prompt, redo, attachments, selectedComponent } =
-      activeChatStreams.get(chatId).data;
+    const abortController = currentStream.controller;
+    const { prompt, redo, attachments, selectedComponent } = currentStream.data;
 
     const fileUploadsState = FileUploadsState.getInstance();
 
@@ -1519,15 +1518,11 @@ router.get("/help/:sessionId/stream", async (req, res) => {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    if (
-      !activeHelpStreams.has(sessionId) &&
-      !activeHelpStreams.get(sessionId)?.message
-    ) {
+    const currentStream = activeHelpStreams.get(sessionId);
+    if (!currentStream || !currentStream.message)
       throw new Error(`Stream not initiated: ${sessionId}`);
-    }
 
-    const abortController = activeHelpStreams.get(sessionId).controller;
-    const message = activeHelpStreams.get(sessionId).message;
+    const { controller: abortController, message } = currentStream;
 
     req.on("close", () => {
       logger.log(`Client disconnected from help ${sessionId} run stream.`);

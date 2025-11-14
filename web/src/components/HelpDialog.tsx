@@ -24,7 +24,7 @@ import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { showError } from "@/components/Toast";
 import { HelpBotDialog } from "./HelpBotDialog";
 import { useSettings } from "@/hooks/useSettings";
-import { ChatLogsData } from "@shared/eeziTypes";
+import { ChatLogsData } from "@/shared/eeziTypes";
 import api from "@/api";
 
 interface HelpDialogProps {

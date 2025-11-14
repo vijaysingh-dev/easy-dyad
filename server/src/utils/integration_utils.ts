@@ -6,9 +6,9 @@ import * as fs from "fs";
 import * as path from "path";
 import { Vercel } from "@vercel/sdk";
 import { CreateProjectFramework } from "@vercel/sdk/models/createprojectop.js";
-import { readSettings, writeSettings } from "@/services/settings";
+import { readSettings, writeSettings } from "@/shared/settings";
 import { IS_TEST_BUILD } from "@/config";
-import { GithubUser } from "@shared/schemas";
+import { GithubUser } from "@/shared/schemas";
 
 // Use test server URLs when in test mode
 const TEST_SERVER_BASE = "http://localhost:3500";
@@ -65,7 +65,7 @@ export async function getGithubUser(): Promise<GithubUser | null> {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!res.ok) return null;
-    const emails = await res.status(200).json();
+    const emails = await res.json();
     const email = emails.find((e: any) => e.primary)?.email;
     if (!email) return null;
 

@@ -1,4 +1,4 @@
-import type { ChatSearchResult } from "@shared/schemas";
+import type { ChatSearchResult } from "@/shared/schemas";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import api from "@/api";
 

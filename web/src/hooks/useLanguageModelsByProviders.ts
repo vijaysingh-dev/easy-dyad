@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { LanguageModel } from "@shared/eeziTypes";
+import type { LanguageModel } from "@/shared/eeziTypes";
 import api from "@/api";
 
 /**

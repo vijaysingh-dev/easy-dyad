@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, memo, type ReactNode } from "react";
+import { useState, useEffect, useRef, memo, type ReactNode } from "react";
 import { isInlineCode, useShikiHighlighter } from "react-shiki";
 import github from "@shikijs/themes/github-light-default";
 import githubDark from "@shikijs/themes/github-dark-default";

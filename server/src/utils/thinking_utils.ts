@@ -1,9 +1,7 @@
 import { PROVIDERS_THAT_SUPPORT_THINKING } from "../services/llm/language_model_constants";
-import type { UserSettings } from "../../lib/schemas";
+import type { UserSettings } from "@/shared/schemas";
 
-function getThinkingBudgetTokens(
-  thinkingBudget?: "low" | "medium" | "high",
-): number {
+function getThinkingBudgetTokens(thinkingBudget?: "low" | "medium" | "high"): number {
   switch (thinkingBudget) {
     case "low":
       return 1_000;
@@ -18,7 +16,7 @@ function getThinkingBudgetTokens(
 
 export function getExtraProviderOptions(
   providerId: string | undefined,
-  settings: UserSettings,
+  settings: UserSettings
 ): Record<string, any> {
   if (!providerId) {
     return {};

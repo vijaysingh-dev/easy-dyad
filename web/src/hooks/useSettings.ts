@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { atom, useAtom } from "jotai";
 import { usePostHog } from "posthog-js/react";
 import { appVersionAtom, userSettingsAtom, envVarsAtom } from "@/atoms/appAtoms";
-import { type UserSettings } from "@shared/schemas";
+import { type UserSettings } from "@/shared/schemas";
 import api from "@/api";
 
 const TELEMETRY_CONSENT_KEY = "eeziTelemetryConsent";

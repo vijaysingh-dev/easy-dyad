@@ -1,9 +1,5 @@
 import logger from "@/logger";
-import {
-  type Template,
-  type ApiTemplate,
-  localTemplatesData,
-} from "../../../shared/templates";
+import { type Template, type ApiTemplate, localTemplatesData } from "@/shared/templates";
 
 // In-memory cache for API templates
 let apiTemplatesCache: Template[] | null = null;

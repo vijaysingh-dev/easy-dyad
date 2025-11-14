@@ -14,7 +14,7 @@ import {
   CreateVercelProjectParams,
   GetVercelDeploymentsParams,
   DisconnectVercelProjectParams,
-} from "@shared/eeziTypes";
+} from "@/shared/eeziTypes";
 import eeziClient from "./client";
 import { showError } from "@/components/Toast";
 

@@ -15,7 +15,7 @@ type ScrollOptions = {
  */
 export function useScrollAndNavigateTo(
   to: string = "/settings",
-  options?: ScrollOptions,
+  options?: ScrollOptions
 ) {
   const navigate = useNavigate();
   const setActiveSection = useSetAtom(activeSettingsSectionAtom);
@@ -44,6 +44,6 @@ export function useScrollAndNavigateTo(
       options?.inline,
       options?.onScrolled,
       setActiveSection,
-    ],
+    ]
   );
 }

@@ -5,8 +5,8 @@
 import logger from "@/logger";
 import path from "path";
 import fs from "fs";
-import { getEeziAppPath } from "@/services/paths";
-import { EnvVar } from "@shared/eeziTypes";
+import { getEeziAppPath } from "@/shared/paths";
+import { EnvVar } from "@/shared/eeziTypes";
 
 export const ENV_FILE_NAME = ".env.local";
 

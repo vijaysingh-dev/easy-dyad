@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Sparkles, Info } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
-import { hasEeziProKey, type UserSettings } from "@shared/schemas";
+import { hasEeziProKey, type UserSettings } from "@/shared/schemas";
 import api from "@/api";
 
 export function ProModeSelector() {

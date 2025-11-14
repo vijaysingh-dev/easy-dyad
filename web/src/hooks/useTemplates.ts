@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { localTemplatesData, type Template } from "@shared/templates";
+import { localTemplatesData, type Template } from "@/shared/templates";
 import api from "@/api";
 
 export function useTemplates() {

@@ -1,5 +1,5 @@
 import logger from "@/logger";
-import { AppChatContext, AppChatContextSchema } from "@shared/schemas";
+import { AppChatContext, AppChatContextSchema } from "@/shared/schemas";
 
 export function validateChatContext(chatContext: unknown): AppChatContext {
   if (!chatContext) {

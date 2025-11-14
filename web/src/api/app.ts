@@ -1,6 +1,6 @@
 import Api from "./api";
 import { AxiosRequestConfig } from "axios";
-import { AppSearchResultsSchema } from "@shared/schemas";
+import { AppSearchResultsSchema } from "@/shared/schemas";
 import {
   CreateAppParams,
   CreateAppResult,
@@ -15,7 +15,7 @@ import {
   SetAppEnvVarsParams,
   ImportAppParams,
   AppUpgrade,
-} from "@shared/eeziTypes";
+} from "@/shared/eeziTypes";
 import { showError } from "@/components/Toast";
 import eeziClient from "./client";
 

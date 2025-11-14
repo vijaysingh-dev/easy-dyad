@@ -12,7 +12,7 @@ import {
   getNeonErrorMessage,
   getNeonOrganizationId,
 } from "@/services/neon_admin/neon_management_client";
-import { readSettings, writeSettings } from "../services/settings";
+import { readSettings, writeSettings } from "../shared/settings";
 import { handleNeonOAuthReturn } from "@/services/neon_admin/neon_return_handler";
 import { handleSupabaseOAuthReturn } from "@/services/supabase/supabase_return_handler";
 import { getSupabaseClient } from "@/services/supabase/supabase_management_client";
@@ -28,8 +28,8 @@ import { IS_TEST_BUILD } from "@/config";
 import { withLock } from "@/utils/lock_utils";
 import { retryOnLocked } from "@/utils/retryOnLocked";
 import { safeSend } from "@/utils/safe_sender";
-import { getEeziAppPath } from "@/services/paths";
-import { NeonBranch } from "@shared/eeziTypes";
+import { getEeziAppPath } from "@/shared/paths";
+import { NeonBranch } from "@/shared/eeziTypes";
 
 const router = Router();
 

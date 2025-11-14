@@ -1,6 +1,6 @@
-import { LargeLanguageModel } from "@shared/schemas";
-import { readSettings } from "@/services/settings";
-import { Message } from "@shared/eeziTypes";
+import { LargeLanguageModel } from "@/shared/schemas";
+import { readSettings } from "@/shared/settings";
+import { Message } from "@/shared/eeziTypes";
 
 import { findLanguageModel } from "./findLanguageModel";
 
@@ -10,10 +10,7 @@ export const estimateTokens = (text: string): number => {
 };
 
 export const estimateMessagesTokens = (messages: Message[]): number => {
-  return messages.reduce(
-    (acc, message) => acc + estimateTokens(message.content),
-    0,
-  );
+  return messages.reduce((acc, message) => acc + estimateTokens(message.content), 0);
 };
 
 const DEFAULT_CONTEXT_WINDOW = 128_000;
@@ -25,15 +22,13 @@ export async function getContextWindow() {
 }
 
 export async function getMaxTokens(
-  model: LargeLanguageModel,
+  model: LargeLanguageModel
 ): Promise<number | undefined> {
   const modelOption = await findLanguageModel(model);
   return modelOption?.maxOutputTokens ?? undefined;
 }
 
-export async function getTemperature(
-  model: LargeLanguageModel,
-): Promise<number> {
+export async function getTemperature(model: LargeLanguageModel): Promise<number> {
   const modelOption = await findLanguageModel(model);
   return modelOption?.temperature ?? 0;
 }

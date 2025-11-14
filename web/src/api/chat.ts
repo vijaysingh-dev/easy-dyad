@@ -7,14 +7,14 @@ import {
   UpdateChatParams,
   TokenCountParams,
   TokenCountResult,
-} from "@shared/eeziTypes";
+} from "@/shared/eeziTypes";
 import {
   ChatSummariesSchema,
   ChatSearchResult,
   ChatSearchResultsSchema,
   ProposalResult,
   AppChatContext,
-} from "@shared/schemas";
+} from "@/shared/schemas";
 import { AxiosRequestConfig } from "axios";
 import { showError } from "@/components/Toast";
 import eeziClient from "./client";

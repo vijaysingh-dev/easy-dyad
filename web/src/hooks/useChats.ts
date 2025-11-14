@@ -2,7 +2,7 @@ import { atom, useAtom } from "jotai";
 import { useEffect } from "react";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
 import { chatsAtom, chatsLoadingAtom } from "@/atoms/chatAtoms";
-import type { ChatSummary } from "@shared/schemas";
+import type { ChatSummary } from "@/shared/schemas";
 import api from "@/api";
 
 const chatListAtom = atom(async (get) => {

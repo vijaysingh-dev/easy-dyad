@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import type { ReleaseChannel } from "@shared/schemas";
+import type { ReleaseChannel } from "@/shared/schemas";
 import api from "@/api";
 
 export function ReleaseChannelSelector() {

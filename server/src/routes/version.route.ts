@@ -8,7 +8,7 @@ import * as fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import git, { type ReadCommitResult } from "isomorphic-git";
-import { getEeziAppPath } from "@/services/paths";
+import { getEeziAppPath } from "@/shared/paths";
 import { IS_TEST_BUILD } from "@/config";
 import { withLock } from "@/utils/lock_utils";
 import { retryOnLocked } from "@/utils/retryOnLocked";
@@ -23,7 +23,7 @@ import {
   getNeonClient,
   getNeonErrorMessage,
 } from "@/services/neon_admin/neon_management_client";
-import { Version } from "@shared/eeziTypes";
+import { Version } from "@/shared/eeziTypes";
 
 const router = Router();
 

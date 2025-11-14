@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Bell, Loader2, CheckCircle2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import type { ChatSummary } from "@shared/schemas";
+import type { ChatSummary } from "@/shared/schemas";
 import { useAtomValue } from "jotai";
 import { isStreamingByIdAtom, recentStreamChatIdsAtom } from "@/atoms/chatAtoms";
 import { useLoadApps } from "@/hooks/useLoadApps";

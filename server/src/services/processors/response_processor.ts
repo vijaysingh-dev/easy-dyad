@@ -3,7 +3,7 @@ import db from "@/db";
 import { chats, messages } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import fs from "node:fs";
-import { getEeziAppPath } from "@/services/paths";
+import { getEeziAppPath } from "@/shared/paths";
 import path from "node:path";
 import git from "isomorphic-git";
 import { safeJoin } from "@/utils/path_utils";
@@ -15,8 +15,8 @@ import {
   executeSupabaseSql,
 } from "@/services/supabase/supabase_management_client";
 import { isServerFunction } from "@/services/supabase/supabase_utils";
-import { readSettings } from "@/services/settings";
-import { UserSettings } from "@shared/schemas";
+import { readSettings } from "@/shared/settings";
+import { UserSettings } from "@/shared/schemas";
 import { gitCommit } from "@/utils/git_utils";
 import { writeMigrationFile } from "@/utils/file_utils";
 import {
@@ -456,7 +456,7 @@ export async function processFullResponseActions(
       extraFiles: uncommittedFiles.length > 0 ? uncommittedFiles : undefined,
       extraFilesError,
     };
-  } catch (error: unknown) {
+  } catch (error: any) {
     logger.error("Error processing files:", error.message);
     return { error: (error as any).toString() };
   } finally {

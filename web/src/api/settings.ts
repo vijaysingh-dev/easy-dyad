@@ -1,7 +1,7 @@
 import Api from "./api";
 import { AxiosRequestConfig } from "axios";
-import { NodeSystemInfo } from "@shared/eeziTypes";
-import { UserSettings } from "../../../shared/schemas";
+import { NodeSystemInfo } from "@/shared/eeziTypes";
+import { UserSettings } from "@/shared/schemas";
 import { showError } from "@/components/Toast";
 
 class SettingsApiService {

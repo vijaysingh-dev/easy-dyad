@@ -2,7 +2,7 @@ import logger from "@/logger";
 import { Api, createApiClient } from "@neondatabase/api-client";
 import { withLock } from "@/utils/lock_utils";
 import { IS_TEST_BUILD } from "@/config";
-import { readSettings, writeSettings } from "@/services/settings";
+import { readSettings, writeSettings } from "@/shared/settings";
 
 /**
  * Checks if the Neon access token is expired or about to expire
@@ -65,9 +65,11 @@ export async function refreshNeonToken(): Promise<void> {
       neon: {
         accessToken: {
           value: accessToken,
+          encryptionType: "aes-256-gcm",
         },
         refreshToken: {
           value: newRefreshToken,
+          encryptionType: "aes-256-gcm",
         },
         expiresIn,
         tokenTimestamp: Math.floor(Date.now() / 1000), // Store current timestamp

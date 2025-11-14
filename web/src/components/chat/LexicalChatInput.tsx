@@ -21,7 +21,7 @@ import { usePrompts } from "@/hooks/usePrompts";
 import { forwardRef } from "react";
 import { useAtomValue } from "jotai";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
-import { MENTION_REGEX, parseAppMentions } from "@shared/parse_mention_apps";
+import { MENTION_REGEX, parseAppMentions } from "@/shared/parse_mention_apps";
 
 // Define the theme for mentions
 const beautifulMentionsTheme: BeautifulMentionsTheme = {

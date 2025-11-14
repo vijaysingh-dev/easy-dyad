@@ -1,4 +1,4 @@
-import { AppSearchResult } from "@shared/schemas";
+import { AppSearchResult } from "@/shared/schemas";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import api from "@/api";
 

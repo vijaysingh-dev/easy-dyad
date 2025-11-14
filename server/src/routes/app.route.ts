@@ -7,7 +7,6 @@ import { platform } from "os";
 import path from "path";
 import fixPath from "fix-path";
 import * as fs from "fs";
-import { fileURLToPath } from "url";
 import fsPromises from "fs/promises";
 import { spawn } from "child_process";
 import * as git from "isomorphic-git";
@@ -49,16 +48,16 @@ import { extractCodebase } from "@/utils/codebase";
 import { validateChatContext } from "@/utils/context_paths_utils";
 import { storeDbTimestampAtCurrentVersion } from "@/utils/neon_timestamp_utils";
 import { isServerFunction } from "@/services/supabase/supabase_utils";
-import { readSettings } from "@/services/settings";
-import { generateProblemReport } from "@/services/workers/tsc";
+import { readSettings } from "@/shared/settings";
+import { generateProblemReport } from "@/workers/tsc";
 import {
   deploySupabaseFunctions,
   getSupabaseProjectName,
 } from "@/services/supabase/supabase_management_client";
-import { localTemplatesData } from "@shared/templates";
-import { getPath, getEeziAppPath, normalizePath } from "@/services/paths";
-import { type AppSearchResult } from "@shared/schemas";
-import { AppUpgrade } from "@shared/eeziTypes";
+import { localTemplatesData } from "@/shared/templates";
+import { getPath, getEeziAppPath, normalizePath } from "@/shared/paths";
+import { type AppSearchResult } from "@/shared/schemas";
+import { AppUpgrade } from "@/shared/eeziTypes";
 
 const router = Router();
 

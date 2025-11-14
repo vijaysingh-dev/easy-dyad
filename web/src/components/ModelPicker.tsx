@@ -1,4 +1,4 @@
-import { isEeziProEnabled, type LargeLanguageModel } from "@shared/schemas";
+import { isEeziProEnabled, type LargeLanguageModel } from "@/shared/schemas";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -18,11 +18,11 @@ import { useLocalModels } from "@/hooks/useLocalModels";
 import { useLocalLMSModels } from "@/hooks/useLMStudioModels";
 import { useLanguageModelsByProviders } from "@/hooks/useLanguageModelsByProviders";
 
-import { LocalModel } from "@shared/eeziTypes";
+import { LocalModel } from "@/shared/eeziTypes";
 import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";
 import { useSettings } from "@/hooks/useSettings";
 import { PriceBadge } from "@/components/PriceBadge";
-import { TURBO_MODELS } from "@shared/constants";
+import { TURBO_MODELS } from "@/shared/constants";
 import { cn } from "@/lib/utils";
 
 export function ModelPicker() {

@@ -3,7 +3,7 @@ import { useI18n } from "@/lib/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AppUpgrade } from "@shared/eeziTypes";
+import { AppUpgrade } from "@/shared/eeziTypes";
 import api from "@/api";
 
 export function AppUpgrades({ appId }: { appId: number | null }) {

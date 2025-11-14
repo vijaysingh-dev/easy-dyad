@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import type { ProposalResult } from "@shared/schemas"; // Import Proposal type
+import type { ProposalResult } from "@/shared/schemas"; // Import Proposal type
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { proposalResultAtom } from "@/atoms/proposalAtoms";
 import { atom, useAtom } from "jotai";

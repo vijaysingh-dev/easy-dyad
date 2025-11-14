@@ -1,5 +1,5 @@
 import logger from "@/logger";
-import { readSettings } from "@/services/settings";
+import { readSettings } from "@/shared/settings";
 import { IS_TEST_BUILD } from "@/config";
 
 // Use test server URLs when in test mode

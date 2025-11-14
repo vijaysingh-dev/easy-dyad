@@ -7,9 +7,9 @@ import { getEnvVar } from "@/utils/read_env";
 import { IS_TEST_BUILD } from "@/config";
 import { runShellCommand } from "@/utils/runShellCommand";
 import { getLanguageModelProviders } from "@/services/llm/language_model_helpers";
-import { readSettings, writeSettings } from "@/services/settings";
-import { type UserSettings } from "@shared/schemas";
-import { UserBudgetInfoSchema } from "@shared/eeziTypes";
+import { readSettings, writeSettings } from "@/shared/settings";
+import { type UserSettings } from "@/shared/schemas";
+import { UserBudgetInfoSchema } from "@/shared/eeziTypes";
 
 const router = Router();
 

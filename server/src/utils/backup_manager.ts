@@ -3,7 +3,7 @@ import * as path from "path";
 import * as fs from "fs/promises";
 import * as crypto from "crypto";
 import Database from "better-sqlite3";
-import { getPath } from "@/services/paths";
+import { getPath } from "@/shared/paths";
 import { getAppVersion } from "@/utils/app_utils";
 
 const MAX_BACKUPS = 3;

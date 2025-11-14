@@ -1,5 +1,5 @@
 import Api from "./api";
-import { CreateMcpServer, McpServerUpdate } from "@shared/eeziTypes";
+import { CreateMcpServer, McpServerUpdate } from "@/shared/eeziTypes";
 import eeziClient from "./client";
 
 class McpApiService {

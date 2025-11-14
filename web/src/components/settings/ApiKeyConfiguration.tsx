@@ -10,7 +10,7 @@ import { AzureConfiguration } from "./AzureConfiguration";
 import { VertexConfiguration } from "./VertexConfiguration";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { UserSettings } from "@shared/schemas";
+import { UserSettings } from "@/shared/schemas";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { showError } from "@/components/Toast";
 import { useI18n } from "@/lib/i18n";

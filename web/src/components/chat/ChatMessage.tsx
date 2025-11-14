@@ -1,4 +1,4 @@
-import type { Message } from "@shared/eeziTypes";
+import type { Message } from "@/shared/eeziTypes";
 import { EeziMarkdownParser, VanillaMarkdownParser } from "./EeziMarkdownParser";
 import { motion } from "framer-motion";
 import { useStreamChat } from "@/hooks/useStreamChat";

@@ -1,7 +1,7 @@
 import { useI18n } from "@/lib/i18n";
 import React, { useState } from "react";
 import { ChevronsDownUp, ChevronsUpDown, AlertTriangle, FileText } from "lucide-react";
-import type { Problem } from "@shared/eeziTypes";
+import type { Problem } from "@/shared/eeziTypes";
 
 type ProblemWithoutSnippet = Omit<Problem, "snippet">;
 

@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useSettings } from "@/hooks/useSettings";
 import { useContextPaths } from "@/hooks/useContextPaths";
-import type { ContextPathResult } from "@shared/schemas";
+import type { ContextPathResult } from "@/shared/schemas";
 
 export function ContextFilesPicker() {
   const { settings } = useSettings();

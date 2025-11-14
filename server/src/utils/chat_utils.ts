@@ -1,5 +1,5 @@
 import logger from "@/logger";
-import { getEeziAppPath } from "@/services/paths";
+import { getEeziAppPath } from "@/shared/paths";
 import { estimateTokens } from "@/utils/token_utils";
 import { extractCodebase } from "@/utils/codebase";
 import { validateChatContext } from "@/utils/context_paths_utils";
