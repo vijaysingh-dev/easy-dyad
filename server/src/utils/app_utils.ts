@@ -26,6 +26,7 @@ import { withLock } from "@/utils/lock_utils";
 import { Worker } from "worker_threads";
 import { LargeLanguageModel } from "@/shared/schemas";
 
+import { PROJECT_ROOT } from "@/shared/paths";
 import { IS_TEST_BUILD, PUBLIC_IP } from "@/config";
 
 export async function copyDir(
@@ -567,11 +568,8 @@ RUN npm install -g pnpm
   });
 
   // Run the Docker container
-  const args = [
-    "run",
-    "--rm",
-    "--name",
-    containerName,
+  const initArgs = ["run", "--rm", "--name", containerName];
+  const extraArgs = [
     "-p",
     "8080:8080",
     "-p",
@@ -580,16 +578,18 @@ RUN npm install -g pnpm
     `${appPath}:/app`,
     "-v",
     `eezi-pnpm-${appId}:/app/.pnpm-store`,
+    "-e",
+    "PNPM_STORE_PATH=/app/.pnpm-store",
+    "-e",
+    "PORT=32100",
   ];
-  if (!IS_TEST_BUILD) args.push("-e", "HOST=0.0.0.0");
+  if (!IS_TEST_BUILD) extraArgs.push("-e", "HOST=0.0.0.0");
+
   const process = spawn(
     "docker",
     [
-      ...args,
-      "-e",
-      "PORT=32100",
-      "-e",
-      "PNPM_STORE_PATH=/app/.pnpm-store",
+      ...initArgs,
+      ...extraArgs,
       "-w",
       "/app",
       `eezi-app-${appId}`,
@@ -828,8 +828,13 @@ export async function applyComponentTagger(appPath: string) {
   // Install the dependency
   await new Promise<void>((resolve, reject) => {
     logger.info("Installing component-tagger dependency");
+    const packagePath = path.join(
+      PROJECT_ROOT,
+      "packages",
+      "react-vite-component-tagger"
+    );
     const process = spawn(
-      "pnpm add -D @eezi-sh/react-vite-component-tagger || npm install --save-dev --legacy-peer-deps @eezi-sh/react-vite-component-tagger",
+      `pnpm add -D "file:${packagePath}" || npm install --save-dev --legacy-peer-deps "file:${packagePath}"`,
       {
         cwd: appPath,
         shell: true,
