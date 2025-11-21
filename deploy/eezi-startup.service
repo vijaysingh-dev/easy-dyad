@@ -1,0 +1,11 @@
+[Unit]
+Description=Run EEZI app on startup
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/eezi-startup.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
