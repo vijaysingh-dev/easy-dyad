@@ -56,8 +56,8 @@ export function getAppVersion(): string {
   return packageJson.version;
 }
 
-const DEFAULT_COMMAND =
-  "(pnpm install && pnpm run dev -- --host 0.0.0.0 --port 32100) || (npm install --legacy-peer-deps && npm run dev -- --host 0.0.0.0 --port 32100)";
+const DEFAULT_COMMAND = `(pnpm install && pnpm run dev -- --host 0.0.0.0 --port 32100 --origin http://${PUBLIC_IP}:32100) \
+|| (npm install --legacy-peer-deps && npm run dev -- --host 0.0.0.0 --port 32100 --origin http://${PUBLIC_IP}:32100)`;
 
 function getCommand({
   installCommand,

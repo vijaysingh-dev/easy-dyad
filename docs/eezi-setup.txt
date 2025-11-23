@@ -14,11 +14,12 @@ sudo systemctl restart eezi-startup
 Deployment
 ==========
 Install (sudo)
+curl==8.5.0, /usr/bin/curl
+
 node==22.21.0, /usr/bin/node
 npm==11.6.2, /usr/bin/npm
 pnpm==10.22.0, /usr/bin/pnpm
 pm2==6.0.13, /usr/bin/pm2
 
-curl==8.5.0, /usr/bin/curl
 ngnix==nginx version: nginx/1.24.0 (Ubuntu), /usr/sbin/nginx
 docker==Docker version 29.0.2, build 8108357, /usr/bin/docker
