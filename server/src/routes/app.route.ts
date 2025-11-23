@@ -331,6 +331,7 @@ router.get("/read-app-file/:appId/:filePath", async (req, res) => {
 });
 
 router.get("/run-app/:appId", async (req, res) => {
+  let heartbeat: NodeJS.Timeout | null = null;
   const appId = parseInt(req.params.appId, 10);
   try {
     // Set up SSE
@@ -342,8 +343,13 @@ router.get("/run-app/:appId", async (req, res) => {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
+    heartbeat = setInterval(() => {
+      safeSend(res, "app:ping", {});
+    }, 15000);
+
     req.on("close", () => {
       logger.log(`Client disconnected from app ${appId} run stream.`);
+      if (heartbeat) clearInterval(heartbeat);
       stopRunningApp(appId);
     });
 
@@ -394,6 +400,7 @@ router.get("/run-app/:appId", async (req, res) => {
   } catch (error: any) {
     logger.error(`Error running app ${appId}:`, error);
     safeSend(res, "app:error", { appId, error: error.message });
+    if (heartbeat) clearInterval(heartbeat);
     await stopRunningApp(appId);
   }
 });
@@ -413,6 +420,7 @@ router.post("/stop-app", async (req, res): Promise<void> => {
 });
 
 router.get("/restart-app/:appId", async (req, res) => {
+  let heartbeat: NodeJS.Timeout | null = null;
   const appId = parseInt(req.params.appId, 10);
   const removeNodeModules = req.query.removeNodeModules === "true";
   try {
@@ -425,8 +433,13 @@ router.get("/restart-app/:appId", async (req, res) => {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
+    heartbeat = setInterval(() => {
+      safeSend(res, "app:ping", {});
+    }, 15000);
+
     req.on("close", () => {
       logger.log(`Client disconnected from app ${appId} restart stream.`);
+      if (heartbeat) clearInterval(heartbeat);
       stopRunningApp(appId);
     });
 
@@ -513,6 +526,7 @@ router.get("/restart-app/:appId", async (req, res) => {
   } catch (error: any) {
     logger.error(`Error restarting app ${appId}:`, error);
     safeSend(res, "app:error", { appId, error: error.message });
+    if (heartbeat) clearInterval(heartbeat);
     await stopRunningApp(appId);
   }
 });

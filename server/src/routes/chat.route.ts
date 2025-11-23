@@ -476,6 +476,7 @@ router.post("/:chatId/start", async (req, res) => {
 });
 
 router.get("/:chatId/stream", async (req, res) => {
+  let heartbeat: NodeJS.Timeout | null = null;
   const chatId = parseInt(req.params.chatId);
   try {
     // Set up SSE
@@ -496,8 +497,13 @@ router.get("/:chatId/stream", async (req, res) => {
 
     const fileUploadsState = FileUploadsState.getInstance();
 
+    heartbeat = setInterval(() => {
+      safeSend(res, "chat:ping", {});
+    }, 15000);
+
     req.on("close", () => {
       logger.info("Client disconnected:", chatId);
+      if (heartbeat) clearInterval(heartbeat);
       abortController.abort();
     });
 
@@ -1457,6 +1463,7 @@ ${problemReport.problems
       chatId,
       error: `Sorry, there was an error processing your request: ${error}`,
     });
+    if (heartbeat) clearInterval(heartbeat);
     cleanupChatStream(chatId);
   }
 });
@@ -1507,6 +1514,7 @@ router.post("/help/:sessionId/start", async (req, res) => {
 });
 
 router.get("/help/:sessionId/stream", async (req, res) => {
+  let heartbeat: NodeJS.Timeout | null = null;
   const sessionId = req.params.sessionId;
   try {
     // Set up SSE
@@ -1524,8 +1532,13 @@ router.get("/help/:sessionId/stream", async (req, res) => {
 
     const { controller: abortController, message } = currentStream;
 
+    heartbeat = setInterval(() => {
+      safeSend(res, "help:ping", {});
+    }, 15000);
+
     req.on("close", () => {
       logger.log(`Client disconnected from help ${sessionId} run stream.`);
+      if (heartbeat) clearInterval(heartbeat);
       abortController.abort();
     });
 
@@ -1612,6 +1625,8 @@ router.get("/help/:sessionId/stream", async (req, res) => {
       sessionId,
       error: String(err instanceof Error ? err.message : err),
     });
+
+    if (heartbeat) clearInterval(heartbeat);
     // Clean up the abort controller
     activeHelpStreams.delete(sessionId);
   }

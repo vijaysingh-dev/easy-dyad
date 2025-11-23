@@ -329,6 +329,7 @@ interface DeviceFlowState {
 const currentFlowState = new Map<number, DeviceFlowState>();
 
 router.get("/github/:appId/start-flow", (req, res) => {
+  let heartbeat: NodeJS.Timeout | null = null;
   const appId = parseInt(req.params.appId);
   try {
     // Set up SSE
@@ -360,8 +361,13 @@ router.get("/github/:appId/start-flow", (req, res) => {
       isPolling: false,
     });
 
+    heartbeat = setInterval(() => {
+      safeSend(res, "github:ping", {});
+    }, 15000);
+
     req.on("close", () => {
       logger.log(`Client disconnected from github-flow ${appId} run stream.`);
+      if (heartbeat) clearInterval(heartbeat);
       currentFlowState.delete(appId);
     });
 
@@ -429,6 +435,7 @@ router.get("/github/:appId/start-flow", (req, res) => {
       appId,
       error: "Error starting github flow",
     });
+    if (heartbeat) clearInterval(heartbeat);
     currentFlowState.delete(appId);
   }
 });

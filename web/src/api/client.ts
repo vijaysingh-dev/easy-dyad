@@ -117,6 +117,9 @@ class EeziClient {
           this.mcpConsentHandlers.get("consent")?.(data);
           break;
         }
+        case "chat:ping": {
+          break; // Keep-alive ping, no action needed
+        }
         default:
           console.warn("[chat] Unknown event type:", data.eventType);
       }
@@ -126,18 +129,27 @@ class EeziClient {
   // App Output Stream
   public initAppStreamSSE(url: string) {
     this.initEventSource("app", url, (data) => {
-      if (data.eventType === "app:output") {
-        console.log("[app] Output received:", data);
-        const { appId, type, message } = data as AppOutput;
-        this.appStreams
-          .get(appId)
-          ?.onOutput({ appId, type, message, timestamp: Date.now() });
-      } else if (data.eventType === "app:error") {
-        console.error(`[app] Error for app ${data.appId}:`, data.error);
-        this.appStreams.delete(data.appId);
-        this.eventSources["app"]?.close();
-      } else {
-        console.warn("[app] Unknown event type:", data.eventType);
+      switch (data.eventType) {
+        case "app:output": {
+          console.log("[app] Output received:", data);
+          const { appId, type, message } = data as AppOutput;
+          this.appStreams
+            .get(appId)
+            ?.onOutput({ appId, type, message, timestamp: Date.now() });
+          break;
+        }
+        case "app:error": {
+          console.error(`[app] Error for app ${data.appId}:`, data.error);
+          this.appStreams.delete(data.appId);
+          this.eventSources["app"]?.close();
+          break;
+        }
+        case "app:ping": {
+          break; // Keep-alive ping, no action needed
+        }
+        default: {
+          console.warn("[app] Unknown event type:", data.eventType);
+        }
       }
     });
   }
@@ -158,6 +170,9 @@ class EeziClient {
           this.eventSources["help"]?.close();
           break;
         }
+        case "help:ping": {
+          break; // Keep-alive ping, no action needed
+        }
         default:
           console.warn("[help] Unknown event type:", data.eventType);
       }
@@ -167,16 +182,27 @@ class EeziClient {
   // Github Stream
   public initGithubStreamSSE(url: string) {
     this.initEventSource("github", url, (data) => {
-      if (data.eventType === "github:flow-update") {
-        this.githubStreams.get(data.appId)?.onGithubDeviceFlowUpdate(data);
-      } else if (data.eventType == "github:flow-success") {
-        this.githubStreams.get(data.appId)?.onGithubDeviceFlowSuccess(data);
-      } else if (data.eventType == "github:flow-error") {
-        this.githubStreams.get(data.appId)?.onGithubDeviceFlowError(data);
-        this.githubStreams.delete(data.appId);
-        this.eventSources["github"]?.close();
-      } else {
-        console.warn("[github] Unknown event type:", data.eventType);
+      switch (data.eventType) {
+        case "github:flow-update": {
+          this.githubStreams.get(data.appId)?.onGithubDeviceFlowUpdate(data);
+          break;
+        }
+        case "github:flow-success": {
+          this.githubStreams.get(data.appId)?.onGithubDeviceFlowSuccess(data);
+          break;
+        }
+        case "github:flow-error": {
+          this.githubStreams.get(data.appId)?.onGithubDeviceFlowError(data);
+          this.githubStreams.delete(data.appId);
+          this.eventSources["github"]?.close();
+          break;
+        }
+        case "github:ping": {
+          break; // Keep-alive ping, no action needed
+        }
+        default: {
+          console.warn("[github] Unknown event type:", data.eventType);
+        }
       }
     });
   }
