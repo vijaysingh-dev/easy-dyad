@@ -1,6 +1,14 @@
-import { NODE_ENV, PORT, ALLOWED_ORIGINS } from "@/config";
+import { NODE_ENV, PORT, PUBLIC_IP, IS_TEST_BUILD } from "@/config";
 
 import logger from "./logger";
+// Log all configuration on startup
+logger.info(`Configuration:
+  NODE_ENV: ${NODE_ENV}
+  PORT: ${PORT}
+  PUBLIC_IP: ${PUBLIC_IP}
+  IS_TEST_BUILD: ${IS_TEST_BUILD}
+`);
+
 import { initializeDatabase } from "@/db";
 import express, { type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
@@ -21,12 +29,8 @@ initializeDatabase();
 
 const app = express();
 
-const allowedOrigins = ALLOWED_ORIGINS?.split(",")?.filter(Boolean) ?? [];
-logger.info(
-  `Allowed origins: ${
-    allowedOrigins.length > 0 ? allowedOrigins.join(", ") : "All origins allowed"
-  }`
-);
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",").filter(Boolean) ?? [];
+logger.info("Allowed origins:", allowedOrigins);
 app.use(
   cors({
     origin: allowedOrigins.length > 0 ? allowedOrigins : "*",

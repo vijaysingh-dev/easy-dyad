@@ -242,11 +242,6 @@ export interface DoesReleaseNoteExistParams {
   version: string;
 }
 
-export interface ApproveProposalResult {
-  extraFiles?: string[];
-  extraFilesError?: string;
-}
-
 export interface ImportAppParams {
   path: string;
   appName: string;

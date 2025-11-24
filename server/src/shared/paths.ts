@@ -22,12 +22,14 @@ export function getPath(
   name:
     | "home"
     | "appData"
-    | "assets"
-    | "userData"
     | "sessionData"
+    | "logs"
+    | "userData"
+    | "crashDumps"
     | "temp"
     | "exe"
     | "module"
+    | "assets"
     | "desktop"
     | "documents"
     | "downloads"
@@ -35,8 +37,6 @@ export function getPath(
     | "pictures"
     | "videos"
     | "recent"
-    | "logs"
-    | "crashDumps"
 ): string {
   const home = os.homedir();
   const tmp = os.tmpdir();

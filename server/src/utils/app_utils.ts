@@ -26,7 +26,7 @@ import { withLock } from "@/utils/lock_utils";
 import { Worker } from "worker_threads";
 import { LargeLanguageModel } from "@/shared/schemas";
 
-import { PROJECT_ROOT } from "@/shared/paths";
+import { PROJECT_ROOT, SERVER_ROOT } from "@/shared/paths";
 import { IS_TEST_BUILD, PUBLIC_IP } from "@/config";
 
 export async function copyDir(
@@ -50,8 +50,7 @@ export async function copyDir(
 
 export function getAppVersion(): string {
   // Read version from package.json at project root
-  // const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
+  const packageJsonPath = path.resolve(SERVER_ROOT, "package.json");
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
   return packageJson.version;
 }

@@ -5,7 +5,8 @@ import { useRouter, useLocation } from "@tanstack/react-router";
 import { useSettings } from "@/hooks/useSettings";
 import { Button } from "@/components/ui/button";
 // @ts-ignore
-import logo from "../../assets/icon/eezi.png";
+import logoDark from "../../assets/icon/eezi-dark.png";
+import logoLight from "../../assets/icon/eezi.png";
 import { providerSettingsRoute } from "@/routes/settings/providers/$provider";
 import { cn } from "@/lib/utils";
 import { useDeepLink } from "@/contexts/DeepLinkContext";
@@ -15,6 +16,7 @@ import { useUserBudgetInfo } from "@/hooks/useUserBudgetInfo";
 import { UserBudgetInfo } from "@/shared/eeziTypes";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ActionHeader } from "@/components/preview_panel/ActionHeader";
+import { useTheme } from "@/contexts/ThemeContext";
 import i18n, { useI18n } from "@/lib/i18n";
 import { toArabicDigits } from "@/lib/utils";
 
@@ -23,6 +25,7 @@ const displayCount = (count: number) =>
 
 export const TitleBar = () => {
   const { t, dir } = useI18n();
+  const { isDarkMode } = useTheme();
   const { apps } = useLoadApps();
   const { navigate } = useRouter();
   const location = useLocation();
@@ -68,7 +71,11 @@ export const TitleBar = () => {
     <>
       <div className="@container z-11 w-full h-11 bg-(--sidebar) absolute top-0 left-0 app-region-drag flex items-center justify-between">
         <div className="flex items-center">
-          <img src={logo} alt="Eezi Logo" className="w-6 h-6 pl-18 mr-0.5" />
+          <img
+            src={isDarkMode ? logoLight : logoDark}
+            alt="Eezi Logo"
+            className="w-12 h-6 m-5"
+          />
           <Button
             dir={dir}
             data-testid="title-bar-app-name-button"
