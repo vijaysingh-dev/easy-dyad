@@ -105,6 +105,3 @@ userData/
 .vscode/
 
 + .turbo
-
-# For development only
-**/src/ipc/

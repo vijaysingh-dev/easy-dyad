@@ -1,1 +1,1 @@
-# Welcome to your eezi app
+# Welcome to your Eezi app

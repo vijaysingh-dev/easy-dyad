@@ -743,7 +743,7 @@ export function isComponentTaggerUpgradeNeeded(appPath: string): boolean {
 
   try {
     const viteConfigContent = fs.readFileSync(viteConfigPath, "utf-8");
-    return !viteConfigContent.includes("@eezi-sh/react-vite-component-tagger");
+    return !viteConfigContent.includes("@dyad-sh/react-vite-component-tagger");
   } catch (e) {
     logger.error("Error reading vite config", e);
     return false;
@@ -791,7 +791,7 @@ export async function applyComponentTagger(appPath: string) {
   // Add import statement if not present
   if (
     !content.includes(
-      "import eeziComponentTagger from '@eezi-sh/react-vite-component-tagger';"
+      'import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";'
     )
   ) {
     // Add it after the last import statement
@@ -806,15 +806,15 @@ export async function applyComponentTagger(appPath: string) {
     lines.splice(
       lastImportIndex + 1,
       0,
-      "import eeziComponentTagger from '@eezi-sh/react-vite-component-tagger';"
+      'import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";'
     );
     content = lines.join("\n");
   }
 
   // Add plugin to plugins array
   if (content.includes("plugins: [")) {
-    if (!content.includes("eeziComponentTagger()")) {
-      content = content.replace("plugins: [", "plugins: [eeziComponentTagger(), ");
+    if (!content.includes("dyadComponentTagger()")) {
+      content = content.replace("plugins: [", "plugins: [dyadComponentTagger(), ");
     }
   } else {
     throw new Error(
@@ -827,13 +827,8 @@ export async function applyComponentTagger(appPath: string) {
   // Install the dependency
   await new Promise<void>((resolve, reject) => {
     logger.info("Installing component-tagger dependency");
-    const packagePath = path.join(
-      PROJECT_ROOT,
-      "packages",
-      "react-vite-component-tagger"
-    );
     const process = spawn(
-      `pnpm add -D "file:${packagePath}" || npm install --save-dev --legacy-peer-deps "file:${packagePath}"`,
+      "pnpm add -D @dyad-sh/react-vite-component-tagger || npm install --save-dev --legacy-peer-deps @dyad-sh/react-vite-component-tagger",
       {
         cwd: appPath,
         shell: true,
