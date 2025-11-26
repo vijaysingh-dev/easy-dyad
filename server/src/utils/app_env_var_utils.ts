@@ -57,13 +57,13 @@ export async function updateDbPushEnvVar({
       envVars = [];
     }
 
-    // Update or add DYAD_DISABLE_DB_PUSH
-    const existingVar = envVars.find((envVar) => envVar.key === "DYAD_DISABLE_DB_PUSH");
+    // Update or add EEZI_DISABLE_DB_PUSH
+    const existingVar = envVars.find((envVar) => envVar.key === "EEZI_DISABLE_DB_PUSH");
     if (existingVar) {
       existingVar.value = disabled ? "true" : "false";
     } else {
       envVars.push({
-        key: "DYAD_DISABLE_DB_PUSH",
+        key: "EEZI_DISABLE_DB_PUSH",
         value: disabled ? "true" : "false",
       });
     }

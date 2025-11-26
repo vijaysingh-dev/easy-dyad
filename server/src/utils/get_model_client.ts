@@ -27,8 +27,8 @@ import type {
 } from "@/shared/schemas";
 import { LanguageModelProvider } from "@/shared/eeziTypes";
 
-const eeziEngineUrl = process.env.DYAD_ENGINE_URL;
-const eeziGatewayUrl = process.env.DYAD_GATEWAY_URL;
+const eeziEngineUrl = process.env.EEZI_ENGINE_URL;
+const eeziGatewayUrl = process.env.EEZI_GATEWAY_URL;
 
 const AUTO_MODELS = [
   {

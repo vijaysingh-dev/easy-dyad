@@ -8,8 +8,7 @@ frontend    : /var/www/eezi-frontend
 ngnix       : /etc/nginx/sites-available/eezi.conf
 
 startup.sh  : /usr/local/bin/eezi-startup.sh
-sudo systemctl restart eezi-startup
-
+eezi-startup.service    : /etc/systemd/system/eezi-startup.service
 
 Deployment
 ==========

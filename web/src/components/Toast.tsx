@@ -1,10 +1,12 @@
 import { toast } from "sonner";
 import { PostHog } from "posthog-js";
-import React from "react";
 import { CustomErrorToast } from "./CustomErrorToast";
 import { InputRequestToast } from "./InputRequestToast";
 import { McpConsentToast } from "./McpConsentToast";
-import { useI18n } from "@/lib/i18n";
+import i18n from "@/lib/i18n";
+
+const t = i18n.t.bind(i18n);
+const dir = i18n.language === "ar" ? "rtl" : "ltr";
 
 /**
  * Toast utility functions for consistent notifications across the app
@@ -12,10 +14,10 @@ import { useI18n } from "@/lib/i18n";
 
 /**
  * Show a success toast
- * @param message The message to display
+ * @param message The message to displa
  */
 export const showSuccess = (message: string) => {
-  const { t, dir } = useI18n();
+  const t = i18n.t.bind(i18n);
   toast.success(<span dir={dir}>{t(message)}</span>);
 };
 
@@ -24,7 +26,6 @@ export const showSuccess = (message: string) => {
  * @param message The error message to display
  */
 export const showError = (message: any) => {
-  const { t, dir } = useI18n();
   const errorMessage = message.toString();
   console.error(message);
 
@@ -80,7 +81,6 @@ export const showError = (message: any) => {
  * @param message The warning message to display
  */
 export const showWarning = (message: string) => {
-  const { t, dir } = useI18n();
   toast.warning(<span dir={dir}>{t(message)}</span>);
   console.warn(message);
 };
@@ -90,7 +90,6 @@ export const showWarning = (message: string) => {
  * @param message The info message to display
  */
 export const showInfo = (message: string) => {
-  const { t, dir } = useI18n();
   toast.info(<span dir={dir}>{t(message)}</span>);
 };
 
@@ -103,7 +102,6 @@ export const showInputRequest = (
   message: string,
   onResponse: (response: "y" | "n") => void
 ) => {
-  const { t } = useI18n();
   const toastId = toast.custom(
     (toastInst) => (
       <InputRequestToast
@@ -150,7 +148,6 @@ export const showExtraFilesToast = ({
   error?: string;
   posthog: PostHog;
 }) => {
-  const { t } = useI18n();
   if (error) {
     showError(
       t("Error committing files: files changed outside of Eezi", {

@@ -3,7 +3,6 @@ import db from "@/db";
 import { apps, chats, messages, prompts } from "@/db/schema";
 import { eq, and, isNull, desc, like, inArray } from "drizzle-orm";
 import { Router } from "express";
-import * as os from "os";
 import fs from "node:fs";
 import * as path from "path";
 import * as crypto from "crypto";
@@ -31,7 +30,7 @@ import { parseAppMentions } from "@/shared/parse_mention_apps";
 import { processFullResponseActions } from "@/services/processors/response_processor";
 import { executeAddDependency } from "@/services/processors/executeAddDependency";
 import { generateProblemReport } from "@/workers/tsc";
-import { getEeziAppPath } from "@/shared/paths";
+import { getPath, ensureDir, getEeziAppPath } from "@/shared/paths";
 import { AsyncVirtualFileSystem } from "@/workers/VirtualFilesystem";
 import { readSettings } from "@/shared/settings";
 
@@ -444,17 +443,8 @@ const activeChatStreams = new Map<
 // Track partial responses for cancelled streams
 const partialResponses = new Map<number, string>();
 
-function cleanupChatStream(chatId: number) {
-  activeChatStreams.delete(chatId);
-  partialResponses.delete(chatId);
-  FileUploadsState.getInstance().clear(chatId);
-}
-
 // Ensure the temp directory exists for storing temporary files
-const TEMP_DIR = path.join(os.tmpdir(), "eezi-attachments");
-if (!fs.existsSync(TEMP_DIR)) {
-  fs.mkdirSync(TEMP_DIR, { recursive: true });
-}
+const TEMP_DIR = ensureDir(path.join(getPath("temp"), "eezi-attachments"));
 
 const CODEBASE_PROMPT_PREFIX = "This is my codebase.";
 function createCodebasePrompt(codebaseInfo: string): string {
@@ -579,7 +569,7 @@ router.get("/:chatId/stream", async (req, res) => {
 
         if (attachment.attachmentType === "upload-to-codebase") {
           // For upload-to-codebase, create a unique file ID and store the mapping
-          const fileId = `DYAD_ATTACHMENT_${index}`;
+          const fileId = `eezi-attachment-${index}`;
 
           fileUploadsState.addFileUpload(
             { chatId: chatId, fileId },
@@ -864,34 +854,13 @@ router.get("/:chatId/stream", async (req, res) => {
       // Usually, AI models will want to use the image as reference to generate code (e.g. UI mockups) anyways, so
       // it's not that critical to include the image analysis instructions.
       if (hasUploadedAttachments) {
-        systemPrompt += `
-When files are attached to this conversation, upload them to the codebase using this exact format:
-
-<eezi-write path="path/to/destination/filename.ext" description="Upload file to codebase">
-DYAD_ATTACHMENT_X
-</eezi-write>
-
-Example for file with id of DYAD_ATTACHMENT_0:
-<eezi-write path="src/components/Button.jsx" description="Upload file to codebase">
-DYAD_ATTACHMENT_0
-</eezi-write>
-`;
+        systemPrompt += `When files are attached to this conversation, upload them to the codebase using this exact format:\n<eezi-write path="path/to/destination/filename.ext" description="Upload file to codebase">\neezi-attachment-X\n</eezi-write>\n\nExample for file with id of eezi-attachment-0:\n<eezi-write path="src/components/Button.jsx" description="Upload file to codebase">\neezi-attachment-0\n</eezi-write>`;
       } else if (hasImageAttachments) {
-        systemPrompt += `
-# Image Analysis Instructions
-This conversation includes one or more image attachments. When the user uploads images:
-1. If the user explicitly asks for analysis, description, or information about the image, please analyze the image content.
-2. Describe what you see in the image if asked.
-3. You can use images as references when the user has coding or design-related questions.
-4. For diagrams or wireframes, try to understand the content and structure shown.
-5. For screenshots of code or errors, try to identify the issue or explain the code.
-`;
+        systemPrompt += `# Image Analysis Instructions\nThis conversation includes one or more image attachments. When the user uploads images:\n1. If the user explicitly asks for analysis, description, or information about the image, please analyze the image content.\n2. Describe what you see in the image if asked.\n3. You can use images as references when the user has coding or design-related questions.\n4. For diagrams or wireframes, try to understand the content and structure shown.\n5. For screenshots of code or errors, try to identify the issue or explain the code.`;
       }
 
-      const codebasePrefix = isEngineEnabled
-        ? // No codebase prefix if engine is set, we will take of it there.
-          []
-        : ([
+      const codebasePrefix = !isEngineEnabled
+        ? ([
             {
               role: "user",
               content: createCodebasePrompt(codebaseInfo),
@@ -900,7 +869,8 @@ This conversation includes one or more image attachments. When the user uploads 
               role: "assistant",
               content: "OK, got it. I'm ready to help",
             },
-          ] as const);
+          ] as const)
+        : []; // No codebase prefix if engine is set, we will take of it there.
 
       // If engine is enabled, we will send the other apps codebase info to the engine
       // and process it with smart context.
@@ -1064,7 +1034,10 @@ This conversation includes one or more image attachments. When the user uploads 
               chatId: chatId,
               error: `Sorry, there was an error from the AI: ${requestIdPrefix}${message}`,
             });
+            // Clean up the abort controller
             activeChatStreams.delete(chatId);
+            // Clean up file uploads state on error
+            FileUploadsState.getInstance().clear(chatId);
           },
           abortSignal: abortController.signal,
         });
@@ -1244,16 +1217,16 @@ This conversation includes one or more image attachments. When the user uploads 
             ) {
               fullResponse += `<eezi-problem-report summary="${
                 problemReport.problems.length
-              } problems">
-${problemReport.problems
-  .map(
-    (problem) =>
-      `<problem file="${escapeXml(problem.file)}" line="${problem.line}" column="${
-        problem.column
-      }" code="${problem.code}">${escapeXml(problem.message)}</problem>`
-  )
-  .join("\n")}
-</eezi-problem-report>`;
+              } problems">\n${problemReport.problems
+                .map(
+                  (problem) =>
+                    `<problem file="${escapeXml(problem.file)}" line="${
+                      problem.line
+                    }" column="${problem.column}" code="${problem.code}">${escapeXml(
+                      problem.message
+                    )}</problem>`
+                )
+                .join("\n")}\n</eezi-problem-report>`;
 
               logger.info(
                 `Attempting to auto-fix problems, attempt #${autoFixAttempts + 1}`
@@ -1354,8 +1327,7 @@ ${problemReport.problems
               await db
                 .update(messages)
                 .set({
-                  content: `${partialResponse}
-[Response cancelled by user]`,
+                  content: `${partialResponse}\n[Response cancelled by user]`,
                 })
                 .where(eq(messages.id, placeholderAssistantMessage.id));
 
@@ -1437,7 +1409,6 @@ ${problemReport.problems
           updatedFiles: false,
         } satisfies ChatResponseEnd);
       }
-      cleanupChatStream(chatId);
     }
 
     // Clean up any temporary files
@@ -1464,7 +1435,10 @@ ${problemReport.problems
       error: `Sorry, there was an error processing your request: ${error}`,
     });
     if (heartbeat) clearInterval(heartbeat);
-    cleanupChatStream(chatId);
+    // Clean up the abort controller
+    activeChatStreams.delete(chatId);
+    // Clean up file uploads state on error
+    FileUploadsState.getInstance().clear(chatId);
   }
 });
 
@@ -1473,7 +1447,10 @@ router.delete("/:chatId/cancel", async (req, res) => {
   const chatId = parseInt(req.params.chatId);
   try {
     if (activeChatStreams.has(chatId)) {
-      cleanupChatStream(chatId);
+      activeChatStreams.delete(chatId);
+      // Clean up uploads state for this chat
+      FileUploadsState.getInstance().clear(chatId);
+
       logger.log(`Canceled active stream for chat ${chatId}`);
       res.status(200).json({ success: true });
     } else {

@@ -4,6 +4,7 @@ After=network-online.target
 
 [Service]
 Type=oneshot
+User=eezi
 ExecStart=/usr/local/bin/eezi-startup.sh
 RemainAfterExit=yes
 

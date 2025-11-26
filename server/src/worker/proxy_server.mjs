@@ -14,7 +14,7 @@ import path from "path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /* ──────────────────────────── worker code ─────────────────────────────── */
-const LISTEN_HOST = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
+const LISTEN_HOST = process.env.NODE_ENV === "local" ? "localhost" : "0.0.0.0";
 const LISTEN_PORT = workerData.port;
 let rememberedOrigin = null; // e.g. "http://localhost:5173"
 
@@ -255,10 +255,10 @@ server.on("upgrade", (req, socket, _head) => {
   upReq.on("upgrade", (upRes, upSocket, upHead) => {
     socket.write(
       "HTTP/1.1 101 Switching Protocols\r\n" +
-        Object.entries(upRes.headers)
-          .map(([k, v]) => `${k}: ${v}`)
-          .join("\r\n") +
-        "\r\n\r\n"
+      Object.entries(upRes.headers)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join("\r\n") +
+      "\r\n\r\n"
     );
     if (upHead && upHead.length) socket.write(upHead);
 

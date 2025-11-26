@@ -69,7 +69,7 @@ export function createEeziEngine(options: ExampleProviderSettings): EeziEnginePr
   const getHeaders = () => ({
     Authorization: `Bearer ${loadApiKey({
       apiKey: options.apiKey,
-      environmentVariableName: "DYAD_PRO_API_KEY",
+      environmentVariableName: "EEZI_PRO_API_KEY",
       description: "Example API key",
     })}`,
     ...options.headers,

@@ -3,6 +3,7 @@ import db from "@/db";
 import { chats, messages } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import fs from "node:fs";
+import { readFile, writeFile } from "fs/promises";
 import { getEeziAppPath } from "@/shared/paths";
 import path from "node:path";
 import git from "isomorphic-git";
@@ -27,10 +28,7 @@ import {
   getEeziExecuteSqlTags,
 } from "@/utils/eezi_tag_parser";
 import { storeDbTimestampAtCurrentVersion } from "@/utils/neon_timestamp_utils";
-
 import { FileUploadsState } from "@/utils/file_uploads_state";
-
-const readFile = fs.promises.readFile;
 
 interface Output {
   message: string;
@@ -341,7 +339,7 @@ export async function processFullResponseActions(
       fs.mkdirSync(dirPath, { recursive: true });
 
       // Write file content
-      fs.writeFileSync(fullFilePath, content);
+      await writeFile(fullFilePath, content);
       logger.log(`Successfully wrote file: ${fullFilePath}`);
       writtenFiles.push(filePath);
       if (isServerFunction(filePath) && typeof content === "string") {
