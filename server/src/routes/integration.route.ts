@@ -1118,7 +1118,7 @@ router.post("/vercel/create-project", async (req, res) => {
         requestBody: {
           name: projectData.name,
           project: projectData.id,
-          target: "production",
+          target: "prod",
           gitSource: {
             type: "github",
             org: app.githubOrg,
@@ -1177,8 +1177,8 @@ router.post("/vercel/connect-existing-project", async (req, res) => {
       projectId: projectData.id,
       projectName: projectData.name,
       teamId: teamId,
-      deploymentUrl: projectData.targets?.production?.url
-        ? `https://${projectData.targets.production.url}`
+      deploymentUrl: projectData.targets?.prod?.url
+        ? `https://${projectData.targets.prod.url}`
         : null,
     });
 
@@ -1230,7 +1230,7 @@ router.get("/vercel/get-deployments", async (req, res) => {
         url: deployment.url,
         state: deployment.state || "unknown",
         createdAt: deployment.createdAt || 0,
-        target: deployment.target || "production",
+        target: deployment.target || "prod",
         readyState: deployment.readyState || "unknown",
       }))
     );

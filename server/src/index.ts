@@ -1,6 +1,6 @@
 import { NODE_ENV, PORT, PUBLIC_IP, IS_TEST_BUILD } from "@/config";
 
-import logger from "./logger";
+import logger, { accessLogger } from "./logger";
 // Log all configuration on startup
 logger.info(`Configuration:
   NODE_ENV: ${NODE_ENV}
@@ -39,18 +39,22 @@ app.use(
 );
 app.disable("etag");
 app.use(express.json({ limit: "10mb" }));
-app.use(morgan("combined"));
+app.use(
+  morgan("combined", {
+    stream: { write: (message) => accessLogger.info(message) },
+  })
+);
 
 // app.use(requestLogger);
 
 // API Routes
-app.use("/api/app", appRoutes);
-app.use("/api/chat", chatRoutes);
-app.use("/api/integration", integrationRoutes);
-app.use("/api/mcp", mcpRoutes);
-app.use("/api/llm", llmRoutes);
-app.use("/api/settings", settingsRoutes);
-app.use("/api/version", versionRoutes);
+app.use("/app", appRoutes);
+app.use("/chat", chatRoutes);
+app.use("/integration", integrationRoutes);
+app.use("/mcp", mcpRoutes);
+app.use("/llm", llmRoutes);
+app.use("/settings", settingsRoutes);
+app.use("/version", versionRoutes);
 
 // Error handler
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

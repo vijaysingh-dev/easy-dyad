@@ -1,6 +1,6 @@
 [Unit]
 Description=Run EEZI app on startup
-After=network-online.target
+After=network-online.target docker.service
 
 [Service]
 Type=oneshot

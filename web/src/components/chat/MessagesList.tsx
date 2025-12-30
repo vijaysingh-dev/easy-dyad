@@ -240,14 +240,14 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
           </div>
         )}
 
-        {isStreaming &&
+        {/* {isStreaming &&
           !settings?.enableEeziPro &&
           !userBudget &&
           messages.length > 0 && (
             <PromoMessage
               seed={messages.length * (appId ?? 1) * (selectedChatId ?? 1)}
             />
-          )}
+          )} */}
         <div ref={messagesEndRef} />
         {renderSetupBanner()}
       </div>
