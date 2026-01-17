@@ -38,8 +38,13 @@ const formatMsg = (msg: any, args: any[]) =>
 
 export const accessLogger = winston.createLogger({
   level: "info",
-  format: winston.format.printf(({ message }) => message.trim()),
+  format: winston.format.printf((info) => {
+    return typeof info.message === "string"
+      ? info.message.trim()
+      : JSON.stringify(info.message);
+  }),
   transports: [
+    new winston.transports.Console(),
     new winston.transports.File({
       filename: path.join(LOG_DIR, "access.log"),
       maxsize: 5 * 1024 * 1024,
@@ -53,6 +58,7 @@ export const accessLogger = winston.createLogger({
 const winstonLogger = winston.createLogger({
   level: process.env.NODE_ENV === "prod" ? "info" : "debug",
   format: winston.format.combine(
+    winston.format.colorize({ all: true }),
     winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" }),
     winston.format.printf(({ level, timestamp, message, caller }) => {
       const lvl = level.toUpperCase().padEnd(5);

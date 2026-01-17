@@ -1,6 +1,6 @@
 import { NODE_ENV, PORT, PUBLIC_IP, IS_TEST_BUILD } from "@/config";
 
-import logger, { accessLogger } from "./logger";
+import logger from "@/logger";
 // Log all configuration on startup
 logger.info(`Configuration:
   NODE_ENV: ${NODE_ENV}
@@ -12,7 +12,6 @@ logger.info(`Configuration:
 import { initializeDatabase } from "@/db";
 import express, { type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
-import morgan from "morgan";
 import appRoutes from "./routes/app.route";
 import chatRoutes from "./routes/chat.route";
 import integrationRoutes from "./routes/integration.route";
@@ -21,7 +20,7 @@ import llmRoutes from "./routes/llm.route";
 import settingsRoutes from "./routes/settings.route";
 import versionRoutes from "./routes/version.route";
 
-// import { requestLogger } from "./middleware/requestLogger";
+import { requestLogger } from "./middlewares/requestLogger";
 import { runningApps } from "./utils/process_manager";
 import { stopRunningApp } from "./utils/app_utils";
 
@@ -39,13 +38,16 @@ app.use(
 );
 app.disable("etag");
 app.use(express.json({ limit: "10mb" }));
-app.use(
-  morgan("combined", {
-    stream: { write: (message) => accessLogger.info(message) },
-  })
-);
 
-// app.use(requestLogger);
+app.use(requestLogger);
+
+app.get("/health", (_, res) => {
+  res.status(200).json({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: Date.now(),
+  });
+});
 
 // API Routes
 app.use("/app", appRoutes);

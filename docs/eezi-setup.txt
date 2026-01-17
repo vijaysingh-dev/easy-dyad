@@ -3,11 +3,7 @@ git clone   : /var/www/eezi
 backend     : /var/www/eezi/server/dist/index.js
 pm2 .env    : /var/www/eezi/server/.env
 
-frontend    : /var/www/eezi-frontend
-
-ngnix       : /etc/nginx/sites-available/eezi.conf
-
-startup.sh  : /usr/local/bin/eezi-startup.sh
+ngnix       : /etc/nginx/conf.d/eezi.conf
 eezi-startup.service    : /etc/systemd/system/eezi-startup.service
 
 Deployment
@@ -18,7 +14,8 @@ curl==8.5.0, /usr/bin/curl
 node==22.21.0, /usr/bin/node
 npm==11.6.2, /usr/bin/npm
 pnpm==10.22.0, /usr/bin/pnpm
-pm2==6.0.13, /usr/bin/pm2
 
 ngnix==nginx version: nginx/1.24.0 (Ubuntu), /usr/sbin/nginx
 docker==Docker version 29.0.2, build 8108357, /usr/bin/docker
+
+amazon-efs-utils==amazon-efs-utils-2.4.1-1.amzn2023.x86_64
