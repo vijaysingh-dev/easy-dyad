@@ -1,5 +1,5 @@
 import logger from "@/logger";
-import { normalizePath } from "@/shared/paths";
+import { normalizePath } from "@/paths";
 import { SqlQuery } from "@/shared/schemas";
 
 export function getEeziWriteTags(fullResponse: string): {

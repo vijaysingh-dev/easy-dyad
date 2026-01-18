@@ -1,3 +1,4 @@
+import { PROJECT_ROOT, getPath, getEeziAppPath, ensureDir } from "@/paths";
 import logger from "@/logger";
 import Database from "better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
@@ -5,7 +6,6 @@ import { type BetterSQLite3Database, drizzle } from "drizzle-orm/better-sqlite3"
 import fs from "node:fs";
 import path from "node:path";
 import * as schema from "./schema";
-import { PROJECT_ROOT, getPath, getEeziAppPath, ensureDir } from "@/shared/paths";
 
 // Database connection factory
 let _db: ReturnType<typeof drizzle> | null = null;

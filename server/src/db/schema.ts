@@ -16,7 +16,7 @@ export const prompts = sqliteTable("prompts", {
 });
 
 export const apps = sqliteTable("apps", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
   path: text("path").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" })
@@ -46,7 +46,7 @@ export const apps = sqliteTable("apps", {
 
 export const chats = sqliteTable("chats", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  appId: integer("app_id")
+  appId: text("app_id")
     .notNull()
     .references(() => apps.id, { onDelete: "cascade" }),
   title: text("title"),
@@ -76,7 +76,7 @@ export const versions = sqliteTable(
   "versions",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    appId: integer("app_id")
+    appId: text("app_id")
       .notNull()
       .references(() => apps.id, { onDelete: "cascade" }),
     commitHash: text("commit_hash").notNull(),
@@ -115,21 +115,18 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
-export const language_model_providers = sqliteTable(
-  "language_model_providers",
-  {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    api_base_url: text("api_base_url").notNull(),
-    env_var_name: text("env_var_name"),
-    createdAt: integer("created_at", { mode: "timestamp" })
-      .notNull()
-      .default(sql`(unixepoch())`),
-    updatedAt: integer("updated_at", { mode: "timestamp" })
-      .notNull()
-      .default(sql`(unixepoch())`),
-  },
-);
+export const language_model_providers = sqliteTable("language_model_providers", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  api_base_url: text("api_base_url").notNull(),
+  env_var_name: text("env_var_name"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
 
 export const language_models = sqliteTable("language_models", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -159,15 +156,12 @@ export const languageModelProvidersRelations = relations(
   }),
 );
 
-export const languageModelsRelations = relations(
-  language_models,
-  ({ one }) => ({
-    provider: one(language_model_providers, {
-      fields: [language_models.customProviderId],
-      references: [language_model_providers.id],
-    }),
+export const languageModelsRelations = relations(language_models, ({ one }) => ({
+  provider: one(language_model_providers, {
+    fields: [language_models.customProviderId],
+    references: [language_model_providers.id],
   }),
-);
+}));
 
 export const versionsRelations = relations(versions, ({ one }) => ({
   app: one(apps, {
@@ -184,10 +178,7 @@ export const mcpServers = sqliteTable("mcp_servers", {
   command: text("command"),
   // Store typed JSON for args and environment variables
   args: text("args", { mode: "json" }).$type<string[] | null>(),
-  envJson: text("env_json", { mode: "json" }).$type<Record<
-    string,
-    string
-  > | null>(),
+  envJson: text("env_json", { mode: "json" }).$type<Record<string, string> | null>(),
   url: text("url"),
   enabled: integer("enabled", { mode: "boolean" })
     .notNull()

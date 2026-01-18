@@ -8,7 +8,7 @@ import {
   getEeziRenameTags,
   getEeziWriteTags,
 } from "@/utils/eezi_tag_parser";
-import { getTypeScriptCachePath } from "@/shared/paths";
+import { getTypeScriptCachePath } from "@/paths";
 import { WorkerInput, WorkerOutput } from "./tsc_types";
 import { ProblemReport } from "@/shared/eeziTypes";
 

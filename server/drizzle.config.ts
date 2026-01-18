@@ -1,8 +1,8 @@
 import path from "path";
 import type { Config } from "drizzle-kit";
-import { getUserDataPath } from "./server/src/shared/paths";
+import { getPath } from "./src/paths";
 
-const dbPath = path.join(getUserDataPath(), "sqlite.db");
+const dbPath = path.join(getPath("userData"), "sqlite.db");
 
 export default {
   schema: "./src/db/schema.ts",

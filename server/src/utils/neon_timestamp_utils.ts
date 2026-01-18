@@ -4,7 +4,7 @@ import { versions, apps } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import fs from "node:fs";
 import git from "isomorphic-git";
-import { getEeziAppPath } from "@/shared/paths";
+import { getEeziAppPath } from "@/paths";
 import { neon } from "@neondatabase/serverless";
 import { getNeonClient } from "@/services/neon_admin/neon_management_client";
 
@@ -96,7 +96,7 @@ export async function storeDbTimestampAtCurrentVersion({
           updatedAt: new Date(),
         })
         .where(
-          and(eq(versions.appId, appId), eq(versions.commitHash, currentCommitHash))
+          and(eq(versions.appId, appId), eq(versions.commitHash, currentCommitHash)),
         );
       logger.info(`Updated existing version record with timestamp ${currentTimestamp}`);
     } else {
@@ -107,12 +107,12 @@ export async function storeDbTimestampAtCurrentVersion({
         neonDbTimestamp: currentTimestamp,
       });
       logger.info(
-        `Created new version record for commit ${currentCommitHash} with timestamp ${currentTimestamp}`
+        `Created new version record for commit ${currentCommitHash} with timestamp ${currentTimestamp}`,
       );
     }
 
     logger.info(
-      `Successfully stored timestamp for commit ${currentCommitHash} in app ${appId}`
+      `Successfully stored timestamp for commit ${currentCommitHash} in app ${appId}`,
     );
 
     return { timestamp: currentTimestamp };

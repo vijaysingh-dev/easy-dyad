@@ -2,7 +2,7 @@ import logger from "@/logger";
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "crypto";
-import { getPath } from "./paths";
+import { getPath } from "../paths";
 import { v4 as uuidv4 } from "uuid";
 import { DEFAULT_TEMPLATE_ID } from "./templates";
 import { IS_TEST_BUILD } from "@/config";
@@ -152,12 +152,12 @@ export function writeSettings(settings: Partial<UserSettings>): void {
     if (newSettings.supabase) {
       if (newSettings.supabase.accessToken) {
         newSettings.supabase.accessToken = encrypt(
-          newSettings.supabase.accessToken.value
+          newSettings.supabase.accessToken.value,
         );
       }
       if (newSettings.supabase.refreshToken) {
         newSettings.supabase.refreshToken = encrypt(
-          newSettings.supabase.refreshToken.value
+          newSettings.supabase.refreshToken.value,
         );
       }
     }
@@ -172,7 +172,7 @@ export function writeSettings(settings: Partial<UserSettings>): void {
     for (const provider in newSettings.providerSettings) {
       if (newSettings.providerSettings[provider].apiKey) {
         newSettings.providerSettings[provider].apiKey = encrypt(
-          newSettings.providerSettings[provider].apiKey.value
+          newSettings.providerSettings[provider].apiKey.value,
         );
       }
       // Encrypt Vertex service account key if present
@@ -222,7 +222,7 @@ export function decrypt(data: Secret): string {
   const decipher = crypto.createDecipheriv(
     ALGORITHM,
     ENCRYPTION_KEY,
-    Buffer.from(data.iv!, "base64")
+    Buffer.from(data.iv!, "base64"),
   );
 
   decipher.setAuthTag(Buffer.from(data.authTag!, "base64"));

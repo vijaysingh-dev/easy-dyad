@@ -8,7 +8,7 @@ import * as fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import git, { type ReadCommitResult } from "isomorphic-git";
-import { getEeziAppPath } from "@/shared/paths";
+import { getEeziAppPath } from "@/paths";
 import { IS_TEST_BUILD } from "@/config";
 import { withLock } from "@/utils/lock_utils";
 import { retryOnLocked } from "@/utils/retryOnLocked";
@@ -54,14 +54,14 @@ router.get("/does-release-note-exist", async (req, res) => {
       // Log other non-404 errors but still treat as "not found" for the client,
       // as the primary goal is to check existence.
       logger.warn(
-        `Unexpected status code ${response.status} when checking for release note: ${releaseNoteUrl}`
+        `Unexpected status code ${response.status} when checking for release note: ${releaseNoteUrl}`,
       );
       res.status(200).json({ exists: false });
     }
   } catch (error: any) {
     logger.error(
       `Error fetching release note for version ${version} at ${releaseNoteUrl}:`,
-      error
+      error,
     );
     // In case of network errors, etc., assume it doesn't exist or is inaccessible.
     // Throwing an error here would propagate to the client and might be too disruptive
@@ -123,7 +123,7 @@ router.get("/list-versions/:appId", async (req, res) => {
           timestamp: commit.commit.author.timestamp,
           dbTimestamp: snapshotInfo?.neonDbTimestamp,
         };
-      }) satisfies Version[]
+      }) satisfies Version[],
     );
   } catch (error: any) {
     logger.error("Error getting versions:", error.message);
@@ -233,7 +233,7 @@ router.post("/revert-version", async (req, res) => {
         });
 
         logger.log(
-          `Deleting ${messagesToDelete.length} messages after commit ${previousVersionId} from chat ${chatId}`
+          `Deleting ${messagesToDelete.length} messages after commit ${previousVersionId} from chat ${chatId}`,
         );
 
         // Delete the messages
@@ -241,7 +241,7 @@ router.post("/revert-version", async (req, res) => {
           await db
             .delete(messages)
             .where(
-              and(eq(messages.chatId, chatId), gt(messages.id, messageWithCommit.id))
+              and(eq(messages.chatId, chatId), gt(messages.id, messageWithCommit.id)),
             );
         }
       }
@@ -250,7 +250,7 @@ router.post("/revert-version", async (req, res) => {
         const version = await db.query.versions.findFirst({
           where: and(
             eq(versions.appId, appId),
-            eq(versions.commitHash, previousVersionId)
+            eq(versions.commitHash, previousVersionId),
           ),
         });
         if (version && version.neonDbTimestamp) {
@@ -266,9 +266,9 @@ router.post("/revert-version", async (req, res) => {
                     source_branch_id: app.neonDevelopmentBranchId!,
                     source_timestamp: version.neonDbTimestamp!,
                     preserve_under_name: preserveBranchName,
-                  }
+                  },
                 ),
-              `Restore development branch ${app.neonDevelopmentBranchId} for app ${appId}`
+              `Restore development branch ${app.neonDevelopmentBranchId} for app ${appId}`,
             );
             // Update all versions which have a newer DB timestamp than the version we're restoring to
             // and remove their DB timestamp.
@@ -278,8 +278,8 @@ router.post("/revert-version", async (req, res) => {
               .where(
                 and(
                   eq(versions.appId, appId),
-                  gt(versions.neonDbTimestamp, version.neonDbTimestamp)
-                )
+                  gt(versions.neonDbTimestamp, version.neonDbTimestamp),
+                ),
               );
 
             const preserveBranchId = response.data.branch.parent_id;
@@ -295,7 +295,7 @@ router.post("/revert-version", async (req, res) => {
                 () =>
                   neonClient.deleteProjectBranch(app.neonProjectId!, preserveBranchId),
                 `Delete preserve branch ${preserveBranchId} for app ${appId}`,
-                { retryBranchWithChildError: true }
+                { retryBranchWithChildError: true },
               );
             } catch (error: any) {
               const errorMessage = getNeonErrorMessage(error);
@@ -387,7 +387,7 @@ router.post("/checkout-version", async (req, res) => {
               connectionUri: connectionUri.data.uri,
             });
             logger.info(
-              `Switched Postgres to preview branch for app ${appId} commit ${version.commitHash} dbTimestamp=${version.neonDbTimestamp}`
+              `Switched Postgres to preview branch for app ${appId} commit ${version.commitHash} dbTimestamp=${version.neonDbTimestamp}`,
             );
           }
         }

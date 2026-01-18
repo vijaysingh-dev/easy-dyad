@@ -4,7 +4,7 @@ import { chats, messages } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import fs from "node:fs";
 import { readFile, writeFile } from "fs/promises";
-import { getEeziAppPath } from "@/shared/paths";
+import { getEeziAppPath } from "@/paths";
 import path from "node:path";
 import git from "isomorphic-git";
 import { safeJoin } from "@/utils/path_utils";
@@ -56,7 +56,7 @@ export async function processFullResponseActions(
   }: {
     chatSummary: string | undefined;
     messageId: number;
-  }
+  },
 ): Promise<{
   updatedFiles?: boolean;
   error?: string;
@@ -88,7 +88,7 @@ export async function processFullResponseActions(
       logger.error("Error creating Neon branch at current version:", error.message);
       throw new Error(
         "Could not create Neon branch; database versioning functionality is not working: " +
-          error
+          error,
       );
     }
   }
@@ -117,7 +117,7 @@ export async function processFullResponseActions(
       where: and(
         eq(messages.id, messageId),
         eq(messages.role, "assistant"),
-        eq(messages.chatId, chatId)
+        eq(messages.chatId, chatId),
       ),
     });
 
@@ -141,7 +141,7 @@ export async function processFullResponseActions(
               const migrationFilePath = await writeMigrationFile(
                 appPath,
                 query.content,
-                query.description
+                query.description,
               );
               writtenFiles.push(migrationFilePath);
             } catch (error: any) {
@@ -319,12 +319,12 @@ export async function processFullResponseActions(
             const fileContent = await readFile(fileInfo.filePath);
             content = fileContent;
             logger.log(
-              `Replaced file ID ${trimmedContent} with content from ${fileInfo.originalName}`
+              `Replaced file ID ${trimmedContent} with content from ${fileInfo.originalName}`,
             );
           } catch (error: any) {
             logger.error(
               `Failed to read uploaded file ${fileInfo.originalName}:`,
-              error
+              error,
             );
             errors.push({
               message: `Failed to read uploaded file: ${fileInfo.originalName}`,
@@ -420,13 +420,13 @@ export async function processFullResponseActions(
             amend: true,
           });
           logger.log(
-            `Amend commit with changes outside of eezi: ${uncommittedFiles.join(", ")}`
+            `Amend commit with changes outside of eezi: ${uncommittedFiles.join(", ")}`,
           );
         } catch (error: any) {
           // Just log, but don't throw an error because the user can still
           // commit these changes outside of Eezi if needed.
           logger.error(
-            `Failed to commit changes outside of eezi: ${uncommittedFiles.join(", ")}`
+            `Failed to commit changes outside of eezi: ${uncommittedFiles.join(", ")}`,
           );
           extraFilesError = (error as any).toString();
         }
@@ -462,13 +462,13 @@ export async function processFullResponseActions(
     ${warnings
       .map(
         (warning) =>
-          `<eezi-output type="warning" message="${warning.message}">${warning.error}</eezi-output>`
+          `<eezi-output type="warning" message="${warning.message}">${warning.error}</eezi-output>`,
       )
       .join("\n")}
     ${errors
       .map(
         (error) =>
-          `<eezi-output type="error" message="${error.message}">${error.error}</eezi-output>`
+          `<eezi-output type="error" message="${error.message}">${error.error}</eezi-output>`,
       )
       .join("\n")}
     `;

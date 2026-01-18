@@ -1,5 +1,5 @@
 import logger from "@/logger";
-import { getEeziAppPath } from "@/shared/paths";
+import { getEeziAppPath } from "@/paths";
 import { estimateTokens } from "@/utils/token_utils";
 import { extractCodebase } from "@/utils/codebase";
 import { validateChatContext } from "@/utils/context_paths_utils";
@@ -43,7 +43,7 @@ export async function getCodebaseTokenCount(
   messageId: number,
   messageContent: string,
   appPath: string,
-  chatContext: unknown
+  chatContext: unknown,
 ): Promise<number> {
   // Clean up expired cache entries first
   cleanupExpiredCacheEntries();

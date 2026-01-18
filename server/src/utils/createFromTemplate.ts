@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 import fs from "fs-extra";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
-import { getPath } from "@/shared/paths";
+import { getPath } from "@/paths";
 import { readSettings } from "@/shared/settings";
 import { copyDirectoryRecursive } from "@/utils/file_utils";
 import { getTemplateOrThrow } from "@/utils/template_utils";
@@ -17,7 +17,7 @@ export async function createFromTemplate({ fullAppPath }: { fullAppPath: string 
     // const __dirname = path.dirname(fileURLToPath(import.meta.url));
     await copyDirectoryRecursive(
       path.join(__dirname, "..", "..", "..", "scaffold"),
-      fullAppPath
+      fullAppPath,
     );
     return;
   }
@@ -47,7 +47,7 @@ async function cloneRepo(repoUrl: string): Promise<string> {
 
   if (pathParts.length !== 2) {
     throw new Error(
-      "Invalid repository URL format. Expected 'https://github.com/org/repo'"
+      "Invalid repository URL format. Expected 'https://github.com/org/repo'",
     );
   }
 
@@ -65,7 +65,7 @@ async function cloneRepo(repoUrl: string): Promise<string> {
   if (fs.existsSync(cachePath)) {
     try {
       logger.info(
-        `Repo ${repoName} already exists in cache at ${cachePath}. Checking for updates.`
+        `Repo ${repoName} already exists in cache at ${cachePath}. Checking for updates.`,
       );
 
       // Construct GitHub API URL
@@ -98,7 +98,7 @@ async function cloneRepo(repoUrl: string): Promise<string> {
         logger.info(`Successfully fetched remote SHA: ${remoteSha}`);
       } else {
         throw new Error(
-          `GitHub API request failed with status ${response.statusCode}: ${response.statusMessage}`
+          `GitHub API request failed with status ${response.statusCode}: ${response.statusMessage}`,
         );
       }
 
@@ -110,12 +110,12 @@ async function cloneRepo(repoUrl: string): Promise<string> {
 
       if (remoteSha === localSha) {
         logger.info(
-          `Local cache for ${repoName} is up to date (SHA: ${localSha}). Skipping clone.`
+          `Local cache for ${repoName} is up to date (SHA: ${localSha}). Skipping clone.`,
         );
         return cachePath;
       } else {
         logger.info(
-          `Local cache for ${repoName} (SHA: ${localSha}) is outdated (Remote SHA: ${remoteSha}). Removing and re-cloning.`
+          `Local cache for ${repoName} (SHA: ${localSha}) is outdated (Remote SHA: ${remoteSha}). Removing and re-cloning.`,
         );
         fs.rmSync(cachePath, { recursive: true, force: true });
         // Proceed to clone
@@ -123,7 +123,7 @@ async function cloneRepo(repoUrl: string): Promise<string> {
     } catch (err) {
       logger.warn(
         `Error checking for updates or comparing SHAs for ${repoName} at ${cachePath}. Will attempt to re-clone. Error: `,
-        err
+        err,
       );
       return cachePath;
     }

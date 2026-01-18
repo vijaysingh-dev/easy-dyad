@@ -5,7 +5,7 @@
 import logger from "@/logger";
 import path from "path";
 import fs from "fs";
-import { getEeziAppPath } from "@/shared/paths";
+import { getEeziAppPath } from "@/paths";
 import { EnvVar } from "@/shared/eeziTypes";
 
 export const ENV_FILE_NAME = ".env.local";
@@ -72,7 +72,7 @@ export async function updateDbPushEnvVar({
     await fs.promises.writeFile(getEnvFilePath({ appPath }), envFileContents);
   } catch (error: any) {
     logger.error(
-      `Failed to update DB push environment variable for app ${appPath}: ${error}`
+      `Failed to update DB push environment variable for app ${appPath}: ${error}`,
     );
     throw error;
   }

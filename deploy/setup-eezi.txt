@@ -1,0 +1,126 @@
+Current setup
+==============
+- App user = eezi
+- Repo cloned to /var/www/eezi
+- You already have these files in the repo:
+- deploy/eezi.conf
+- deploy/eezi-startup.sh
+- deploy/eezi-startup.service
+- Backend runs on port 8001
+- Nginx listens on 8000
+- PM2 runs as eezi
+- Systemd service runs as eezi
+- Frontend is on S3+CloudFront
+- API domain: api.dev.eezi.ai
+
+1. Create user and basic dirs
+sudo useradd -m -s /bin/bash eezi
+sudo mkdir -p /var/www
+sudo chown eezi:eezi /var/www
+
+2. Install system packages
+sudo yum update -y
+sudo yum install -y nginx git docker
+sudo systemctl enable nginx docker
+sudo systemctl start nginx docker
+
+3. Install Node + PM2 (global for eezi)
+sudo -iu eezi
+curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
+sudo yum install -y nodejs
+npm install -g pm2
+exit
+
+4. Clone project
+sudo -iu eezi
+cd /var/www
+git clone <repo-url> eezi
+cd eezi
+exit
+
+5. Install Nginx config
+sudo cp /var/www/eezi/deploy/eezi.conf /etc/nginx/conf.d/eezi.conf
+sudo nginx -t
+sudo systemctl reload nginx
+
+
+File path used:
+
+/etc/nginx/conf.d/eezi.conf
+
+6. Install startup script
+sudo cp /var/www/eezi/deploy/eezi-startup.sh /usr/local/bin/eezi-startup.sh
+sudo chown eezi:eezi /usr/local/bin/eezi-startup.sh
+sudo chmod 755 /usr/local/bin/eezi-startup.sh
+
+
+File path used:
+
+/usr/local/bin/eezi-startup.sh
+
+7. Install systemd service
+sudo cp /var/www/eezi/deploy/eezi-startup.service /etc/systemd/system/eezi-startup.service
+sudo chmod 644 /etc/systemd/system/eezi-startup.service
+sudo systemctl daemon-reload
+sudo systemctl enable eezi-startup
+
+File path used:
+/etc/systemd/system/eezi-startup.service
+
+Service content must reference:
+ExecStart=/usr/local/bin/eezi-startup.sh
+User=eezi
+WorkingDirectory=/var/www/eezi
+
+8. Build & start backend
+sudo -iu eezi
+cd /var/www/eezi
+/usr/local/bin/eezi-startup.sh --build-server
+pm2 ls
+exit
+
+9. Verify
+curl http://127.0.0.1:8001/health
+curl http://127.0.0.1:8000/health
+
+10. Reboot test
+sudo reboot
+
+
+After reboot:
+
+sudo -iu eezi pm2 ls
+systemctl status eezi-startup
+
+Final file locations summary
+Purpose	Path
+Repo	/var/www/eezi
+Startup script	/usr/local/bin/eezi-startup.sh
+Systemd service	/etc/systemd/system/eezi-startup.service
+Nginx config	/etc/nginx/conf.d/eezi.conf
+Backend	/var/www/eezi/server
+Frontend build (S3)	s3://dev-eezi-web
+PM2 home	/home/eezi/.pm2
+
+This sequence reproduces current architecture exactly:
+
+CloudFront (HTTPS)
+→ api.dev.eezi.ai (ALB)
+→ Nginx :8000
+→ Node :8001 (PM2, eezi user)
+
+################################################################################
+
+# Mount /efs to AWS EFS
+
+sudo yum install -y amazon-efs-utils
+sudo mkdir -p /efs
+sudo mount -t efs fs-xxxxxxxx:/ /efs
+
+# Add configuration to make it permanent
+fs-xxxxxxxx:/  /efs  efs  _netdev,tls  0  0
+# Add this line in /etc/fstab (sudo nano /etc/fstab)
+
+sudo mkdir -p /efs/apps
+sudo chown -R eezi:eezi /efs/apps
+sudo chmod -R 755 /efs

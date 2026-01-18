@@ -3,7 +3,7 @@ import * as path from "path";
 import * as fs from "fs/promises";
 import * as crypto from "crypto";
 import Database from "better-sqlite3";
-import { getPath } from "@/shared/paths";
+import { getPath } from "@/paths";
 import { getAppVersion } from "@/utils/app_utils";
 
 const MAX_BACKUPS = 3;
@@ -55,7 +55,7 @@ export class BackupManager {
     this.backupBasePath = path.join(this.userDataPath, "backups");
 
     logger.info(
-      `Backup system paths - UserData: ${this.userDataPath}, Backups: ${this.backupBasePath}`
+      `Backup system paths - UserData: ${this.userDataPath}, Backups: ${this.backupBasePath}`,
     );
 
     // Check if this is a version upgrade
@@ -106,7 +106,7 @@ export class BackupManager {
       // Backup settings file
       const settingsBackupPath = path.join(
         backupPath,
-        path.basename(this.settingsFilePath)
+        path.basename(this.settingsFilePath),
       );
       const settingsExists = await this.fileExists(this.settingsFilePath);
 
@@ -147,7 +147,7 @@ export class BackupManager {
 
       await fs.writeFile(
         path.join(backupPath, "backup.json"),
-        JSON.stringify(metadata, null, 2)
+        JSON.stringify(metadata, null, 2),
       );
 
       logger.info(`Backup created successfully: ${backupName}`);
@@ -198,7 +198,7 @@ export class BackupManager {
 
       // Sort by timestamp, newest first
       return backups.sort(
-        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       );
     } catch (error) {
       logger.error("Failed to list backups:", error);
@@ -215,7 +215,7 @@ export class BackupManager {
 
       if (backups.length <= this.maxBackups) {
         logger.debug(
-          `No cleanup needed - ${backups.length} backups (max: ${this.maxBackups})`
+          `No cleanup needed - ${backups.length} backups (max: ${this.maxBackups})`,
         );
         return;
       }
@@ -224,7 +224,7 @@ export class BackupManager {
       const backupsToDelete = backups.slice(this.maxBackups);
 
       logger.info(
-        `Cleaning up ${backupsToDelete.length} old backups (keeping ${this.maxBackups} most recent)`
+        `Cleaning up ${backupsToDelete.length} old backups (keeping ${this.maxBackups} most recent)`,
       );
 
       for (const backup of backupsToDelete) {
@@ -274,7 +274,7 @@ export class BackupManager {
    */
   private async backupSQLiteDatabase(
     sourcePath: string,
-    destPath: string
+    destPath: string,
   ): Promise<void> {
     logger.debug(`Backing up SQLite database: ${sourcePath} → ${destPath}`);
     const sourceDb = new Database(sourcePath, {
@@ -317,7 +317,7 @@ export class BackupManager {
       hash.update(fileBuffer);
       const checksum = hash.digest("hex");
       logger.debug(
-        `Checksum calculated for ${filePath}: ${checksum.substring(0, 8)}...`
+        `Checksum calculated for ${filePath}: ${checksum.substring(0, 8)}...`,
       );
       return checksum;
     } catch (error) {

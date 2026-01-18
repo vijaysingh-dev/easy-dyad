@@ -26,13 +26,13 @@ import { withLock } from "@/utils/lock_utils";
 import { Worker } from "worker_threads";
 import { LargeLanguageModel } from "@/shared/schemas";
 
-import { PROJECT_ROOT, SERVER_ROOT } from "@/shared/paths";
+import { SERVER_ROOT } from "@/paths";
 import { IS_TEST_BUILD, PUBLIC_IP } from "@/config";
 
 export async function copyDir(
   source: string,
   destination: string,
-  filter?: (source: string) => boolean
+  filter?: (source: string) => boolean,
 ) {
   await fsPromises.cp(source, destination, {
     recursive: true,
@@ -71,7 +71,7 @@ function getCommand({
     : DEFAULT_COMMAND;
 }
 
-export async function getApp(appId: number) {
+export async function getApp(appId: string) {
   const app = await db.query.apps.findFirst({
     where: eq(apps.id, appId),
   });
@@ -140,7 +140,7 @@ export async function getSystemDebugInfo({
   let logs = "";
   try {
     const fileTransport = logger.transports.find(
-      (t) => t instanceof winston.transports.File
+      (t) => t instanceof winston.transports.File,
     ) as winston.transports.FileTransportInstance;
 
     const logPath = fileTransport.filename;
@@ -203,20 +203,20 @@ export async function stopRunningApp(appId: number): Promise<void> {
 
     if (!appInfo) {
       logger.log(
-        `App ${appId} not found in running apps map. Assuming already stopped.`
+        `App ${appId} not found in running apps map. Assuming already stopped.`,
       );
       return;
     }
 
     const { process, processId } = appInfo;
     logger.log(
-      `Found running app ${appId} with processId ${processId} (PID: ${process.pid}). Attempting to stop.`
+      `Found running app ${appId} with processId ${processId} (PID: ${process.pid}). Attempting to stop.`,
     );
 
     // Check if the process is already exited or closed
     if (process.exitCode !== null || process.signalCode !== null) {
       logger.log(
-        `Process for app ${appId} (PID: ${process.pid}) already exited (code: ${process.exitCode}, signal: ${process.signalCode}). Cleaning up map.`
+        `Process for app ${appId} (PID: ${process.pid}) already exited (code: ${process.exitCode}, signal: ${process.signalCode}). Cleaning up map.`,
       );
       runningApps.delete(appId); // Ensure cleanup if somehow missed
       return;
@@ -232,7 +232,7 @@ export async function stopRunningApp(appId: number): Promise<void> {
     } catch (error: any) {
       logger.error(
         `Error stopping app ${appId} (PID: ${process.pid}, processId: ${processId}):`,
-        error
+        error,
       );
       // Attempt cleanup even if an error occurred during the stop process
       removeAppIfCurrentProcess(appId, process);
@@ -336,7 +336,7 @@ async function executeAppLocalNode({
     logger.error(
       `Failed to spawn process for app ${appId}. Command="${command}", CWD="${appPath}", ${details}\nSTDERR:\n${
         errorOutput || "(empty)"
-      }`
+      }`,
     );
 
     throw new Error(
@@ -344,7 +344,7 @@ async function executeAppLocalNode({
 Error output:
 ${errorOutput || "(empty)"}
 Details: ${details || "n/a"}
-`
+`,
     );
   }
 
@@ -389,7 +389,7 @@ function listenToProcess({
     if (isNeon && message.includes("created or renamed from another")) {
       spawnedProcess.stdin?.write(`\r\n`);
       logger.info(
-        `App ${appId} (PID: ${spawnedProcess.pid}) wrote enter to stdin to automatically respond to drizzle push input`
+        `App ${appId} (PID: ${spawnedProcess.pid}) wrote enter to stdin to automatically respond to drizzle push input`,
       );
     }
 
@@ -446,7 +446,7 @@ function listenToProcess({
   // Handle process exit/close
   spawnedProcess.on("close", (code, signal) => {
     logger.log(
-      `App ${appId} (PID: ${spawnedProcess.pid}) process closed with code ${code}, signal ${signal}.`
+      `App ${appId} (PID: ${spawnedProcess.pid}) process closed with code ${code}, signal ${signal}.`,
     );
     removeAppIfCurrentProcess(appId, spawnedProcess);
   });
@@ -454,7 +454,7 @@ function listenToProcess({
   // Handle errors during process lifecycle (e.g., command not found)
   spawnedProcess.on("error", (err) => {
     logger.error(
-      `Error in app ${appId} (PID: ${spawnedProcess.pid}) process: ${err.message}`
+      `Error in app ${appId} (PID: ${spawnedProcess.pid}) process: ${err.message}`,
     );
     removeAppIfCurrentProcess(appId, spawnedProcess);
     // Note: We don't throw here as the error is asynchronous. The caller got a success response already.
@@ -497,7 +497,7 @@ async function executeAppInDocker({
     });
   } catch {
     throw new Error(
-      "Docker is required but not available. Please install Docker Desktop and ensure it's running."
+      "Docker is required but not available. Please install Docker Desktop and ensure it's running.",
     );
   }
 
@@ -544,7 +544,7 @@ RUN npm install -g pnpm
     {
       cwd: appPath,
       stdio: "pipe",
-    }
+    },
   );
 
   let buildError = "";
@@ -598,7 +598,7 @@ RUN npm install -g pnpm
     {
       stdio: "pipe",
       detached: false,
-    }
+    },
   );
 
   // Check if process spawned correctly
@@ -628,14 +628,14 @@ RUN npm install -g pnpm
     logger.error(
       `Failed to spawn Docker container for app ${appId}. ${details}\nSTDERR:\n${
         errorOutput || "(empty)"
-      }`
+      }`,
     );
 
     throw new Error(
       `Failed to spawn Docker container for app ${appId}.
 Details: ${details || "n/a"}
 STDERR:
-${errorOutput || "(empty)"}`
+${errorOutput || "(empty)"}`,
     );
   }
 
@@ -700,8 +700,8 @@ async function stopDockerContainersOnPort(port: number): Promise<void> {
             const stop = spawn("docker", ["stop", id], { stdio: "pipe" });
             stop.on("close", () => resolve());
             stop.on("error", () => resolve());
-          })
-      )
+          }),
+      ),
     );
   } catch (e) {
     logger.warn(`Failed stopping Docker containers on port ${port}: ${e}`);
@@ -790,7 +790,7 @@ export async function applyComponentTagger(appPath: string) {
   // Add import statement if not present
   if (
     !content.includes(
-      'import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";'
+      'import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";',
     )
   ) {
     // Add it after the last import statement
@@ -805,7 +805,7 @@ export async function applyComponentTagger(appPath: string) {
     lines.splice(
       lastImportIndex + 1,
       0,
-      'import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";'
+      'import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";',
     );
     content = lines.join("\n");
   }
@@ -817,7 +817,7 @@ export async function applyComponentTagger(appPath: string) {
     }
   } else {
     throw new Error(
-      "Could not find `plugins: [` in vite.config.ts. Manual installation required."
+      "Could not find `plugins: [` in vite.config.ts. Manual installation required.",
     );
   }
 
@@ -832,7 +832,7 @@ export async function applyComponentTagger(appPath: string) {
         cwd: appPath,
         shell: true,
         stdio: "pipe",
-      }
+      },
     );
 
     process.stdout?.on("data", (data) => logger.info(data.toString()));
@@ -866,7 +866,7 @@ export async function applyComponentTagger(appPath: string) {
   } catch (err) {
     logger.warn(
       `Failed to commit changes. This may happen if the project is not in a git repository, or if there are no changes to commit.`,
-      err
+      err,
     );
   }
 }
@@ -917,10 +917,10 @@ export async function applyCapacitor({
   } catch (err) {
     logger.warn(
       `Failed to commit changes. This may happen if the project is not in a git repository, or if there are no changes to commit.`,
-      err
+      err,
     );
     throw new Error(
-      "Failed to commit Capacitor changes. Please commit them manually. Error: " + err
+      "Failed to commit Capacitor changes. Please commit them manually. Error: " + err,
     );
   }
 }

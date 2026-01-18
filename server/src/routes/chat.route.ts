@@ -30,7 +30,7 @@ import { parseAppMentions } from "@/shared/parse_mention_apps";
 import { processFullResponseActions } from "@/services/processors/response_processor";
 import { executeAddDependency } from "@/services/processors/executeAddDependency";
 import { generateProblemReport } from "@/workers/tsc";
-import { getPath, ensureDir, getEeziAppPath } from "@/shared/paths";
+import { getPath, ensureDir, getEeziAppPath } from "@/paths";
 import { AsyncVirtualFileSystem } from "@/workers/VirtualFilesystem";
 import { readSettings } from "@/shared/settings";
 
@@ -183,7 +183,7 @@ router.post("/create-chat/", async (req, res) => {
       "for app:",
       appId,
       "with initial commit hash:",
-      initialCommitHash
+      initialCommitHash,
     );
     res.status(200).json(chat.id);
   } catch (error: any) {
@@ -270,12 +270,12 @@ router.post("/search-chats/:appId", async (req, res) => {
     // Combine: keep title matches and per-message matches
     const combined = [...titleResults, ...messageResults];
     const uniqueChats = Array.from(
-      new Map(combined.map((item) => [item.id, item])).values()
+      new Map(combined.map((item) => [item.id, item])).values(),
     );
 
     // Sort newest chats first
     uniqueChats.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
 
     res.status(200).json(uniqueChats);
@@ -308,7 +308,7 @@ router.get("/get-context-paths", async (req, res) => {
       excludePaths: [],
     };
     const { contextPaths, smartContextAutoIncludes, excludePaths } = validateChatContext(
-      app.chatContext
+      app.chatContext,
     );
     for (const contextPath of contextPaths) {
       const { formattedOutput, files } = await extractCodebase({
@@ -413,7 +413,7 @@ router.post("/add-dep", async (req, res) => {
     const message = [...foundMessages]
       .reverse()
       .find((m) =>
-        m.content.includes(`<eezi-add-dependency packages="${packages.join(" ")}">`)
+        m.content.includes(`<eezi-add-dependency packages="${packages.join(" ")}">`),
       );
 
     if (!message) {
@@ -576,7 +576,7 @@ router.get("/:chatId/stream", async (req, res) => {
             {
               filePath,
               originalName: attachment.name,
-            }
+            },
           );
 
           // Add instruction for AI to use eezi-write tag
@@ -625,7 +625,7 @@ router.get("/:chatId/stream", async (req, res) => {
       try {
         const componentFileContent = await readFile(
           path.join(getEeziAppPath(chat.app.path), selectedComponent.relativePath),
-          "utf8"
+          "utf8",
         );
         const lines = componentFileContent.split("\n");
         const selectedIndex = selectedComponent.lineNumber - 1;
@@ -638,9 +638,8 @@ router.get("/:chatId/stream", async (req, res) => {
         const selectedLineInSnippetIndex = selectedIndex - startIndex;
 
         if (snippetLines[selectedLineInSnippetIndex]) {
-          snippetLines[
-            selectedLineInSnippetIndex
-          ] = `${snippetLines[selectedLineInSnippetIndex]} // <-- EDIT HERE`;
+          snippetLines[selectedLineInSnippetIndex] =
+            `${snippetLines[selectedLineInSnippetIndex]} // <-- EDIT HERE`;
         }
 
         componentSnippet = snippetLines.join("\n");
@@ -702,7 +701,7 @@ router.get("/:chatId/stream", async (req, res) => {
         chatId,
         testResponse,
         abortController,
-        updatedChat
+        updatedChat,
       );
     } else {
       // Normal AI processing for non-test prompts
@@ -732,7 +731,7 @@ router.get("/:chatId/stream", async (req, res) => {
       // Extract codebases for mentioned apps
       const mentionedAppsCodebases = await extractMentionedAppsCodebases(
         mentionedAppNames,
-        updatedChat.app.id // Exclude current app
+        updatedChat.app.id, // Exclude current app
       );
 
       // Combine current app codebase with mentioned apps' codebases
@@ -741,7 +740,7 @@ router.get("/:chatId/stream", async (req, res) => {
         const mentionedAppsSection = mentionedAppsCodebases
           .map(
             ({ appName, codebaseInfo }) =>
-              `\n\n=== Referenced App: ${appName} ===\n${codebaseInfo}`
+              `\n\n=== Referenced App: ${appName} ===\n${codebaseInfo}`,
           )
           .join("");
 
@@ -755,12 +754,12 @@ router.get("/:chatId/stream", async (req, res) => {
         "codebaseInfo: length",
         codebaseInfo.length,
         "estimated tokens",
-        codebaseInfo.length / 4
+        codebaseInfo.length / 4,
       );
       const { modelClient, isEngineEnabled } = await getModelClient(
         settings.selectedModel,
         settings,
-        files
+        files,
       );
 
       // Prepare message history for the AI
@@ -792,7 +791,7 @@ router.get("/:chatId/stream", async (req, res) => {
             recentMessages = recentMessages.slice(firstUserIndex);
           } else if (firstUserIndex === -1) {
             logger.warn(
-              "No user messages found in recent history, set recent messages to empty"
+              "No user messages found in recent history, set recent messages to empty",
             );
             recentMessages = [];
           }
@@ -801,7 +800,7 @@ router.get("/:chatId/stream", async (req, res) => {
         limitedMessageHistory = [...recentMessages];
 
         logger.log(
-          `Limiting chat history from ${messageHistory.length} to ${limitedMessageHistory.length} messages (max ${maxChatTurns} turns)`
+          `Limiting chat history from ${messageHistory.length} to ${limitedMessageHistory.length} messages (max ${maxChatTurns} turns)`,
         );
       }
 
@@ -846,7 +845,7 @@ router.get("/:chatId/stream", async (req, res) => {
       const hasUploadedAttachments =
         attachments &&
         attachments.some(
-          (attachment) => attachment.attachmentType === "upload-to-codebase"
+          (attachment) => attachment.attachmentType === "upload-to-codebase",
         );
       // If there's mixed attachments (e.g. some upload to codebase attachments and some upload images as chat context attachemnts)
       // we will just include the file upload system prompt, otherwise the AI gets confused and doesn't reliably
@@ -914,7 +913,7 @@ router.get("/:chatId/stream", async (req, res) => {
           // Replace the last message with one that includes attachments
           chatMessages[lastUserIndex] = await prepareMessageWithAttachments(
             lastUserMessage,
-            attachmentPaths
+            attachmentPaths,
           );
         }
       }
@@ -969,7 +968,7 @@ router.get("/:chatId/stream", async (req, res) => {
           },
           "eezi-gateway": getExtraProviderOptions(
             modelClient.builtinProviderId,
-            settings
+            settings,
           ),
           openai: {
             reasoningSummary: "auto",
@@ -1059,7 +1058,7 @@ router.get("/:chatId/stream", async (req, res) => {
           });
           fullResponse = fullResponse.replace(
             "$$SUPABASE_CLIENT_CODE$$",
-            supabaseClientCode
+            supabaseClientCode,
           );
         }
         // Store the current partial response
@@ -1163,7 +1162,7 @@ router.get("/:chatId/stream", async (req, res) => {
             logger.warn(
               `Received unclosed eezi-write tag, attempting to continue, attempt #${
                 continuationAttempts + 1
-              }`
+              }`,
             );
             continuationAttempts++;
 
@@ -1223,13 +1222,13 @@ router.get("/:chatId/stream", async (req, res) => {
                     `<problem file="${escapeXml(problem.file)}" line="${
                       problem.line
                     }" column="${problem.column}" code="${problem.code}">${escapeXml(
-                      problem.message
-                    )}</problem>`
+                      problem.message,
+                    )}</problem>`,
                 )
                 .join("\n")}\n</eezi-problem-report>`;
 
               logger.info(
-                `Attempting to auto-fix problems, attempt #${autoFixAttempts + 1}`
+                `Attempting to auto-fix problems, attempt #${autoFixAttempts + 1}`,
               );
               autoFixAttempts++;
               const problemFixPrompt = createProblemFixPrompt(problemReport);
@@ -1239,7 +1238,7 @@ router.get("/:chatId/stream", async (req, res) => {
                 {
                   fileExists: (fileName: string) => fileExists(fileName),
                   readFile: (fileName: string) => readFileWithCache(fileName),
-                }
+                },
               );
               const writeTags = getEeziWriteTags(fullResponse);
               const renameTags = getEeziRenameTags(fullResponse);
@@ -1258,7 +1257,7 @@ router.get("/:chatId/stream", async (req, res) => {
               const { modelClient } = await getModelClient(
                 settings.selectedModel,
                 settings,
-                files
+                files,
               );
 
               const { fullStream } = await simpleStreamText({
@@ -1312,7 +1311,7 @@ router.get("/:chatId/stream", async (req, res) => {
             logger.error(
               "Error generating problem report or auto-fixing:",
               settings.enableAutoFixProblems,
-              error
+              error,
             );
           }
         }
@@ -1332,7 +1331,7 @@ router.get("/:chatId/stream", async (req, res) => {
                 .where(eq(messages.id, placeholderAssistantMessage.id));
 
               logger.log(
-                `Updated cancelled response for placeholder message ${placeholderAssistantMessage.id} in chat ${chatId}`
+                `Updated cancelled response for placeholder message ${placeholderAssistantMessage.id} in chat ${chatId}`,
               );
               partialResponses.delete(chatId);
             } catch (error: any) {
@@ -1349,7 +1348,7 @@ router.get("/:chatId/stream", async (req, res) => {
     if (!abortController.signal.aborted && fullResponse) {
       // Scrape from: <eezi-chat-summary>Renaming profile file</eezi-chat-title>
       const chatTitle = fullResponse.match(
-        /<eezi-chat-summary>(.*?)<\/eezi-chat-summary>/
+        /<eezi-chat-summary>(.*?)<\/eezi-chat-summary>/,
       );
       if (chatTitle) {
         await db
@@ -1372,7 +1371,7 @@ router.get("/:chatId/stream", async (req, res) => {
           {
             chatSummary,
             messageId: placeholderAssistantMessage.id,
-          } // Use placeholder ID
+          }, // Use placeholder ID
         );
 
         const chat = await db.query.chats.findFirst({
@@ -1417,12 +1416,15 @@ router.get("/:chatId/stream", async (req, res) => {
         try {
           // We don't immediately delete files because they might be needed for reference
           // Instead, schedule them for deletion after some time
-          setTimeout(async () => {
-            if (fs.existsSync(filePath)) {
-              await unlink(filePath);
-              logger.log(`Deleted temporary file: ${filePath}`);
-            }
-          }, 30 * 60 * 1000); // Delete after 30 minutes
+          setTimeout(
+            async () => {
+              if (fs.existsSync(filePath)) {
+                await unlink(filePath);
+                logger.log(`Deleted temporary file: ${filePath}`);
+              }
+            },
+            30 * 60 * 1000,
+          ); // Delete after 30 minutes
         } catch (error: any) {
           logger.error(`Error scheduling file deletion: ${error}`);
         }
@@ -1653,7 +1655,7 @@ router.get("/get-proposal/:chatId", async (req, res) => {
         ) {
           const messageId = latestAssistantMessage.id; // Get the message ID
           logger.log(
-            `Found latest assistant message (ID: ${messageId}), parsing content...`
+            `Found latest assistant message (ID: ${messageId}), parsing content...`,
           );
           const messageContent = latestAssistantMessage.content;
 
@@ -1712,7 +1714,7 @@ router.get("/get-proposal/:chatId", async (req, res) => {
               "files=",
               proposal.filesChanged.length,
               "packages=",
-              proposal.packagesAdded.length
+              proposal.packagesAdded.length,
             );
 
             return {
@@ -1722,19 +1724,22 @@ router.get("/get-proposal/:chatId", async (req, res) => {
             };
           } else {
             logger.log(
-              "No relevant tags found in the latest assistant message content."
+              "No relevant tags found in the latest assistant message content.",
             );
           }
         }
         const actions: ActionProposal["actions"] = [];
         if (latestAssistantMessage?.content) {
           const writeTags = getEeziWriteTags(latestAssistantMessage.content);
-          const refactorTarget = writeTags.reduce((largest, tag) => {
-            const lineCount = tag.content.split("\n").length;
-            return lineCount > 500 && (!largest || lineCount > largest.lineCount)
-              ? { path: tag.path, lineCount }
-              : largest;
-          }, null as { path: string; lineCount: number } | null);
+          const refactorTarget = writeTags.reduce(
+            (largest, tag) => {
+              const lineCount = tag.content.split("\n").length;
+              return lineCount > 500 && (!largest || lineCount > largest.lineCount)
+                ? { path: tag.path, lineCount }
+                : largest;
+            },
+            null as { path: string; lineCount: number } | null,
+          );
           if (refactorTarget) {
             actions.push({
               id: "refactor-file",
@@ -1787,7 +1792,7 @@ router.get("/get-proposal/:chatId", async (req, res) => {
             latestAssistantMessage.id,
             latestAssistantMessage.content || "",
             chat.app.path,
-            chat.app.chatContext
+            chat.app.chatContext,
           );
 
           const totalTokens = messagesTokenCount + codebaseTokenCount;
@@ -1795,13 +1800,13 @@ router.get("/get-proposal/:chatId", async (req, res) => {
           logger.log(
             `Token usage: ${totalTokens}/${contextWindow} (${
               (totalTokens / contextWindow) * 100
-            }%)`
+            }%)`,
           );
 
           // If we're using more than 80% of the context window, suggest summarizing
           if (totalTokens > contextWindow * 0.8 || chat.messages.length > 10) {
             logger.log(
-              `Token usage is high (${totalTokens}/${contextWindow}) OR long chat history (${chat.messages.length} messages), suggesting summarize action`
+              `Token usage is high (${totalTokens}/${contextWindow}) OR long chat history (${chat.messages.length} messages), suggesting summarize action`,
             );
             actions.push({
               id: "summarize-in-new-chat",
@@ -1841,7 +1846,7 @@ router.post("/approve-proposal", async (req, res) => {
     const settings = readSettings();
     if (settings.selectedChatMode === "ask") {
       throw new Error(
-        "Ask mode is not supported for proposal approval. Please switch to build mode."
+        "Ask mode is not supported for proposal approval. Please switch to build mode.",
       );
     }
     // 1. Fetch the specific assistant message
@@ -1849,7 +1854,7 @@ router.post("/approve-proposal", async (req, res) => {
       where: and(
         eq(messages.id, messageId),
         eq(messages.chatId, chatId),
-        eq(messages.role, "assistant")
+        eq(messages.role, "assistant"),
       ),
       columns: {
         content: true,
@@ -1858,7 +1863,7 @@ router.post("/approve-proposal", async (req, res) => {
 
     if (!messageToApprove?.content) {
       throw new Error(
-        `Assistant message not found for chatId: ${chatId}, messageId: ${messageId}`
+        `Assistant message not found for chatId: ${chatId}, messageId: ${messageId}`,
       );
     }
 
@@ -1870,12 +1875,12 @@ router.post("/approve-proposal", async (req, res) => {
       {
         chatSummary: chatSummary ?? undefined,
         messageId,
-      } // Pass summary if found
+      }, // Pass summary if found
     );
 
     if (processResult.error) {
       throw new Error(
-        `Error processing actions for message ${messageId}: ${processResult.error}`
+        `Error processing actions for message ${messageId}: ${processResult.error}`,
       );
     }
 
@@ -1900,14 +1905,14 @@ router.patch("/reject-proposal", async (req, res) => {
       where: and(
         eq(messages.id, messageId),
         eq(messages.chatId, chatId),
-        eq(messages.role, "assistant")
+        eq(messages.role, "assistant"),
       ),
       columns: { id: true },
     });
 
     if (!messageToReject) {
       throw new Error(
-        `Assistant message not found for chatId: ${chatId}, messageId: ${messageId}`
+        `Assistant message not found for chatId: ${chatId}, messageId: ${messageId}`,
       );
     }
 
@@ -1991,20 +1996,20 @@ router.post("/count-tokens", async (req, res) => {
           files
             // It doesn't need to be the exact format but it's just to get a token estimate
             .map((file) => `<eezi-file=${file.path}>${file.content}</eezi-file>`)
-            .join("\n\n")
+            .join("\n\n"),
         );
       } else {
         codebaseTokens = estimateTokens(codebaseInfo);
       }
       logger.log(
-        `Extracted codebase information from ${appPath}, tokens: ${codebaseTokens}`
+        `Extracted codebase information from ${appPath}, tokens: ${codebaseTokens}`,
       );
     }
 
     // Extract codebases for mentioned apps
     const mentionedAppsCodebases = await extractMentionedAppsCodebases(
       mentionedAppNames,
-      chat.app?.id // Exclude current app
+      chat.app?.id, // Exclude current app
     );
 
     // Calculate tokens for mentioned apps
@@ -2013,14 +2018,14 @@ router.post("/count-tokens", async (req, res) => {
       const mentionedAppsContent = mentionedAppsCodebases
         .map(
           ({ appName, codebaseInfo }) =>
-            `\n\n=== Referenced App: ${appName} ===\n${codebaseInfo}`
+            `\n\n=== Referenced App: ${appName} ===\n${codebaseInfo}`,
         )
         .join("");
 
       mentionedAppsTokens = estimateTokens(mentionedAppsContent);
 
       logger.log(
-        `Extracted ${mentionedAppsCodebases.length} mentioned app codebases, tokens: ${mentionedAppsTokens}`
+        `Extracted ${mentionedAppsCodebases.length} mentioned app codebases, tokens: ${mentionedAppsTokens}`,
       );
     }
 

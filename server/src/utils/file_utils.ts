@@ -3,7 +3,7 @@ import { promises as fsPromises } from "node:fs";
 import path from "node:path";
 import fsExtra from "fs-extra";
 import { generateCuteAppName } from "@/utils/generateCuteAppName";
-import { normalizePath } from "@/shared/paths";
+import { normalizePath } from "@/paths";
 
 // Directories to exclude when scanning files
 const EXCLUDED_DIRS = ["node_modules", ".git", ".next"];
@@ -64,7 +64,7 @@ export async function copyDirectoryRecursive(source: string, destination: string
 export async function writeMigrationFile(
   appPath: string,
   queryContent: string,
-  queryDescription?: string
+  queryDescription?: string,
 ): Promise<string> {
   const migrationsDir = path.join(appPath, "supabase", "migrations");
   await fsExtra.ensureDir(migrationsDir);

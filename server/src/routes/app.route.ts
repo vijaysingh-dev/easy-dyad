@@ -55,7 +55,7 @@ import {
   getSupabaseProjectName,
 } from "@/services/supabase/supabase_management_client";
 import { localTemplatesData } from "@/shared/templates";
-import { getPath, getEeziAppPath, normalizePath } from "@/shared/paths";
+import { getPath, getEeziAppPath, normalizePath } from "@/paths";
 import { type AppSearchResult } from "@/shared/schemas";
 import { AppUpgrade } from "@/shared/eeziTypes";
 
@@ -409,7 +409,7 @@ router.post("/stop-app", async (req, res): Promise<void> => {
   try {
     const { appId } = req.body;
     logger.log(
-      `Attempting to stop app ${appId}. Current running apps: ${runningApps.size}`
+      `Attempting to stop app ${appId}. Current running apps: ${runningApps.size}`,
     );
     await stopRunningApp(appId);
     res.send({ success: true });
@@ -490,17 +490,17 @@ router.get("/restart-app/:appId", async (req, res) => {
           // If running in Docker mode, also remove container volumes so deps reinstall freshly
           if (runtimeMode === "docker") {
             logger.log(
-              `Docker mode detected for app ${appId}. Removing Docker volumes eezi-pnpm-${appId}...`
+              `Docker mode detected for app ${appId}. Removing Docker volumes eezi-pnpm-${appId}...`,
             );
             try {
               await removeDockerVolumesForApp(appId);
               logger.log(
-                `Removed Docker volumes for app ${appId} (eezi-pnpm-${appId}).`
+                `Removed Docker volumes for app ${appId} (eezi-pnpm-${appId}).`,
               );
             } catch (e) {
               // Best-effort cleanup; log and continue
               logger.warn(
-                `Failed to remove Docker volumes for app ${appId}. Continuing: ${e}`
+                `Failed to remove Docker volumes for app ${appId}. Continuing: ${e}`,
               );
             }
           }
@@ -559,7 +559,7 @@ router.post("/edit-app-file", async (req, res) => {
         logger.error("Error storing Neon timestamp at current version:", error.message);
         throw new Error(
           "Could not store Neon timestamp at current version; database versioning functionality is not working: " +
-            error
+            error,
         );
       }
     }
@@ -654,7 +654,7 @@ router.delete("/delete-app/:appId", async (req, res) => {
       } catch (error: any) {
         logger.error(`Error deleting app files for app ${appId}:`, error);
         throw new Error(
-          `App deleted from database, but failed to delete app files. Please delete app files from ${appPath} manually.\n\nError: ${error.message}`
+          `App deleted from database, but failed to delete app files. Please delete app files from ${appPath} manually.\n\nError: ${error.message}`,
         );
       }
     });
@@ -838,7 +838,7 @@ router.post("/rename-app", async (req, res) => {
         } catch (error: any) {
           logger.error(
             `Error moving app files from ${oldAppPath} to ${newAppPath}:`,
-            error
+            error,
           );
           throw new Error(`Failed to move app files: ${error.message}`);
         }
@@ -879,7 +879,7 @@ router.post("/rename-app", async (req, res) => {
           } catch (rollbackError) {
             logger.error(
               `Failed to rollback file move during rename error:`,
-              rollbackError
+              rollbackError,
             );
           }
         }
@@ -1054,12 +1054,12 @@ router.post("/search-app", async (req, res) => {
       ...chatMessageMatches,
     ];
     const uniqueApps = Array.from(
-      new Map(allMatches.map((app) => [app.id, app])).values()
+      new Map(allMatches.map((app) => [app.id, app])).values(),
     );
 
     // Sort newest apps first
     uniqueApps.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
 
     res.status(200).json(uniqueApps);
@@ -1267,7 +1267,7 @@ router.get("/is-capacitor", async (req, res) => {
     if (majorVersion < 20) {
       // version is too old? stop and throw a clear error
       throw new Error(
-        `Capacitor requires Node.js v20 or higher, but you are using ${currentNodeVersion}. Please upgrade your Node.js and try again.`
+        `Capacitor requires Node.js v20 or higher, but you are using ${currentNodeVersion}. Please upgrade your Node.js and try again.`,
       );
     }
     res.status(200).json({ isCapacitor: isCapacitorInstalled(appPath) });
@@ -1503,7 +1503,7 @@ router.post("/upload-to-signed-url", async (req, res) => {
 
     if (!response.ok) {
       throw new Error(
-        `Upload failed with status ${response.status}: ${response.statusText}`
+        `Upload failed with status ${response.status}: ${response.statusText}`,
       );
     }
 
@@ -1527,7 +1527,7 @@ router.get("/prompts", async (req, res) => {
         content: r.content,
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
-      }))
+      })),
     );
   } catch (error: any) {
     logger.error("Error fetching prompts:", error.message);
@@ -1629,7 +1629,7 @@ router.post("/portal/migrate-create", async (req, res) => {
         if (output.includes("created or renamed from another")) {
           process.stdin.write(`\r\n`);
           logger.info(
-            `App ${appId} (PID: ${process.pid}) wrote enter to stdin to automatically respond to drizzle migrate input`
+            `App ${appId} (PID: ${process.pid}) wrote enter to stdin to automatically respond to drizzle migrate input`,
           );
         }
       });
@@ -1650,7 +1650,7 @@ router.post("/portal/migrate-create", async (req, res) => {
             resolve(combinedOutput);
           } else {
             logger.error(
-              `migrate:create completed successfully for app ${appId} but no migration was created`
+              `migrate:create completed successfully for app ${appId} but no migration was created`,
             );
             reject(new Error("No migration was created because no changes were found."));
           }
@@ -1677,7 +1677,7 @@ router.post("/portal/migrate-create", async (req, res) => {
         logger.error("Error storing Neon timestamp at current version:", error.message);
         throw new Error(
           "Could not store Neon timestamp at current version; database versioning functionality is not working: " +
-            error
+            error,
         );
       }
     }

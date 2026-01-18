@@ -28,7 +28,7 @@ import { IS_TEST_BUILD } from "@/config";
 import { withLock } from "@/utils/lock_utils";
 import { retryOnLocked } from "@/utils/retryOnLocked";
 import { safeSend } from "@/utils/safe_sender";
-import { getEeziAppPath } from "@/shared/paths";
+import { getEeziAppPath } from "@/paths";
 import { NeonBranch } from "@/shared/eeziTypes";
 
 const router = Router();
@@ -67,7 +67,7 @@ router.post("/supabase/fake-connect-and-set-project", async (req, res) => {
       expiresIn: 3600, // 1 hour
     });
     logger.info(
-      `Called handleSupabaseOAuthReturn with fake data for app ${appId} during testing.`
+      `Called handleSupabaseOAuthReturn with fake data for app ${appId} during testing.`,
     );
 
     // Set the supabase project for the currently selected app
@@ -78,7 +78,7 @@ router.post("/supabase/fake-connect-and-set-project", async (req, res) => {
       })
       .where(eq(apps.id, appId));
     logger.info(
-      `Set fake Supabase project ${fakeProjectId} for app ${appId} during testing.`
+      `Set fake Supabase project ${fakeProjectId} for app ${appId} during testing.`,
     );
 
     // Simulate the deep link event
@@ -149,7 +149,7 @@ router.get("/neon/get-project", async (req, res) => {
       let parentBranchName: string | undefined;
       if (branch.parent_id) {
         const parentBranch = branchesResponse.data.branches?.find(
-          (b) => b.id === branch.parent_id
+          (b) => b.id === branch.parent_id,
         );
         parentBranchName = parentBranch?.name;
       }
@@ -197,7 +197,7 @@ router.post("/neon/create-project", async (req, res) => {
             org_id: orgId,
           },
         }),
-      `Create project ${name} for app ${appId}`
+      `Create project ${name} for app ${appId}`,
     );
 
     if (!response.data.project) {
@@ -216,7 +216,7 @@ router.post("/neon/create-project", async (req, res) => {
             parent_id: developmentBranch.id,
           },
         }),
-      `Create preview branch for project ${project.id}`
+      `Create preview branch for project ${project.id}`,
     );
 
     if (
@@ -239,7 +239,7 @@ router.post("/neon/create-project", async (req, res) => {
       .where(eq(apps.id, appId));
 
     logger.info(
-      `Successfully created Neon project: ${project.id} and development branch: ${developmentBranch.id} for app ${appId}`
+      `Successfully created Neon project: ${project.id} and development branch: ${developmentBranch.id} for app ${appId}`,
     );
     res.json({
       id: project.id,
@@ -392,7 +392,7 @@ router.get("/github/:appId/start-flow", (req, res) => {
         if (!resp.ok) {
           return resp.json().then((errData) => {
             throw new Error(
-              `GitHub API Error: ${errData.error_description || resp.statusText}`
+              `GitHub API Error: ${errData.error_description || resp.statusText}`,
             );
           });
         }
@@ -417,7 +417,7 @@ router.get("/github/:appId/start-flow", (req, res) => {
         // Start polling after the initial interval
         existingFlow.timeoutId = setTimeout(
           () => pollForAccessToken(res, appId),
-          existingFlow.interval * 1000
+          existingFlow.interval * 1000,
         );
       })
       .catch((error) => {
@@ -458,7 +458,7 @@ router.get("/github/list-repos", async (req, res) => {
           Authorization: `Bearer ${accessToken}`,
           Accept: "application/vnd.github+json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -472,7 +472,7 @@ router.get("/github/list-repos", async (req, res) => {
         name: repo.name,
         full_name: repo.full_name,
         private: repo.private,
-      }))
+      })),
     );
   } catch (error: any) {
     logger.error("[GitHub Handler] Failed to list repos:", error);
@@ -511,7 +511,7 @@ router.get("/github/get-repo-branches/:owner/:repo", async (req, res) => {
       branches.map((branch: any) => ({
         name: branch.name,
         commit: { sha: branch.commit.sha },
-      }))
+      })),
     );
   } catch (err: any) {
     logger.error("[GitHub Handler] Failed to get repo branches:", err);
@@ -556,12 +556,12 @@ router.post("/github/rename-branch", async (req, res) => {
           ref: newBranchName,
         });
         logger.info(
-          `Branch renamed from '${oldBranchName}' to '${newBranchName}' for app ${appId}`
+          `Branch renamed from '${oldBranchName}' to '${newBranchName}' for app ${appId}`,
         );
       } catch (error: any) {
         logger.error(`Failed to rename branch for app ${appId}: ${error.message}`);
         throw new Error(
-          `Failed to rename branch '${oldBranchName}' to '${newBranchName}': ${error.message}`
+          `Failed to rename branch '${oldBranchName}' to '${newBranchName}': ${error.message}`,
         );
       }
     });
@@ -874,7 +874,7 @@ export async function pollForAccessToken(res: Response, appId: number) {
           // Schedule next poll
           existingFlow.timeoutId = setTimeout(
             () => pollForAccessToken(res, appId),
-            interval * 1000
+            interval * 1000,
           );
           break;
         case "slow_down":
@@ -887,7 +887,7 @@ export async function pollForAccessToken(res: Response, appId: number) {
           });
           existingFlow.timeoutId = setTimeout(
             () => pollForAccessToken(res, appId),
-            newInterval * 1000
+            newInterval * 1000,
           );
           break;
         case "expired_token":
@@ -995,7 +995,7 @@ router.get("/vercel/list-projects", async (req, res) => {
         id: project.id,
         name: project.name,
         framework: project.framework || null,
-      }))
+      })),
     );
   } catch (err: any) {
     logger.error("[Vercel Handler] Failed to list projects:", err);
@@ -1060,7 +1060,7 @@ router.post("/vercel/create-project", async (req, res) => {
     // Check if app has GitHub repository configured
     if (!app.githubOrg || !app.githubRepo) {
       throw new Error(
-        "App must be connected to a GitHub repository before creating a Vercel project."
+        "App must be connected to a GitHub repository before creating a Vercel project.",
       );
     }
 
@@ -1070,7 +1070,7 @@ router.post("/vercel/create-project", async (req, res) => {
     logger.info(
       `Detected framework: ${detectedFramework || "none detected"} for app at ${
         app.path
-      }`
+      }`,
     );
 
     const vercel = createVercelClient(accessToken);
@@ -1107,7 +1107,7 @@ router.post("/vercel/create-project", async (req, res) => {
     });
 
     logger.info(
-      `Successfully created Vercel project: ${projectData.id} with GitHub repo: ${app.githubOrg}/${app.githubRepo}`
+      `Successfully created Vercel project: ${projectData.id} with GitHub repo: ${app.githubOrg}/${app.githubRepo}`,
     );
 
     // Trigger the first deployment
@@ -1161,7 +1161,7 @@ router.post("/vercel/connect-existing-project", async (req, res) => {
     // Verify the project exists and get its details
     const response = await vercel.projects.getProjects({});
     const projectData = response.projects?.find(
-      (p) => p.id === projectId || p.name === projectId
+      (p) => p.id === projectId || p.name === projectId,
     );
 
     if (!projectData) {
@@ -1208,7 +1208,7 @@ router.get("/vercel/get-deployments", async (req, res) => {
     }
 
     logger.info(
-      `Getting deployments for Vercel project: ${app.vercelProjectId} for app ${appId}`
+      `Getting deployments for Vercel project: ${app.vercelProjectId} for app ${appId}`,
     );
 
     const vercel = createVercelClient(accessToken);
@@ -1232,7 +1232,7 @@ router.get("/vercel/get-deployments", async (req, res) => {
         createdAt: deployment.createdAt || 0,
         target: deployment.target || "prod",
         readyState: deployment.readyState || "unknown",
-      }))
+      })),
     );
   } catch (err: any) {
     logger.error("[Vercel Handler] Failed to get deployments:", err);

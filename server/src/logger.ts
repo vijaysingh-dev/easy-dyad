@@ -1,7 +1,7 @@
+import { SERVER_ROOT, getPath } from "@/paths";
 import winston from "winston";
 import fs from "fs";
 import path from "path";
-import { SERVER_ROOT, getPath } from "@/shared/paths";
 
 const LOG_DIR = getPath("logs");
 if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
@@ -64,7 +64,7 @@ const winstonLogger = winston.createLogger({
       const lvl = level.toUpperCase().padEnd(5);
       const fileStr = caller ? `${caller} - ` : "";
       return `${lvl} ${timestamp} | ${fileStr}${message}`;
-    })
+    }),
   ),
   transports: [
     new winston.transports.Console(),
