@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { appBasePathAtom, appsListAtom, selectedAppIdAtom } from "@/atoms/appAtoms";
@@ -39,12 +39,8 @@ export default function AppDetailsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
-  const [isRenameConfirmDialogOpen, setIsRenameConfirmDialogOpen] = useState(false);
   const [newAppName, setNewAppName] = useState("");
   const [isRenaming, setIsRenaming] = useState(false);
-  const [isRenameFolderDialogOpen, setIsRenameFolderDialogOpen] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
-  const [isRenamingFolder, setIsRenamingFolder] = useState(false);
   const appBasePath = useAtomValue(appBasePathAtom);
 
   const [isCopyDialogOpen, setIsCopyDialogOpen] = useState(false);
@@ -55,7 +51,7 @@ export default function AppDetailsPage() {
 
   const debouncedNewCopyAppName = useDebounce(newCopyAppName, 150);
   const { data: checkNameResult, isLoading: isCheckingName } = useCheckName(
-    debouncedNewCopyAppName
+    debouncedNewCopyAppName,
   );
   const nameExists = checkNameResult?.exists ?? false;
 
@@ -88,64 +84,22 @@ export default function AppDetailsPage() {
     }
   };
 
-  const handleOpenRenameFolderDialog = () => {
-    if (selectedApp) {
-      setNewFolderName(selectedApp.path.split("/").pop() || selectedApp.path);
-      setIsRenameFolderDialogOpen(true);
-    }
-  };
-
-  const handleRenameApp = async (renameFolder: boolean) => {
+  const handleRenameApp = async () => {
     if (!appId || !selectedApp || !newAppName.trim()) return;
 
     try {
       setIsRenaming(true);
-
-      // Determine the new path based on user's choice
-      const appPath = renameFolder ? newAppName : selectedApp.path;
-
-      await api.app.renameApp({
-        appId,
-        appName: newAppName,
-        appPath,
-      });
+      await api.app.renameApp({ appId, newAppName });
 
       setIsRenameDialogOpen(false);
-      setIsRenameConfirmDialogOpen(false);
       await refreshApps();
     } catch (error) {
       console.error("Failed to rename app:", error);
       alert(
-        `Error renaming app: ${error instanceof Error ? error.message : String(error)}`
+        `Error renaming app: ${error instanceof Error ? error.message : String(error)}`,
       );
     } finally {
       setIsRenaming(false);
-    }
-  };
-
-  const handleRenameFolderOnly = async () => {
-    if (!appId || !selectedApp || !newFolderName.trim()) return;
-
-    try {
-      setIsRenamingFolder(true);
-
-      await api.app.renameApp({
-        appId,
-        appName: selectedApp.name, // Keep the app name the same
-        appPath: newFolderName, // Change only the folder path
-      });
-
-      setIsRenameFolderDialogOpen(false);
-      await refreshApps();
-    } catch (error) {
-      console.error("Failed to rename folder:", error);
-      alert(
-        `Error renaming folder: ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-    } finally {
-      setIsRenamingFolder(false);
     }
   };
 
@@ -259,15 +213,6 @@ export default function AppDetailsPage() {
             </PopoverTrigger>
             <PopoverContent className="w-40 p-2" align="end">
               <div className="flex flex-col space-y-0.5">
-                <Button
-                  dir={dir}
-                  onClick={handleOpenRenameFolderDialog}
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 justify-start text-xs"
-                >
-                  {t("Rename folder")}
-                </Button>
                 <Button
                   dir={dir}
                   onClick={handleOpenCopyDialog}
@@ -386,153 +331,11 @@ export default function AppDetailsPage() {
               </Button>
               <Button
                 dir={dir}
-                onClick={() => {
-                  setIsRenameDialogOpen(false);
-                  setIsRenameConfirmDialogOpen(true);
-                }}
+                onClick={handleRenameApp}
                 disabled={isRenaming || !newAppName.trim()}
                 size="sm"
               >
-                {t("Continue")}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Rename Folder Dialog */}
-        <Dialog
-          open={isRenameFolderDialogOpen}
-          onOpenChange={setIsRenameFolderDialogOpen}
-        >
-          <DialogContent className="max-w-sm p-4">
-            <DialogHeader className="pb-2">
-              <DialogTitle dir={dir}>{t("Rename app folder")}</DialogTitle>
-              <DialogDescription dir={dir} className="text-xs">
-                {t("This will change only the folder name, not the app name.")}
-              </DialogDescription>
-            </DialogHeader>
-            <Input
-              dir={dir}
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder={t("Enter new folder name")}
-              className="my-2"
-              autoFocus
-            />
-            <DialogFooter className="pt-2">
-              <Button
-                dir={dir}
-                variant="outline"
-                onClick={() => setIsRenameFolderDialogOpen(false)}
-                disabled={isRenamingFolder}
-                size="sm"
-              >
-                {t("Cancel")}
-              </Button>
-              <Button
-                dir={dir}
-                onClick={handleRenameFolderOnly}
-                disabled={isRenamingFolder || !newFolderName.trim()}
-                size="sm"
-              >
-                {isRenamingFolder ? (
-                  <>
-                    <svg
-                      className="animate-spin h-3 w-3 mr-1"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    {t("Renaming...")}
-                  </>
-                ) : (
-                  t("Rename Folder")
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Rename Confirmation Dialog */}
-        <Dialog
-          open={isRenameConfirmDialogOpen}
-          onOpenChange={setIsRenameConfirmDialogOpen}
-        >
-          <DialogContent className="max-w-sm p-4">
-            <DialogHeader className="pb-2">
-              <DialogTitle dir={dir} className="text-base">
-                {t('How would you like to rename "name"?', { name: selectedApp.name })}
-              </DialogTitle>
-              <DialogDescription dir={dir} className="text-xs">
-                {t("Choose an option:")}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-2 my-2">
-              <Button
-                dir={dir}
-                variant="outline"
-                className="w-full justify-start p-2 h-auto relative text-sm"
-                onClick={() => handleRenameApp(true)}
-                disabled={isRenaming}
-              >
-                <div className="absolute top-1 right-1">
-                  <span
-                    dir={dir}
-                    className="bg-blue-100 text-blue-800 text-xs font-medium px-1.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 text-[10px]"
-                  >
-                    {t("Recommended")}
-                  </span>
-                </div>
-                <div className="text-left">
-                  <p dir={dir} className="font-medium text-xs">
-                    {t("Rename app and folder")}
-                  </p>
-                  <p dir={dir} className="text-xs text-gray-500 dark:text-gray-400">
-                    {t("Renames the folder to match the new app name.")}
-                  </p>
-                </div>
-              </Button>
-
-              <Button
-                dir={dir}
-                variant="outline"
-                className="w-full justify-start p-2 h-auto text-sm"
-                onClick={() => handleRenameApp(false)}
-                disabled={isRenaming}
-              >
-                <div className="text-left">
-                  <p dir={dir} className="font-medium text-xs">
-                    {t("Rename app only")}
-                  </p>
-                  <p dir={dir} className="text-xs text-gray-500 dark:text-gray-400">
-                    {t("The folder name will remain the same.")}
-                  </p>
-                </div>
-              </Button>
-            </div>
-            <DialogFooter className="pt-2">
-              <Button
-                dir={dir}
-                variant="outline"
-                onClick={() => setIsRenameConfirmDialogOpen(false)}
-                disabled={isRenaming}
-                size="sm"
-              >
-                {t("Cancel")}
+                {t("Rename")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -550,7 +353,7 @@ export default function AppDetailsPage() {
                   <p dir={dir}>{t("Create a copy of this app.")}</p>
                   <p dir={dir}>
                     {t(
-                      "Note: this does not copy over the Supabase project or GitHub project."
+                      "Note: this does not copy over the Supabase project or GitHub project.",
                     )}
                   </p>
                 </DialogDescription>
@@ -583,7 +386,7 @@ export default function AppDetailsPage() {
                       className="text-xs text-yellow-600 dark:text-yellow-500 mt-1"
                     >
                       {t(
-                        "An app with this name already exists. Please choose another name."
+                        "An app with this name already exists. Please choose another name.",
                       )}
                     </p>
                   )}
@@ -675,7 +478,7 @@ export default function AppDetailsPage() {
               </DialogTitle>
               <DialogDescription dir={dir} className="text-xs">
                 {t(
-                  "This action is irreversible. All app files and chat history will be permanently deleted."
+                  "This action is irreversible. All app files and chat history will be permanently deleted.",
                 )}
               </DialogDescription>
             </DialogHeader>

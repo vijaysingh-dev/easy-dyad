@@ -39,7 +39,7 @@ async function getLastUpdatedTimestampFromNeon({
 export async function storeDbTimestampAtCurrentVersion({
   appId,
 }: {
-  appId: number;
+  appId: string;
 }): Promise<{ timestamp: string }> {
   try {
     logger.info(`Storing DB timestamp for current version - app ${appId}`);

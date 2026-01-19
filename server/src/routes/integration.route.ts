@@ -96,7 +96,7 @@ router.post("/supabase/fake-connect-and-set-project", async (req, res) => {
 // --- Neon Management ---
 router.get("/neon/get-project", async (req, res) => {
   try {
-    const appId = parseInt(req.query.appId as string, 10);
+    const appId = req.query.appId as string;
     logger.info(`Getting Neon project info for app ${appId}`);
     // Get the app from the database to find the neonProjectId and neonBranchId
     const app = await db.select().from(apps).where(eq(apps.id, appId)).limit(1);
@@ -269,7 +269,7 @@ router.get("/supabase/list-projects", async (req, res) => {
 // Set app project - links a Eezi app to a Supabase project
 router.post("/supabase/set-app-project", async (req, res) => {
   try {
-    const { project, app } = req.body as { project: string; app: number };
+    const { project, app } = req.body as { project: string; app: string };
     await db.update(apps).set({ supabaseProjectId: project }).where(eq(apps.id, app));
     logger.info(`Associated app ${app} with Supabase project ${project}`);
     res.json({ success: true });
@@ -282,7 +282,7 @@ router.post("/supabase/set-app-project", async (req, res) => {
 // Unset app project - removes the link between a Eezi app and a Supabase project
 router.post("/supabase/unset-app-project", async (req, res) => {
   try {
-    const { app } = req.body as { app: number };
+    const { app } = req.body as { app: string };
     await db.update(apps).set({ supabaseProjectId: null }).where(eq(apps.id, app));
     logger.info(`Removed Supabase project association for app ${app}`);
     res.json({ success: true });
@@ -1195,7 +1195,7 @@ router.post("/vercel/connect-existing-project", async (req, res) => {
 // --- Vercel Get Deployments Handler ---
 router.get("/vercel/get-deployments", async (req, res) => {
   try {
-    const appId = parseInt(req.query.appId as string);
+    const appId = req.query.appId as string;
     const settings = readSettings();
     const accessToken = settings.vercelAccessToken?.value;
     if (!accessToken) {

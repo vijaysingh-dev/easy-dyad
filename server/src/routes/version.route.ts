@@ -73,7 +73,7 @@ router.get("/does-release-note-exist", async (req, res) => {
 
 router.get("/list-versions/:appId", async (req, res) => {
   try {
-    const appId = parseInt(req.params.appId);
+    const appId = req.params.appId;
     const app = await db.query.apps.findFirst({
       where: eq(apps.id, appId),
     });
@@ -133,7 +133,7 @@ router.get("/list-versions/:appId", async (req, res) => {
 
 router.get("/get-current-branch/:appId", async (req, res) => {
   try {
-    const appId = parseInt(req.params.appId);
+    const appId = req.params.appId;
     const app = await db.query.apps.findFirst({
       where: eq(apps.id, appId),
     });

@@ -113,7 +113,7 @@ router.get("/get-chats", async (req, res) => {
     const appId = req.query?.appId;
     const query = appId
       ? db.query.chats.findMany({
-          where: eq(chats.appId, parseInt(appId as string)),
+          where: eq(chats.appId, appId as string),
           columns: {
             id: true,
             title: true,
@@ -143,7 +143,7 @@ router.get("/get-chats", async (req, res) => {
 
 router.post("/create-chat/", async (req, res) => {
   try {
-    const appId = parseInt(req.body.appId);
+    const appId = req.body.appId;
     // Get the app's path first
     const app = await db.query.apps.findFirst({
       where: eq(apps.id, appId),
@@ -229,7 +229,7 @@ router.delete("/delete-messages/:chatId", async (req, res) => {
 
 router.post("/search-chats/:appId", async (req, res) => {
   try {
-    const appId = parseInt(req.params.appId);
+    const appId = req.params.appId;
     const { query } = req.body;
     // 1) Find chats by title and map to ChatSearchResult with no matched message
     const chatTitleMatches = await db
@@ -287,7 +287,7 @@ router.post("/search-chats/:appId", async (req, res) => {
 
 router.get("/get-context-paths", async (req, res) => {
   try {
-    const appId = parseInt(req.query.appId as string);
+    const appId = req.query.appId as string;
     z.object({ appId: z.number() }).parse({ appId });
     const app = await db.query.apps.findFirst({
       where: eq(apps.id, appId),

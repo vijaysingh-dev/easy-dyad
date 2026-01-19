@@ -197,7 +197,7 @@ export async function cleanUpPort(port: number) {
   }
 }
 
-export async function stopRunningApp(appId: number): Promise<void> {
+export async function stopRunningApp(appId: string): Promise<void> {
   return withLock(appId, async () => {
     const appInfo = runningApps.get(appId);
 
@@ -252,7 +252,7 @@ export async function executeApp({
   startCommand,
 }: {
   appPath: string;
-  appId: number;
+  appId: string;
   res: Response;
   isNeon: boolean;
   installCommand?: string | null;
@@ -295,7 +295,7 @@ async function executeAppLocalNode({
   startCommand,
 }: {
   appPath: string;
-  appId: number;
+  appId: string;
   res: Response;
   isNeon: boolean;
   installCommand?: string | null;
@@ -371,7 +371,7 @@ function listenToProcess({
   res,
 }: {
   process: ChildProcess;
-  appId: number;
+  appId: string;
   isNeon: boolean;
   res: Response;
 }) {
@@ -471,7 +471,7 @@ async function executeAppInDocker({
   startCommand,
 }: {
   appPath: string;
-  appId: number;
+  appId: string;
   res: Response;
   isNeon: boolean;
   installCommand?: string | null;

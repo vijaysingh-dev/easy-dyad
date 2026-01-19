@@ -10,7 +10,7 @@ export interface RunningAppInfo {
 }
 
 // Store running app processes
-export const runningApps = new Map<number, RunningAppInfo>();
+export const runningApps = new Map<string, RunningAppInfo>();
 // Global counter for process IDs
 let processCounterValue = 0;
 
@@ -38,7 +38,7 @@ export function killProcess(process: ChildProcess): Promise<void> {
     // Add timeout to prevent hanging
     const timeout = setTimeout(() => {
       console.warn(
-        `Timeout waiting for process (PID: ${process.pid}) to close. Force killing may be needed.`
+        `Timeout waiting for process (PID: ${process.pid}) to close. Force killing may be needed.`,
       );
       resolve();
     }, 5000); // 5-second timeout
@@ -46,7 +46,7 @@ export function killProcess(process: ChildProcess): Promise<void> {
     process.on("close", (code, signal) => {
       clearTimeout(timeout);
       console.log(
-        `Received 'close' event for process (PID: ${process.pid}) with code ${code}, signal ${signal}.`
+        `Received 'close' event for process (PID: ${process.pid}) with code ${code}, signal ${signal}.`,
       );
       resolve();
     });
@@ -55,7 +55,7 @@ export function killProcess(process: ChildProcess): Promise<void> {
     process.on("error", (err) => {
       clearTimeout(timeout);
       console.error(
-        `Error during stop sequence for process (PID: ${process.pid}): ${err.message}`
+        `Error during stop sequence for process (PID: ${process.pid}): ${err.message}`,
       );
       resolve();
     });
@@ -64,7 +64,7 @@ export function killProcess(process: ChildProcess): Promise<void> {
     if (process.pid) {
       // Use tree-kill to terminate the entire process tree
       console.log(
-        `Attempting to tree-kill process tree starting at PID ${process.pid}.`
+        `Attempting to tree-kill process tree starting at PID ${process.pid}.`,
       );
       treeKill(process.pid, "SIGTERM", (err: Error | undefined) => {
         if (err) {
@@ -94,7 +94,7 @@ export function stopDockerContainer(containerName: string): Promise<void> {
  * Removes Docker named volumes used for an app's dependencies.
  * Best-effort: resolves even if volumes don't exist.
  */
-export function removeDockerVolumesForApp(appId: number): Promise<void> {
+export function removeDockerVolumesForApp(appId: string): Promise<void> {
   return new Promise<void>((resolve) => {
     const pnpmVolume = `eezi-pnpm-${appId}`;
 
@@ -110,8 +110,8 @@ export function removeDockerVolumesForApp(appId: number): Promise<void> {
  * Stops an app based on its RunningAppInfo (container vs host) and removes it from the running map.
  */
 export async function stopAppByInfo(
-  appId: number,
-  appInfo: RunningAppInfo
+  appId: string,
+  appInfo: RunningAppInfo,
 ): Promise<void> {
   if (appInfo.isDocker) {
     const containerName = appInfo.containerName || `eezi-app-${appId}`;
@@ -127,16 +127,16 @@ export async function stopAppByInfo(
  * @param appId The app ID
  * @param process The process to check against
  */
-export function removeAppIfCurrentProcess(appId: number, process: ChildProcess): void {
+export function removeAppIfCurrentProcess(appId: string, process: ChildProcess): void {
   const currentAppInfo = runningApps.get(appId);
   if (currentAppInfo && currentAppInfo.process === process) {
     runningApps.delete(appId);
     console.log(
-      `Removed app ${appId} (processId ${currentAppInfo.processId}) from running map. Current size: ${runningApps.size}`
+      `Removed app ${appId} (processId ${currentAppInfo.processId}) from running map. Current size: ${runningApps.size}`,
     );
   } else {
     console.log(
-      `App ${appId} process was already removed or replaced in running map. Ignoring.`
+      `App ${appId} process was already removed or replaced in running map. Ignoring.`,
     );
   }
 }

@@ -1,10 +1,9 @@
 import logger from "@/logger";
 import path from "path";
-import { fileURLToPath } from "url";
 import fs from "fs-extra";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
-import { getPath } from "@/paths";
+import { PROJECT_ROOT, getPath } from "@/paths";
 import { readSettings } from "@/shared/settings";
 import { copyDirectoryRecursive } from "@/utils/file_utils";
 import { getTemplateOrThrow } from "@/utils/template_utils";
@@ -15,10 +14,7 @@ export async function createFromTemplate({ fullAppPath }: { fullAppPath: string 
 
   if (templateId === "react") {
     // const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    await copyDirectoryRecursive(
-      path.join(__dirname, "..", "..", "..", "scaffold"),
-      fullAppPath,
-    );
+    await copyDirectoryRecursive(path.join(PROJECT_ROOT, "scaffold"), fullAppPath);
     return;
   }
 

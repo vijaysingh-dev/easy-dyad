@@ -1,3 +1,4 @@
+import os from "node:os";
 import fs from "fs";
 import path from "node:path";
 import { IS_TEST_BUILD } from "@/config";
@@ -18,30 +19,42 @@ export function normalizePath(path: string): string {
 }
 
 export function ensureDir(dir: string) {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   return dir;
 }
 
 export function getPath(
-  name: "home" | "sessionData" | "userData" | "logs" | "exe" | "module" | "assets",
+  name:
+    | "home"
+    | "logs"
+    | "userData"
+    | "appBase"
+    | "eeziApp"
+    | "temp"
+    | "sessionData"
+    | "typeScriptCache"
+    | "exe"
+    | "module"
+    | "assets",
 ): string {
-  const home = IS_TEST_BUILD ? PROJECT_ROOT : "/efs";
+  const home = os.homedir();
 
   switch (name) {
     case "home":
       return home;
-    case "logs": {
-      return path.join(home, "logs");
-    }
-    case "userData": {
-      return path.join(home, "userData");
-    }
+    case "logs":
+      return path.join(IS_TEST_BUILD ? PROJECT_ROOT : home, "logs");
+    case "userData":
+      return IS_TEST_BUILD ? path.join(PROJECT_ROOT, "userData") : "/efs";
+    case "appBase":
+      return path.join(getPath("userData"), "eezi-apps");
 
-    case "sessionData": {
+    case "temp":
+      return path.join(getPath("userData"), "temp");
+    case "sessionData":
       return path.join(getPath("userData"), "sessionData");
-    }
+    case "typeScriptCache":
+      return path.join(getPath("sessionData"), "typescript-cache");
 
     case "exe":
       return process.execPath;
@@ -55,12 +68,6 @@ export function getPath(
   }
 }
 
-export function getEeziAppPath(appPath?: string): string {
-  let eeziAppPath = path.join(getPath("userData"), "eezi-apps");
-  if (appPath) eeziAppPath = path.join(eeziAppPath, appPath);
-  return eeziAppPath;
-}
-
-export function getTypeScriptCachePath(): string {
-  return path.join(getPath("sessionData"), "typescript-cache");
+export function getEeziAppPath(appPath: string): string {
+  return path.join(getPath("appBase"), appPath);
 }

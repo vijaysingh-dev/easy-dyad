@@ -7,7 +7,7 @@ import { validateChatContext } from "./context_paths_utils";
 // Helper function to extract codebases from mentioned apps
 export async function extractMentionedAppsCodebases(
   mentionedAppNames: string[],
-  excludeCurrentAppId?: number,
+  excludeCurrentAppId?: string,
 ): Promise<{ appName: string; codebaseInfo: string; files: CodebaseFile[] }[]> {
   if (mentionedAppNames.length === 0) {
     return [];

@@ -59,7 +59,7 @@ class AppApiService {
     return Promise.resolve(() =>
       setTimeout(() => {
         window.location.reload();
-      }, 1000)
+      }, 1000),
     );
   }
 
@@ -71,12 +71,6 @@ class AppApiService {
 
   public async showItemInFolder(fullPath: string): Promise<void> {
     const { data } = await Api.post("/app/show-item-in-folder", { fullPath });
-    return data;
-  }
-
-  // Get system platform (win32, darwin, linux)
-  public async getSystemPlatform() {
-    const { data } = await Api.get("/app/get-system-platform");
     return data;
   }
 
@@ -127,7 +121,7 @@ class AppApiService {
 
   public async readAppFile(appId: number, filePath: string) {
     const { data } = await Api.get(
-      `/app/read-app-file/${appId}/${encodeURIComponent(filePath)}`
+      `/app/read-app-file/${appId}/${encodeURIComponent(filePath)}`,
     );
     return data;
   }
@@ -152,7 +146,7 @@ class AppApiService {
   public async restartApp(
     appId: number,
     onOutput: (output: AppOutput) => void,
-    removeNodeModules?: boolean
+    removeNodeModules?: boolean,
   ) {
     eeziClient.appStreams.delete(appId);
     eeziClient.eventSources["app"]?.close();
@@ -207,19 +201,10 @@ class AppApiService {
   }
 
   // Rename an app (update name and path)
-  public async renameApp({
-    appId,
-    appName,
-    appPath,
-  }: {
-    appId: number;
-    appName: string;
-    appPath: string;
-  }) {
+  public async renameApp({ appId, newAppName }: { appId: number; newAppName: string }) {
     const { data } = await Api.post("/app/rename-app", {
       appId,
-      appName,
-      appPath,
+      newAppName,
     });
     return data;
   }

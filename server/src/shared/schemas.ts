@@ -48,7 +48,7 @@ export const ChatSearchResultsSchema = z.array(ChatSearchResultSchema);
 
 // Zod schema for app search result objects returned by the search-app IPC
 export const AppSearchResultSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   name: z.string(),
   createdAt: z.date(),
   matchedChatTitle: z.string().nullable(),
@@ -75,7 +75,7 @@ const providers = [
 ] as const;
 
 export const cloudProviders = providers.filter(
-  (provider) => provider !== "ollama" && provider !== "lmstudio"
+  (provider) => provider !== "ollama" && provider !== "lmstudio",
 );
 
 /**

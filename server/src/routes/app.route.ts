@@ -58,6 +58,7 @@ import { localTemplatesData } from "@/shared/templates";
 import { getPath, getEeziAppPath, normalizePath } from "@/paths";
 import { type AppSearchResult } from "@/shared/schemas";
 import { AppUpgrade } from "@/shared/eeziTypes";
+import { get } from "http";
 
 const router = Router();
 
@@ -88,7 +89,7 @@ router.get("/list-apps", async (req, res) => {
     });
     res.status(200).json({
       apps: allApps,
-      appBasePath: getEeziAppPath(),
+      appBasePath: getPath("appBase"),
     });
   } catch (error: any) {
     logger.error("Error getting all apps:", error.message);
@@ -99,8 +100,8 @@ router.get("/list-apps", async (req, res) => {
 router.post("/create-app", async (req, res) => {
   try {
     const { name } = req.body;
-    const appPath = name;
-    const fullAppPath = getEeziAppPath(appPath);
+    const appId = crypto.randomUUID();
+    const fullAppPath = getEeziAppPath(appId);
     if (fs.existsSync(fullAppPath)) {
       throw new Error(`App already exists at: ${fullAppPath}`);
     }
@@ -108,9 +109,9 @@ router.post("/create-app", async (req, res) => {
     const [app] = await db
       .insert(apps)
       .values({
+        id: appId,
         name: name,
-        // Use the name as the path for now
-        path: appPath,
+        path: appId,
       })
       .returning();
 
@@ -184,7 +185,8 @@ router.post("/copy-app", async (req, res) => {
     }
 
     const originalAppPath = getEeziAppPath(originalApp.path);
-    const newAppPath = getEeziAppPath(newAppName);
+    const newAppId = crypto.randomUUID();
+    const newAppPath = getEeziAppPath(newAppId);
 
     // 3. Copy the app folder
     try {
@@ -225,8 +227,9 @@ router.post("/copy-app", async (req, res) => {
     const [newDbApp] = await db
       .insert(apps)
       .values({
+        id: newAppId,
         name: newAppName,
-        path: newAppName, // Use the new name for the path
+        path: newAppPath,
         // Explicitly set these to null because we don't want to copy them over.
         // Note: we could just leave them out since they're nullable field, but this
         // is to make it explicit we intentionally don't want to copy them over.
@@ -247,7 +250,7 @@ router.post("/copy-app", async (req, res) => {
 
 router.get("/get-app/:appId", async (req, res) => {
   try {
-    const appId = parseInt(req.params.appId, 10);
+    const appId = req.params.appId;
     const app = await db.query.apps.findFirst({
       where: eq(apps.id, appId),
     });
@@ -298,7 +301,7 @@ router.get("/read-app-file/:appId/:filePath", async (req, res) => {
     const { appId, filePath } = req.params;
     logger.info(`Reading file ${filePath} for app ${appId}`);
     const app = await db.query.apps.findFirst({
-      where: eq(apps.id, parseInt(appId)),
+      where: eq(apps.id, appId),
     });
 
     if (!app) {
@@ -332,7 +335,7 @@ router.get("/read-app-file/:appId/:filePath", async (req, res) => {
 
 router.get("/run-app/:appId", async (req, res) => {
   let heartbeat: NodeJS.Timeout | null = null;
-  const appId = parseInt(req.params.appId, 10);
+  const appId = req.params.appId;
   try {
     // Set up SSE
     const origin = req.headers.origin ?? "*";
@@ -421,7 +424,7 @@ router.post("/stop-app", async (req, res): Promise<void> => {
 
 router.get("/restart-app/:appId", async (req, res) => {
   let heartbeat: NodeJS.Timeout | null = null;
-  const appId = parseInt(req.params.appId, 10);
+  const appId = req.params.appId;
   const removeNodeModules = req.query.removeNodeModules === "true";
   try {
     // Set up SSE
@@ -613,7 +616,7 @@ router.post("/edit-app-file", async (req, res) => {
 
 router.delete("/delete-app/:appId", async (req, res) => {
   try {
-    const appId = parseInt(req.params.appId, 10);
+    const appId = req.params.appId;
     // Static server worker is NOT terminated here anymore
 
     const result = await withLock(appId, async () => {
@@ -668,7 +671,7 @@ router.delete("/delete-app/:appId", async (req, res) => {
 // Handler to get app environment variables
 router.get("/get-app-env-vars", async (req, res) => {
   try {
-    const appId = parseInt(req.query.appId as string, 10);
+    const appId = req.query.appId as string;
     const app = await db.query.apps.findFirst({
       where: eq(apps.id, appId),
     });
@@ -778,7 +781,7 @@ router.post("/add-to-favorite", async (req, res) => {
 
 router.post("/rename-app", async (req, res) => {
   try {
-    const { appId, appName, appPath } = req.body;
+    const { appId, newAppName } = req.body;
     const result = await withLock(appId, async () => {
       // Check if app exists
       const app = await db.query.apps.findFirst({
@@ -787,23 +790,6 @@ router.post("/rename-app", async (req, res) => {
 
       if (!app) {
         throw new Error("App not found");
-      }
-
-      // Check for conflicts with existing apps
-      const nameConflict = await db.query.apps.findFirst({
-        where: eq(apps.name, appName),
-      });
-
-      const pathConflict = await db.query.apps.findFirst({
-        where: eq(apps.path, appPath),
-      });
-
-      if (nameConflict && nameConflict.id !== appId) {
-        throw new Error(`An app with the name '${appName}' already exists`);
-      }
-
-      if (pathConflict && pathConflict.id !== appId) {
-        throw new Error(`An app with the path '${appPath}' already exists`);
       }
 
       // Stop the app if it's running
@@ -817,73 +803,18 @@ router.post("/rename-app", async (req, res) => {
         }
       }
 
-      const oldAppPath = getEeziAppPath(app.path);
-      const newAppPath = getEeziAppPath(appPath);
-      // Only move files if needed
-      if (newAppPath !== oldAppPath) {
-        // Move app files
-        try {
-          // Check if destination directory already exists
-          if (fs.existsSync(newAppPath)) {
-            throw new Error(`Destination path '${newAppPath}' already exists`);
-          }
-
-          // Create parent directory if it doesn't exist
-          await fsPromises.mkdir(path.dirname(newAppPath), {
-            recursive: true,
-          });
-
-          // Copy the directory without node_modules
-          await copyDir(oldAppPath, newAppPath);
-        } catch (error: any) {
-          logger.error(
-            `Error moving app files from ${oldAppPath} to ${newAppPath}:`,
-            error,
-          );
-          throw new Error(`Failed to move app files: ${error.message}`);
-        }
-
-        try {
-          // Delete the old directory
-          await fsPromises.rm(oldAppPath, { recursive: true, force: true });
-        } catch (error: any) {
-          // Why is this just a warning? This happens quite often on Windows
-          // because it has an aggressive file lock.
-          //
-          // Not deleting the old directory is annoying, but not a big deal
-          // since the user can do it themselves if they need to.
-          logger.warn(`Error deleting old app directory ${oldAppPath}:`, error);
-        }
-      }
-
       // Update app in database
       try {
         const data = await db
           .update(apps)
           .set({
-            name: appName,
-            path: appPath,
+            name: newAppName,
           })
           .where(eq(apps.id, appId))
           .returning();
 
         return data;
       } catch (error: any) {
-        // Attempt to rollback the file move
-        if (newAppPath !== oldAppPath) {
-          try {
-            // Copy back from new to old
-            await copyDir(newAppPath, oldAppPath);
-            // Delete the new directory
-            await fsPromises.rm(newAppPath, { recursive: true, force: true });
-          } catch (rollbackError) {
-            logger.error(
-              `Failed to rollback file move during rename error:`,
-              rollbackError,
-            );
-          }
-        }
-
         logger.error(`Error updating app ${appId} in database:`, error);
         throw new Error(`Failed to update app in database: ${error.message}`);
       }
@@ -895,7 +826,7 @@ router.post("/rename-app", async (req, res) => {
   }
 });
 
-router.get("reset-all", async (req, res) => {
+router.get("/reset-all", async (req, res) => {
   try {
     logger.log("start: resetting all apps and settings.");
     // Stop all running apps first
@@ -1123,6 +1054,7 @@ router.post("/import-app", async (req, res) => {
       throw new Error("Source folder does not exist");
     }
 
+    const newAppId = crypto.randomUUID();
     const destPath = getEeziAppPath(appName);
 
     // Check if the app already exists
@@ -1170,6 +1102,7 @@ router.post("/import-app", async (req, res) => {
     const [app] = await db
       .insert(apps)
       .values({
+        id: newAppId,
         name: appName,
         // Use the name as the path for now
         path: appName,
@@ -1210,7 +1143,7 @@ const availableUpgrades: Omit<AppUpgrade, "isNeeded">[] = [
 
 router.get("/get-app-upgrades", async (req, res) => {
   try {
-    const appId = parseInt(req.query.appId as string);
+    const appId = req.query.appId as string;
     const app = await getApp(appId);
     const appPath = getEeziAppPath(app.path);
 
@@ -1256,7 +1189,7 @@ router.post("/execute-app-upgrade", async (req, res) => {
 
 router.get("/is-capacitor", async (req, res) => {
   try {
-    const appId = parseInt(req.query.appId as string);
+    const appId = req.query.appId as string;
     const app = await getApp(appId);
     const appPath = getEeziAppPath(app.path);
 
@@ -1279,7 +1212,7 @@ router.get("/is-capacitor", async (req, res) => {
 
 router.get("/sync-capacitor", async (req, res) => {
   try {
-    const appId = parseInt(req.query.appId as string);
+    const appId = req.query.appId as string;
     const app = await getApp(appId);
     const appPath = getEeziAppPath(app.path);
 
@@ -1313,7 +1246,7 @@ router.get("/sync-capacitor", async (req, res) => {
 
 router.get("/open-ios", async (req, res) => {
   try {
-    const appId = parseInt(req.query.appId as string);
+    const appId = req.query.appId as string;
     const app = await getApp(appId);
     const appPath = getEeziAppPath(app.path);
 
@@ -1341,7 +1274,7 @@ router.get("/open-ios", async (req, res) => {
 
 router.get("/open-android", async (req, res) => {
   try {
-    const appId = parseInt(req.query.appId as string);
+    const appId = req.query.appId as string;
 
     const app = await getApp(appId);
     const appPath = getEeziAppPath(app.path);
@@ -1371,7 +1304,7 @@ router.get("/open-android", async (req, res) => {
 // Handler to check problems using autofix with empty response
 router.get("/check-problems", async (req, res) => {
   try {
-    const appId = parseInt(req.query.appId as string);
+    const appId = req.query.appId as string;
     // Get the app to find its path
     const app = await db.query.apps.findFirst({
       where: eq(apps.id, appId),

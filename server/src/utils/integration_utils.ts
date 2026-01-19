@@ -35,7 +35,7 @@ export async function updateAppGithubRepo({
   repo,
   branch,
 }: {
-  appId: number;
+  appId: string;
   org?: string;
   repo: string;
   branch?: string;
@@ -112,7 +112,7 @@ export async function getDefaultTeamId(token: string): Promise<string> {
 
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch teams: ${response.status} ${response.statusText}`
+        `Failed to fetch teams: ${response.status} ${response.statusText}`,
       );
     }
 
@@ -131,7 +131,7 @@ export async function getDefaultTeamId(token: string): Promise<string> {
 }
 
 export async function detectFramework(
-  appPath: string
+  appPath: string,
 ): Promise<CreateProjectFramework | undefined> {
   try {
     // Check for specific config files first
@@ -196,7 +196,7 @@ export async function updateAppVercelProject({
   teamId,
   deploymentUrl,
 }: {
-  appId: number;
+  appId: string;
   projectId: string;
   projectName: string;
   teamId: string;

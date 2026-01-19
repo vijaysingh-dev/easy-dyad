@@ -1,6 +1,5 @@
 import logger from "@/logger";
 import * as path from "node:path";
-import { fileURLToPath } from "url";
 import { Worker } from "node:worker_threads";
 
 import {
