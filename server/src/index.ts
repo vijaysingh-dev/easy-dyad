@@ -1,12 +1,12 @@
-import { NODE_ENV, PORT, PUBLIC_IP, IS_TEST_BUILD } from "@/config";
+import settings from "@/config";
 
 import logger from "@/logger";
 // Log all configuration on startup
 logger.info(`Configuration:
-  NODE_ENV: ${NODE_ENV}
-  PORT: ${PORT}
-  PUBLIC_IP: ${PUBLIC_IP}
-  IS_TEST_BUILD: ${IS_TEST_BUILD}
+  NODE_ENV: ${settings.NODE_ENV}
+  PORT: ${settings.PORT}
+  PUBLIC_IP: ${settings.PUBLIC_IP}
+  IS_TEST_BUILD: ${settings.IS_TEST_BUILD}
 `);
 
 import { initializeDatabase } from "@/db";
@@ -34,7 +34,7 @@ app.use(
   cors({
     origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
     credentials: true,
-  })
+  }),
 );
 app.disable("etag");
 app.use(express.json({ limit: "10mb" }));
@@ -64,9 +64,9 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ error: err?.message ?? "Internal Server Error" });
 });
 
-const server = app.listen(PORT, () => {
+const server = app.listen(settings.PORT, () => {
   // eslint-disable-next-line no-console
-  console.log(`Server listening on http://localhost:${PORT}`);
+  console.log(`Server listening on http://localhost:${settings.PORT}`);
 });
 
 async function shutdown() {

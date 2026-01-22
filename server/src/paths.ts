@@ -1,7 +1,7 @@
 import os from "node:os";
 import fs from "fs";
 import path from "node:path";
-import { IS_TEST_BUILD } from "@/config";
+import settings from "@/config";
 
 export const SERVER_ROOT = path.resolve(__dirname, "..");
 console.log("SERVER_ROOT", SERVER_ROOT);
@@ -43,9 +43,9 @@ export function getPath(
     case "home":
       return home;
     case "logs":
-      return path.join(IS_TEST_BUILD ? PROJECT_ROOT : home, "logs");
+      return path.join(settings.IS_TEST_BUILD ? PROJECT_ROOT : home, "logs");
     case "userData":
-      return IS_TEST_BUILD ? path.join(PROJECT_ROOT, "userData") : "/efs";
+      return settings.IS_TEST_BUILD ? path.join(PROJECT_ROOT, "userData") : "/efs";
     case "appBase":
       return path.join(getPath("userData"), "eezi-apps");
 

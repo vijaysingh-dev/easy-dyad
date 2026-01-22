@@ -1,3 +1,4 @@
+import settings from "@/config";
 import logger from "@/logger";
 import db from "@/db";
 import { apps } from "@/db/schema";
@@ -5,29 +6,25 @@ import { Response } from "express";
 import { eq } from "drizzle-orm";
 import winston from "winston";
 import { platform, arch } from "os";
-import util from "util";
-import killPort from "kill-port";
 import path from "node:path";
 import fs, { promises as fsPromises } from "node:fs";
-import { ChildProcess, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 import { readSettings } from "@/shared/settings";
 import {
-  runningApps,
-  processCounter,
-  stopAppByInfo,
-  removeAppIfCurrentProcess,
-} from "@/utils/process_manager";
-import { startProxy } from "@/utils/start_proxy_server";
+  executeAppInDocker,
+  removeDockerVolumesForApp,
+  stopDockerTask,
+} from "@/utils/docker_utils";
+import {
+  executeAppInECS,
+  removeEfsPnpmStoreForApp,
+  stopEcsTask,
+} from "@/utils/ecs_utils";
 import { gitAddAll, gitCommit } from "@/utils/git_utils";
 import { simpleSpawn } from "@/utils/simpleSpawn";
 import { runShellCommand } from "@/utils/runShellCommand";
-import { safeSend } from "@/utils/safe_sender";
-import { withLock } from "@/utils/lock_utils";
-import { Worker } from "worker_threads";
 import { LargeLanguageModel } from "@/shared/schemas";
-
 import { SERVER_ROOT } from "@/paths";
-import { IS_TEST_BUILD, PUBLIC_IP } from "@/config";
 
 export async function copyDir(
   source: string,
@@ -55,10 +52,9 @@ export function getAppVersion(): string {
   return packageJson.version;
 }
 
-const DEFAULT_COMMAND = `(pnpm install && pnpm run dev -- --host 0.0.0.0 --port 32100 --origin http://${PUBLIC_IP}:32100) \
-|| (npm install --legacy-peer-deps && npm run dev -- --host 0.0.0.0 --port 32100 --origin http://${PUBLIC_IP}:32100)`;
+const DEFAULT_COMMAND = `(pnpm install && pnpm run dev -- --host ${settings.APP_HOST} --port ${settings.APP_PORT} --hmr-protocol ${settings.HMR_PROTOCOL} --hmr-host ${settings.HMR_HOST} --hmr-port ${settings.HMR_PORT}) || (npm install --legacy-peer-deps && npm run dev -- --host ${settings.APP_HOST} --port ${settings.APP_PORT} --hmr-protocol ${settings.HMR_PROTOCOL} --hmr-host ${settings.HMR_HOST} --hmr-port ${settings.HMR_PORT})`;
 
-function getCommand({
+export function getCommand({
   installCommand,
   startCommand,
 }: {
@@ -188,60 +184,23 @@ export async function getSystemDebugInfo({
   };
 }
 
-export async function cleanUpPort(port: number) {
-  const settings = readSettings();
-  if (settings.runtimeMode2 === "docker") {
-    await stopDockerContainersOnPort(port);
-  } else {
-    await killProcessOnPort(port);
-  }
-}
+// Define a type for the value stored in runningApps
+type DockerRuntimeInfo = {
+  runtime: "docker";
+  networkName: string;
+  appContainerName: string;
+  proxyContainerName: string;
+};
 
-export async function stopRunningApp(appId: string): Promise<void> {
-  return withLock(appId, async () => {
-    const appInfo = runningApps.get(appId);
+type EcsRuntimeInfo = {
+  runtime: "ecs";
+  taskArn: string;
+};
 
-    if (!appInfo) {
-      logger.log(
-        `App ${appId} not found in running apps map. Assuming already stopped.`,
-      );
-      return;
-    }
+export type RunningAppInfo = DockerRuntimeInfo | EcsRuntimeInfo;
 
-    const { process, processId } = appInfo;
-    logger.log(
-      `Found running app ${appId} with processId ${processId} (PID: ${process.pid}). Attempting to stop.`,
-    );
-
-    // Check if the process is already exited or closed
-    if (process.exitCode !== null || process.signalCode !== null) {
-      logger.log(
-        `Process for app ${appId} (PID: ${process.pid}) already exited (code: ${process.exitCode}, signal: ${process.signalCode}). Cleaning up map.`,
-      );
-      runningApps.delete(appId); // Ensure cleanup if somehow missed
-      return;
-    }
-
-    try {
-      await stopAppByInfo(appId, appInfo);
-
-      // Now, safely remove the app from the map *after* confirming closure
-      removeAppIfCurrentProcess(appId, process);
-
-      return;
-    } catch (error: any) {
-      logger.error(
-        `Error stopping app ${appId} (PID: ${process.pid}, processId: ${processId}):`,
-        error,
-      );
-      // Attempt cleanup even if an error occurred during the stop process
-      removeAppIfCurrentProcess(appId, process);
-      throw new Error(`Failed to stop app ${appId}: ${error.message}`);
-    }
-  });
-}
-
-let proxyWorker: Worker | null = null;
+// Store running app processes
+export const runningApps = new Map<string, RunningAppInfo>();
 
 export async function executeApp({
   appPath,
@@ -258,14 +217,7 @@ export async function executeApp({
   installCommand?: string | null;
   startCommand?: string | null;
 }): Promise<void> {
-  if (proxyWorker) {
-    proxyWorker.terminate();
-    proxyWorker = null;
-  }
-  const settings = readSettings();
-  const runtimeMode = settings.runtimeMode2 ?? "host";
-
-  if (runtimeMode === "docker") {
+  if (settings.IS_TEST_BUILD) {
     await executeAppInDocker({
       appPath,
       appId,
@@ -275,7 +227,7 @@ export async function executeApp({
       startCommand,
     });
   } else {
-    await executeAppLocalNode({
+    await executeAppInECS({
       appPath,
       appId,
       res,
@@ -286,425 +238,37 @@ export async function executeApp({
   }
 }
 
-async function executeAppLocalNode({
-  appPath,
-  appId,
-  res,
-  isNeon,
-  installCommand,
-  startCommand,
-}: {
-  appPath: string;
-  appId: string;
-  res: Response;
-  isNeon: boolean;
-  installCommand?: string | null;
-  startCommand?: string | null;
-}): Promise<void> {
-  logger.info(`Starting app ${appId} in local Node.js mode`);
-  const command = getCommand({ installCommand, startCommand });
-  const spawnedProcess = spawn("sh", ["-c", command], {
-    cwd: appPath,
-    stdio: "pipe", // Ensure stdio is piped so we can capture output/errors and detect close
-    detached: false, // Ensure child process is attached to the main process lifecycle unless explicitly backgrounded
-  });
-
-  // Check if process spawned correctly
-  if (!spawnedProcess.pid) {
-    // Attempt to capture any immediate errors if possible
-    let errorOutput = "";
-    let spawnErr: any | null = null;
-    spawnedProcess.stderr?.on("data", (data) => (errorOutput += data.toString()));
-    await new Promise<void>((resolve) => {
-      spawnedProcess.once("error", (err) => {
-        spawnErr = err;
-        resolve();
-      });
-    }); // Wait for error event
-
-    const details = [
-      spawnErr?.message ? `message=${spawnErr.message}` : null,
-      spawnErr?.code ? `code=${spawnErr.code}` : null,
-      spawnErr?.errno ? `errno=${spawnErr.errno}` : null,
-      spawnErr?.syscall ? `syscall=${spawnErr.syscall}` : null,
-      spawnErr?.path ? `path=${spawnErr.path}` : null,
-      spawnErr?.spawnargs ? `spawnargs=${JSON.stringify(spawnErr.spawnargs)}` : null,
-    ]
-      .filter(Boolean)
-      .join(", ");
-
-    logger.error(
-      `Failed to spawn process for app ${appId}. Command="${command}", CWD="${appPath}", ${details}\nSTDERR:\n${
-        errorOutput || "(empty)"
-      }`,
-    );
-
-    throw new Error(
-      `Failed to spawn process for app ${appId}.
-Error output:
-${errorOutput || "(empty)"}
-Details: ${details || "n/a"}
-`,
-    );
-  }
-
-  // Increment the counter and store the process reference with its ID
-  const currentProcessId = processCounter.increment();
-  runningApps.set(appId, {
-    process: spawnedProcess,
-    processId: currentProcessId,
-    isDocker: false,
-  });
-
-  listenToProcess({
-    process: spawnedProcess,
-    appId,
-    isNeon,
-    res,
-  });
-}
-
-function listenToProcess({
-  process: spawnedProcess,
-  appId,
-  isNeon,
-  res,
-}: {
-  process: ChildProcess;
-  appId: string;
-  isNeon: boolean;
-  res: Response;
-}) {
-  // Log output
-  spawnedProcess.stdout?.on("data", async (data) => {
-    const message = util.stripVTControlCharacters(data.toString());
-    logger.debug(`App ${appId} (PID: ${spawnedProcess.pid}) stdout: ${message}`);
-
-    // This is a hacky heuristic to pick up when drizzle is asking for user
-    // to select from one of a few choices. We automatically pick the first
-    // option because it's usually a good default choice. We guard this with
-    // isNeon because: 1) only Neon apps (for the official Eezi templates) should
-    // get this template and 2) it's safer to do this with Neon apps because
-    // their databases have point in time restore built-in.
-    if (isNeon && message.includes("created or renamed from another")) {
-      spawnedProcess.stdin?.write(`\r\n`);
-      logger.info(
-        `App ${appId} (PID: ${spawnedProcess.pid}) wrote enter to stdin to automatically respond to drizzle push input`,
-      );
-    }
-
-    // Check if this is an interactive prompt requiring user input
-    const inputRequestPattern = /\s*›\s*\([yY]\/[nN]\)\s*$/;
-    const isInputRequest = inputRequestPattern.test(message);
-    if (isInputRequest) {
-      // Send special input-requested event for interactive prompts
-      safeSend(res, "app:output", {
-        type: "input-requested",
-        message,
-        appId,
-      });
-    } else {
-      // Normal stdout handling
-      safeSend(res, "app:output", {
-        type: "stdout",
-        message,
-        appId,
-      });
-
-      const urlMatch = message.match(/(https?:\/\/localhost:(\d+)\/?)/);
-      if (urlMatch) {
-        const originalUrl = urlMatch[1];
-        const port = urlMatch[2];
-        const publicUrl = !IS_TEST_BUILD ? `http://${PUBLIC_IP}:${port}` : originalUrl;
-
-        proxyWorker = await startProxy(originalUrl, {
-          onStarted: (proxyUrl) => {
-            const match = proxyUrl.match(/^https?:\/\/[^:]+:(\d+)\/?$/);
-            const publicProxyUrl =
-              !IS_TEST_BUILD && match ? `http://${PUBLIC_IP}:${match[1]}` : proxyUrl;
-            safeSend(res, "app:output", {
-              type: "stdout",
-              message: `[eezi-proxy-server]started=[${publicProxyUrl}] original=[${publicUrl}]`,
-              appId,
-            });
-          },
-        });
-      }
-    }
-  });
-
-  spawnedProcess.stderr?.on("data", (data) => {
-    const message = util.stripVTControlCharacters(data.toString());
-    logger.error(`App ${appId} (PID: ${spawnedProcess.pid}) stderr: ${message}`);
-    safeSend(res, "app:output", {
-      type: "stderr",
-      message,
-      appId,
-    });
-  });
-
-  // Handle process exit/close
-  spawnedProcess.on("close", (code, signal) => {
+export async function removePnpmStoreForApp(appId: string): Promise<void> {
+  if (settings.IS_TEST_BUILD) {
     logger.log(
-      `App ${appId} (PID: ${spawnedProcess.pid}) process closed with code ${code}, signal ${signal}.`,
+      `Removing Docker volumes ${settings.PNPM_STORE_VOLUME_PREFIX}-${appId}...`,
     );
-    removeAppIfCurrentProcess(appId, spawnedProcess);
-  });
-
-  // Handle errors during process lifecycle (e.g., command not found)
-  spawnedProcess.on("error", (err) => {
-    logger.error(
-      `Error in app ${appId} (PID: ${spawnedProcess.pid}) process: ${err.message}`,
-    );
-    removeAppIfCurrentProcess(appId, spawnedProcess);
-    // Note: We don't throw here as the error is asynchronous. The caller got a success response already.
-    // Consider adding ipcRenderer event emission to notify UI of the error.
-  });
-}
-
-async function executeAppInDocker({
-  appPath,
-  appId,
-  res,
-  isNeon,
-  installCommand,
-  startCommand,
-}: {
-  appPath: string;
-  appId: string;
-  res: Response;
-  isNeon: boolean;
-  installCommand?: string | null;
-  startCommand?: string | null;
-}): Promise<void> {
-  logger.info(`Starting app ${appId} in Docker mode`);
-  const containerName = `eezi-app-${appId}`;
-
-  // First, check if Docker is available
-  try {
-    await new Promise<void>((resolve, reject) => {
-      const checkDocker = spawn("docker", ["--version"], { stdio: "pipe" });
-      checkDocker.on("close", (code) => {
-        if (code === 0) {
-          resolve();
-        } else {
-          reject(new Error("Docker is not available"));
-        }
-      });
-      checkDocker.on("error", () => {
-        reject(new Error("Docker is not available"));
-      });
-    });
-  } catch {
-    throw new Error(
-      "Docker is required but not available. Please install Docker Desktop and ensure it's running.",
-    );
-  }
-
-  // Stop and remove any existing container with the same name
-  try {
-    await new Promise<void>((resolve) => {
-      const stopContainer = spawn("docker", ["stop", containerName], {
-        stdio: "pipe",
-      });
-      stopContainer.on("close", () => {
-        const removeContainer = spawn("docker", ["rm", containerName], {
-          stdio: "pipe",
-        });
-        removeContainer.on("close", () => resolve());
-        removeContainer.on("error", () => resolve()); // Container might not exist
-      });
-      stopContainer.on("error", () => resolve()); // Container might not exist
-    });
-  } catch (error: any) {
-    logger.info(`Docker container ${containerName} not found. Ignoring error: ${error}`);
-  }
-
-  // Create a Dockerfile in the app directory if it doesn't exist
-  const dockerfilePath = path.join(appPath, "Dockerfile.eezi");
-  if (!fs.existsSync(dockerfilePath)) {
-    const dockerfileContent = `FROM node:22-alpine
-
-# Install pnpm
-RUN npm install -g pnpm
-`;
-
     try {
-      await fsPromises.writeFile(dockerfilePath, dockerfileContent, "utf-8");
-    } catch (error: any) {
-      logger.error(`Failed to create Dockerfile for app ${appId}:`, error);
-      throw new Error(`Failed to create Dockerfile: ${error}`);
+      await removeDockerVolumesForApp(appId);
+      logger.log(
+        `Removed Docker volumes for app ${appId} (${settings.PNPM_STORE_VOLUME_PREFIX}-${appId}).`,
+      );
+    } catch (e) {
+      // Best-effort cleanup; log and continue
+      logger.warn(`Failed to remove Docker volumes for app ${appId}. Continuing: ${e}`);
     }
-  }
-
-  // Build the Docker image
-  const buildProcess = spawn(
-    "docker",
-    ["build", "-f", "Dockerfile.eezi", "-t", `eezi-app-${appId}`, "."],
-    {
-      cwd: appPath,
-      stdio: "pipe",
-    },
-  );
-
-  let buildError = "";
-  buildProcess.stderr?.on("data", (data) => {
-    buildError += data.toString();
-  });
-
-  await new Promise<void>((resolve, reject) => {
-    buildProcess.on("close", (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Docker build failed: ${buildError}`));
-      }
-    });
-    buildProcess.on("error", (err) => {
-      reject(new Error(`Docker build process error: ${err.message}`));
-    });
-  });
-
-  // Run the Docker container
-  const initArgs = ["run", "--rm", "--name", containerName];
-  const extraArgs = [
-    "-p",
-    "8080:8080",
-    "-p",
-    "32100:32100",
-    "-v",
-    `${appPath}:/app`,
-    "-v",
-    `eezi-pnpm-${appId}:/app/.pnpm-store`,
-    "-e",
-    "PNPM_STORE_PATH=/app/.pnpm-store",
-    "-e",
-    "PORT=32100",
-  ];
-  if (!IS_TEST_BUILD) extraArgs.push("-e", "HOST=0.0.0.0");
-
-  const process = spawn(
-    "docker",
-    [
-      ...initArgs,
-      ...extraArgs,
-      "-w",
-      "/app",
-      `eezi-app-${appId}`,
-      "sh",
-      "-c",
-      getCommand({ installCommand, startCommand }),
-    ],
-    {
-      stdio: "pipe",
-      detached: false,
-    },
-  );
-
-  // Check if process spawned correctly
-  if (!process.pid) {
-    // Attempt to capture any immediate errors if possible
-    let errorOutput = "";
-    let spawnErr: any = null;
-    process.stderr?.on("data", (data) => (errorOutput += data.toString()));
-    await new Promise<void>((resolve) => {
-      process.once("error", (err) => {
-        spawnErr = err;
-        resolve();
-      });
-    }); // Wait for error event
-
-    const details = [
-      spawnErr?.message ? `message=${spawnErr.message}` : null,
-      spawnErr?.code ? `code=${spawnErr.code}` : null,
-      spawnErr?.errno ? `errno=${spawnErr.errno}` : null,
-      spawnErr?.syscall ? `syscall=${spawnErr.syscall}` : null,
-      spawnErr?.path ? `path=${spawnErr.path}` : null,
-      spawnErr?.spawnargs ? `spawnargs=${JSON.stringify(spawnErr.spawnargs)}` : null,
-    ]
-      .filter(Boolean)
-      .join(", ");
-
-    logger.error(
-      `Failed to spawn Docker container for app ${appId}. ${details}\nSTDERR:\n${
-        errorOutput || "(empty)"
-      }`,
-    );
-
-    throw new Error(
-      `Failed to spawn Docker container for app ${appId}.
-Details: ${details || "n/a"}
-STDERR:
-${errorOutput || "(empty)"}`,
-    );
-  }
-
-  // Increment the counter and store the process reference with its ID
-  const currentProcessId = processCounter.increment();
-  runningApps.set(appId, {
-    process,
-    processId: currentProcessId,
-    isDocker: true,
-    containerName,
-  });
-
-  listenToProcess({
-    process,
-    appId,
-    isNeon,
-    res,
-  });
-}
-
-// Helper to kill process on a specific port (cross-platform, using kill-port)
-async function killProcessOnPort(port: number): Promise<void> {
-  try {
-    await killPort(port, "tcp");
-  } catch {
-    // Ignore if nothing was running on that port
+  } else {
+    logger.log(`Removing EFS .pnpm-store for app ${appId}...`);
+    try {
+      await removeEfsPnpmStoreForApp(appId);
+      logger.log(`Removed EFS .pnpm-store for app ${appId}.`);
+    } catch (e) {
+      // Best-effort cleanup; log and continue
+      logger.warn(`Failed to remove EFS .pnpm-store for app ${appId}. Continuing: ${e}`);
+    }
   }
 }
 
-// Helper to stop any Docker containers publishing a given host port
-async function stopDockerContainersOnPort(port: number): Promise<void> {
-  try {
-    // List container IDs that publish the given port
-    const list = spawn("docker", ["ps", "--filter", `publish=${port}`, "-q"], {
-      stdio: "pipe",
-    });
-
-    let stdout = "";
-    list.stdout?.on("data", (data) => {
-      stdout += data.toString();
-    });
-
-    await new Promise<void>((resolve) => {
-      list.on("close", () => resolve());
-      list.on("error", () => resolve());
-    });
-
-    const containerIds = stdout
-      .split("\n")
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    if (containerIds.length === 0) {
-      return;
-    }
-
-    // Stop each container best-effort
-    await Promise.all(
-      containerIds.map(
-        (id) =>
-          new Promise<void>((resolve) => {
-            const stop = spawn("docker", ["stop", id], { stdio: "pipe" });
-            stop.on("close", () => resolve());
-            stop.on("error", () => resolve());
-          }),
-      ),
-    );
-  } catch (e) {
-    logger.warn(`Failed stopping Docker containers on port ${port}: ${e}`);
+export async function stopRunningApp(appId: string): Promise<void> {
+  if (settings.IS_TEST_BUILD) {
+    await stopDockerTask(appId);
+  } else {
+    await stopEcsTask(appId);
   }
 }
 

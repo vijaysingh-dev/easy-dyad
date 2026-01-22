@@ -1,0 +1,68 @@
+{
+  "family": "dev-eezi-vite-runtime",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::160885287768:role/DEV-EEZI-ECS-TASK-EXEC-ROLE",
+  "taskRoleArn": "arn:aws:iam::160885287768:role/DEV-EEZI-ECS-TASK-ROLE",
+  "containerDefinitions": [
+    {
+      "name": "vite-app",
+      "image": "node:22-alpine",
+      "essential": true,
+      "portMappings": [{ "containerPort": 3000, "protocol": "tcp" }],
+      "mountPoints": [
+        {
+          "sourceVolume": "workspace",
+          "containerPath": "/workspace",
+          "readOnly": false
+        }
+      ],
+      "command": [
+        "sh",
+        "-c",
+        "pnpm install && pnpm run dev -- --host 0.0.0.0 --port 3000"
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/dev/eezi/ecs/runtime",
+          "awslogs-region": "eu-north-1",
+          "awslogs-stream-prefix": "vite"
+        }
+      }
+    },
+    {
+      "name": "eezi-proxy",
+      "image": "eezi/eezi-proxy:latest",
+      "essential": true,
+      "portMappings": [{ "containerPort": 8080, "protocol": "tcp" }],
+      "environment": [
+        { "name": "PROXY_PORT", "value": "8080" },
+        { "name": "TARGET_ORIGIN", "value": "http://127.0.0.1:3000" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/dev/eezi/ecs/runtime",
+          "awslogs-region": "eu-north-1",
+          "awslogs-stream-prefix": "proxy"
+        }
+      }
+    }
+  ],
+  "volumes": [
+    {
+      "name": "workspace",
+      "efsVolumeConfiguration": {
+        "fileSystemId": "fs-0c56e241a5d6e8038",
+        "transitEncryption": "ENABLED",
+        "authorizationConfig": {
+          "accessPointId": "fsap-001f3265c4638ab96",
+          "iam": "ENABLED"
+        }
+      }
+    }
+  ]
+}

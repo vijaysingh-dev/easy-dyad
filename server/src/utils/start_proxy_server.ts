@@ -1,8 +1,8 @@
 // startProxy.js – helper to launch proxy.js as a worker
+import settings from "@/config";
 import logger from "@/logger";
 import { Worker } from "worker_threads";
 import path from "path";
-import { findAvailablePort } from "./port_utils";
 
 export async function startProxy(
   targetOrigin: string,
@@ -11,12 +11,10 @@ export async function startProxy(
     // port?: number;
     // env?: Record<string, string>;
     onStarted?: (proxyUrl: string) => void;
-  } = {}
+  } = {},
 ) {
   if (!/^https?:\/\//.test(targetOrigin))
     throw new Error("startProxy: targetOrigin must be absolute http/https URL");
-  const port = await findAvailablePort(50_000, 60_000);
-  logger.info("Found available port", port);
   const {
     // host = "localhost",
     // env = {}, // additional env vars to pass to the worker
@@ -29,7 +27,7 @@ export async function startProxy(
     type: "module",
     workerData: {
       targetOrigin,
-      port,
+      port: settings.PROXY_PORT,
     },
   } as any);
 

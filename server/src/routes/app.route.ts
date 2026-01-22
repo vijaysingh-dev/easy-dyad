@@ -1,3 +1,4 @@
+import settings from "@/config";
 import logger from "@/logger";
 import db, { getDatabasePath } from "@/db";
 import { apps, chats, prompts, messages } from "@/db/schema";
@@ -15,8 +16,9 @@ import {
   getApp,
   copyDir,
   getAppVersion,
-  cleanUpPort,
+  runningApps,
   executeApp,
+  removePnpmStoreForApp,
   stopRunningApp,
   getSystemDebugInfo,
   isComponentTaggerUpgradeNeeded,
@@ -25,12 +27,6 @@ import {
   isCapacitorUpgradeNeeded,
   applyCapacitor,
 } from "@/utils/app_utils";
-import {
-  runningApps,
-  processCounter,
-  stopAppByInfo,
-  removeDockerVolumesForApp,
-} from "@/utils/process_manager";
 import {
   ENV_FILE_NAME,
   parseEnvFile,
@@ -42,7 +38,6 @@ import { gitCommit } from "@/utils/git_utils";
 import { getVercelTeamSlug } from "@/utils/vercel_utils";
 import { getAllTemplates } from "@/utils/template_utils";
 import { simpleSpawn } from "@/utils/simpleSpawn";
-import { IS_TEST_BUILD } from "@/config";
 import { safeSend } from "@/utils/safe_sender";
 import { extractCodebase } from "@/utils/codebase";
 import { validateChatContext } from "@/utils/context_paths_utils";
@@ -58,7 +53,6 @@ import { localTemplatesData } from "@/shared/templates";
 import { getPath, getEeziAppPath, normalizePath } from "@/paths";
 import { type AppSearchResult } from "@/shared/schemas";
 import { AppUpgrade } from "@/shared/eeziTypes";
-import { get } from "http";
 
 const router = Router();
 
@@ -377,7 +371,6 @@ router.get("/run-app/:appId", async (req, res) => {
       const appPath = getEeziAppPath(app.path);
       try {
         // There may have been a previous run that left a process on port 32100.
-        await cleanUpPort(32100);
         await executeApp({
           appPath,
           appId,
@@ -391,12 +384,7 @@ router.get("/run-app/:appId", async (req, res) => {
       } catch (error: any) {
         logger.error(`Error running app ${appId}:`, error);
         // Ensure cleanup if error happens during setup but before process events are handled
-        if (
-          runningApps.has(appId) &&
-          runningApps.get(appId)?.processId === processCounter.value
-        ) {
-          runningApps.delete(appId);
-        }
+        runningApps.delete(appId);
         throw new Error(`Failed to run app ${appId}: ${error.message}`);
       }
     });
@@ -450,17 +438,13 @@ router.get("/restart-app/:appId", async (req, res) => {
     await withLock(appId, async () => {
       try {
         // First stop the app if it's running
-        const appInfo = runningApps.get(appId);
-        if (appInfo) {
-          const { processId } = appInfo;
-          logger.log(`Stopping app ${appId} (processId ${processId}) before restart`);
-          await stopAppByInfo(appId, appInfo);
+
+        if (runningApps.has(appId)) {
+          logger.log(`Stopping app ${appId} before restart`);
+          await stopRunningApp(appId);
         } else {
           logger.log(`App ${appId} not running. Proceeding to start.`);
         }
-
-        // There may have been a previous run that left a process on port 32100.
-        await cleanUpPort(32100);
 
         // Now start the app again
         const app = await db.query.apps.findFirst({
@@ -475,9 +459,6 @@ router.get("/restart-app/:appId", async (req, res) => {
 
         // Remove node_modules if requested
         if (removeNodeModules) {
-          const settings = readSettings();
-          const runtimeMode = settings.runtimeMode2 ?? "host";
-
           const nodeModulesPath = path.join(appPath, "node_modules");
           logger.log(`Removing node_modules for app ${appId} at ${nodeModulesPath}`);
           if (fs.existsSync(nodeModulesPath)) {
@@ -490,23 +471,8 @@ router.get("/restart-app/:appId", async (req, res) => {
             logger.log(`No node_modules directory found for app ${appId}`);
           }
 
-          // If running in Docker mode, also remove container volumes so deps reinstall freshly
-          if (runtimeMode === "docker") {
-            logger.log(
-              `Docker mode detected for app ${appId}. Removing Docker volumes eezi-pnpm-${appId}...`,
-            );
-            try {
-              await removeDockerVolumesForApp(appId);
-              logger.log(
-                `Removed Docker volumes for app ${appId} (eezi-pnpm-${appId}).`,
-              );
-            } catch (e) {
-              // Best-effort cleanup; log and continue
-              logger.warn(
-                `Failed to remove Docker volumes for app ${appId}. Continuing: ${e}`,
-              );
-            }
-          }
+          // Also remove container volumes so deps reinstall freshly
+          await removePnpmStoreForApp(appId);
         }
 
         logger.debug(`Executing app ${appId} in path ${app.path} after restart request`); // Adjusted log
@@ -631,10 +597,9 @@ router.delete("/delete-app/:appId", async (req, res) => {
 
       // Stop the app if it's running
       if (runningApps.has(appId)) {
-        const appInfo = runningApps.get(appId)!;
         try {
           logger.log(`Stopping app ${appId} before deletion.`); // Adjusted log
-          await stopAppByInfo(appId, appInfo);
+          await stopRunningApp(appId);
         } catch (error: any) {
           logger.error(`Error stopping app ${appId} before deletion:`, error); // Adjusted log
           // Continue with deletion even if stopping fails
@@ -794,9 +759,8 @@ router.post("/rename-app", async (req, res) => {
 
       // Stop the app if it's running
       if (runningApps.has(appId)) {
-        const appInfo = runningApps.get(appId)!;
         try {
-          await stopAppByInfo(appId, appInfo);
+          await stopRunningApp(appId);
         } catch (error: any) {
           logger.error(`Error stopping app ${appId} before renaming:`, error);
           throw new Error(`Failed to stop app before renaming: ${error.message}`);
@@ -834,10 +798,8 @@ router.get("/reset-all", async (req, res) => {
     const runningAppIds = Array.from(runningApps.keys());
     for (const appId of runningAppIds) {
       try {
-        const appInfo = runningApps.get(appId)!;
-        await stopAppByInfo(appId, appInfo);
+        await stopRunningApp(appId);
       } catch (error: any) {
-        ``;
         logger.error(`Error stopping app ${appId} during reset:`, error);
         // Continue with reset even if stopping fails
       }
@@ -895,8 +857,6 @@ router.post("/respond-to-app-input", async (req, res) => {
     if (!appInfo) {
       throw new Error(`App ${appId} is not running`);
     }
-
-    const { process } = appInfo;
 
     if (!process.stdin) {
       throw new Error(`App ${appId} process has no stdin available`);
@@ -1254,7 +1214,7 @@ router.get("/open-ios", async (req, res) => {
       throw new Error("Capacitor is not installed in this app");
     }
 
-    if (IS_TEST_BUILD) {
+    if (settings.IS_TEST_BUILD) {
       // In test mode, just log the action instead of actually opening Xcode
       logger.info("Test mode: Simulating opening iOS project in Xcode");
       return;
@@ -1283,7 +1243,7 @@ router.get("/open-android", async (req, res) => {
       throw new Error("Capacitor is not installed in this app");
     }
 
-    if (IS_TEST_BUILD) {
+    if (settings.IS_TEST_BUILD) {
       // In test mode, just log the action instead of actually opening Android Studio
       logger.info("Test mode: Simulating opening Android project in Android Studio");
       return;

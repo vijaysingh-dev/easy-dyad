@@ -7,13 +7,13 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "cross-env TSX_TSCONFIG_PATHS=true tsx watch src/index.ts",
-    "copy-worker": "cp -r src/worker dist/",
-    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json && npm run copy-worker",
+    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "start": "node --experimental-specifier-resolution=node dist/index.js"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
+    "@types/dockerode": "^4.0.0",
     "@types/express": "^5.0.5",
     "@types/fs-extra": "^11.0.4",
     "@types/kill-port": "^2.0.3",
@@ -39,6 +39,8 @@
     "@ai-sdk/openai-compatible": "^1.0.25",
     "@ai-sdk/provider-utils": "^3.0.15",
     "@ai-sdk/xai": "^2.0.30",
+    "@aws-sdk/client-cloudwatch-logs": "^3.971.0",
+    "@aws-sdk/client-ecs": "^3.971.0",
     "@babel/parser": "^7.28.5",
     "@dyad-sh/supabase-management-js": "^1.0.0",
     "@modelcontextprotocol/sdk": "^1.17.5",
@@ -50,6 +52,7 @@
     "better-sqlite3": "^12.4.1",
     "cors": "^2.8.5",
     "cross-env": "^10.1.0",
+    "dockerode": "^4.0.9",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
     "estree-walker": "^3.0.3",

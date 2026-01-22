@@ -1,9 +1,6 @@
 /**
  * proxy.js – zero-dependency worker-based HTTP/WS forwarder
  */
-
-import { parentPort, workerData } from "worker_threads";
-
 import http from "http";
 import https from "https";
 
@@ -13,24 +10,22 @@ import path from "path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/* ──────────────────────────── worker code ─────────────────────────────── */
-const LISTEN_HOST = process.env.NODE_ENV === "local" ? "localhost" : "0.0.0.0";
-const LISTEN_PORT = workerData.port;
-let rememberedOrigin = null; // e.g. "http://localhost:5173"
+const LISTEN_HOST = process.env.APP_HOST;
+const LISTEN_PORT = Number(process.env.PROXY_PORT);
+const TARGET_ORIGIN = process.env.TARGET_ORIGIN;
 
-/* ---------- pre-configure rememberedOrigin from workerData ------- */
-{
-  const fixed = workerData?.targetOrigin;
-  if (fixed) {
-    try {
-      rememberedOrigin = new URL(fixed).origin;
-      parentPort?.postMessage(`[proxy-worker] fixed upstream: ${rememberedOrigin}`);
-    } catch {
-      throw new Error(
-        `Invalid target origin "${fixed}". Must be absolute http/https URL.`
-      );
-    }
-  }
+if (!TARGET_ORIGIN) {
+  console.error("TARGET_ORIGIN env not provided");
+  process.exit(1);
+}
+
+let rememberedOrigin = null; // e.g. "http://localhost:5173"
+try {
+  rememberedOrigin = new URL(TARGET_ORIGIN).origin;
+  console.log(`[eezi-proxy] Upstream set to ${rememberedOrigin}`);
+} catch (e) {
+  console.error("Invalid TARGET_ORIGIN:", TARGET_ORIGIN);
+  process.exit(1);
 }
 
 /* ---------- optional resources for HTML injection ---------------------- */
@@ -45,39 +40,35 @@ try {
     "node_modules",
     "stacktrace-js",
     "dist",
-    "stacktrace.min.js"
+    "stacktrace.min.js",
   );
   stacktraceJsContent = fs.readFileSync(stackTraceLibPath, "utf-8");
-  parentPort?.postMessage("[proxy-worker] stacktrace.js loaded.");
+  console.log("[eezi-proxy] stacktrace.js loaded.");
 } catch (error) {
-  parentPort?.postMessage(
-    `[proxy-worker] Failed to read stacktrace.js: ${error.message}`
-  );
+  console.log(`[eezi-proxy] Failed to read stacktrace.js: ${error.message}`);
 }
 
 try {
   const eeziShimPath = path.join(__dirname, "eezi-shim.js");
   eeziShimContent = fs.readFileSync(eeziShimPath, "utf-8");
-  parentPort?.postMessage("[proxy-worker] eezi-shim.js loaded.");
+  console.log("[eezi-proxy] eezi-shim.js loaded.");
 } catch (error) {
-  parentPort?.postMessage(
-    `[proxy-worker] Failed to read eezi-shim.js: ${error.message}`
-  );
+  console.log(`[eezi-proxy] Failed to read eezi-shim.js: ${error.message}`);
 }
 
 try {
   const eeziComponentSelectorClientPath = path.join(
     __dirname,
-    "eezi-component-selector-client.js"
+    "eezi-component-selector-client.js",
   );
   eeziComponentSelectorClientContent = fs.readFileSync(
     eeziComponentSelectorClientPath,
-    "utf-8"
+    "utf-8",
   );
-  parentPort?.postMessage("[proxy-worker] eezi-component-selector-client.js loaded.");
+  console.log("[eezi-proxy] eezi-component-selector-client.js loaded.");
 } catch (error) {
-  parentPort?.postMessage(
-    `[proxy-worker] Failed to read eezi-component-selector-client.js: ${error.message}`
+  console.log(
+    `[eezi-proxy] Failed to read eezi-component-selector-client.js: ${error.message}`,
   );
 }
 
@@ -101,7 +92,7 @@ function injectHTML(buf) {
       scripts.push(`<script>${stacktraceJsContent}</script>`);
     } else {
       scripts.push(
-        '<script>console.warn("[proxy-worker] stacktrace.js was not injected.");</script>'
+        '<script>console.warn("[eezi-proxy] stacktrace.js was not injected.");</script>',
       );
     }
 
@@ -109,7 +100,7 @@ function injectHTML(buf) {
       scripts.push(`<script>${eeziShimContent}</script>`);
     } else {
       scripts.push(
-        '<script>console.warn("[proxy-worker] eezi shim was not injected.");</script>'
+        '<script>console.warn("[eezi-proxy] eezi shim was not injected.");</script>',
       );
     }
   }
@@ -117,7 +108,7 @@ function injectHTML(buf) {
     scripts.push(`<script>${eeziComponentSelectorClientContent}</script>`);
   } else {
     scripts.push(
-      '<script>console.warn("[proxy-worker] eezi component selector client was not injected.");</script>'
+      '<script>console.warn("[eezi-proxy] eezi component selector client was not injected.");</script>',
     );
   }
   const allScripts = scripts.join("\n");
@@ -127,9 +118,7 @@ function injectHTML(buf) {
     txt = txt.replace(headRegex, `$&\n${allScripts}`);
   } else {
     txt = allScripts + "\n" + txt;
-    parentPort?.postMessage(
-      "[proxy-worker] Warning: <head> tag not found – scripts prepended."
-    );
+    console.log("[eezi-proxy] Warning: <head> tag not found – scripts prepended.");
   }
   return Buffer.from(txt, "utf8");
 }
@@ -255,10 +244,10 @@ server.on("upgrade", (req, socket, _head) => {
   upReq.on("upgrade", (upRes, upSocket, upHead) => {
     socket.write(
       "HTTP/1.1 101 Switching Protocols\r\n" +
-      Object.entries(upRes.headers)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join("\r\n") +
-      "\r\n\r\n"
+        Object.entries(upRes.headers)
+          .map(([k, v]) => `${k}: ${v}`)
+          .join("\r\n") +
+        "\r\n\r\n",
     );
     if (upHead && upHead.length) socket.write(upHead);
 
@@ -272,5 +261,12 @@ server.on("upgrade", (req, socket, _head) => {
 /* ----------------------------------------------------------------------- */
 
 server.listen(LISTEN_PORT, LISTEN_HOST, () => {
-  parentPort?.postMessage(`proxy-server-start url=http://${LISTEN_HOST}:${LISTEN_PORT}`);
+  console.log(`proxy-server-start url=http://${LISTEN_HOST}:${LISTEN_PORT}`);
+});
+
+server.on("request", (req, res) => {
+  if (req.url === "/__eezi_logs") {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    process.stdout.pipe(res);
+  }
 });
