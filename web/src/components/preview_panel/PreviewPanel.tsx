@@ -54,7 +54,7 @@ export function PreviewPanel() {
   const selectedAppId = useAtomValue(selectedAppIdAtom);
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const { runApp, stopApp, loading, app } = useRunApp();
-  const runningAppIdRef = useRef<number | null>(null);
+  const runningAppIdRef = useRef<string | null>(null);
   const key = useAtomValue(previewPanelKeyAtom);
   const appOutput = useAtomValue(appOutputAtom);
 
@@ -96,7 +96,7 @@ export function PreviewPanel() {
         if (currentRunningApp !== null) {
           console.debug(
             "Component unmounting or selectedAppId changing, stopping app",
-            currentRunningApp
+            currentRunningApp,
           );
           stopApp(currentRunningApp);
           runningAppIdRef.current = null; // Clear ref on stop

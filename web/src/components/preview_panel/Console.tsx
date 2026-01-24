@@ -7,7 +7,7 @@ export const Console = () => {
   const appOutput = useAtomValue(appOutputAtom);
   const { t, dir } = useI18n();
   return (
-    <div className="font-mono text-xs px-4 h-full overflow-auto">
+    <div className="font-mono text-xs px-4 pb-2 h-full overflow-auto">
       {appOutput.length === 0 ? (
         <div dir={dir}>{t("No console output")}</div>
       ) : (

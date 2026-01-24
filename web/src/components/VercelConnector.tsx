@@ -19,7 +19,7 @@ import { App } from "@/shared/eeziTypes";
 import api from "@/api";
 
 interface VercelConnectorProps {
-  appId: number | null;
+  appId: string | null;
   folderName: string;
 }
 
@@ -30,13 +30,13 @@ interface VercelProject {
 }
 
 interface ConnectedVercelConnectorProps {
-  appId: number;
+  appId: string;
   app: App;
   refreshApp: () => void;
 }
 
 interface UnconnectedVercelConnectorProps {
-  appId: number | null;
+  appId: string | null;
   folderName: string;
   settings: any;
   refreshSettings: () => void;
@@ -77,7 +77,7 @@ function ConnectedVercelConnector({
         onClick={(e) => {
           e.preventDefault();
           api.app.openExternalUrl(
-            `https://vercel.com/${app.vercelTeamSlug}/${app.vercelProjectName}`
+            `https://vercel.com/${app.vercelTeamSlug}/${app.vercelProjectName}`,
           );
         }}
         className="cursor-pointer text-blue-600 hover:underline dark:text-blue-400"
@@ -173,8 +173,8 @@ function ConnectedVercelConnector({
                         deployment.readyState === "READY"
                           ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
                           : deployment.readyState === "BUILDING"
-                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
-                          : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
+                            : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
                       }`}
                       dir={dir}
                     >
@@ -228,7 +228,7 @@ function UnconnectedVercelConnector({
 
   // --- Project Setup State ---
   const [projectSetupMode, setProjectSetupMode] = useState<"create" | "existing">(
-    "create"
+    "create",
   );
   const [availableProjects, setAvailableProjects] = useState<VercelProject[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(false);
@@ -324,7 +324,7 @@ function UnconnectedVercelConnector({
         checkProjectAvailability(name);
       }, 500);
     },
-    [checkProjectAvailability]
+    [checkProjectAvailability],
   );
 
   const handleSetupProject = async (e: React.FormEvent) => {
@@ -353,7 +353,7 @@ function UnconnectedVercelConnector({
     } catch (err: any) {
       setCreateProjectError(
         err.message ||
-          `Failed to ${projectSetupMode === "create" ? "create" : "connect to"} project.`
+          `Failed to ${projectSetupMode === "create" ? "create" : "connect to"} project.`,
       );
     } finally {
       setIsCreatingProject(false);
@@ -377,7 +377,7 @@ function UnconnectedVercelConnector({
             >
               <p className="text-sm text-blue-800 dark:text-blue-200 mb-2" dir={dir}>
                 {t(
-                  "To connect your app to Vercel, you'll need to create an access token:"
+                  "To connect your app to Vercel, you'll need to create an access token:",
                 )}
               </p>
               <ol
@@ -402,7 +402,7 @@ function UnconnectedVercelConnector({
                 <Button
                   onClick={() => {
                     api.app.openExternalUrl(
-                      "https://vercel.com/account/settings/tokens"
+                      "https://vercel.com/account/settings/tokens",
                     );
                   }}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
@@ -481,7 +481,7 @@ function UnconnectedVercelConnector({
               >
                 <p className="text-sm text-green-800 dark:text-green-200" dir={dir}>
                   {t(
-                    "Successfully connected to Vercel! You can now set up your project below."
+                    "Successfully connected to Vercel! You can now set up your project below.",
                   )}
                 </p>
               </div>
@@ -638,8 +638,8 @@ function UnconnectedVercelConnector({
                   ? t("Creating...")
                   : t("Connecting...")
                 : projectSetupMode === "create"
-                ? t("Create Project")
-                : t("Connect to Project")}
+                  ? t("Create Project")
+                  : t("Connect to Project")}
             </Button>
           </form>
 

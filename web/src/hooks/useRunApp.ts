@@ -26,12 +26,12 @@ export function useRunApp() {
 
   const processProxyServerOutput = (output: AppOutput) => {
     const matchesProxyServerStart = output.message.includes(
-      "[eezi-proxy-server]started=["
+      "[eezi-proxy-server]started=[",
     );
     if (matchesProxyServerStart) {
       // Extract both proxy URL and original URL using regex
       const proxyUrlMatch = output.message.match(
-        /\[eezi-proxy-server\]started=\[(.*?)\]/
+        /\[eezi-proxy-server\]started=\[(.*?)\]/,
       );
       const originalUrlMatch = output.message.match(/original=\[(.*?)\]/);
 
@@ -71,10 +71,10 @@ export function useRunApp() {
       // Process proxy server output
       processProxyServerOutput(output);
     },
-    [setAppOutput]
+    [setAppOutput],
   );
   const runApp = useCallback(
-    async (appId: number) => {
+    async (appId: string) => {
       setLoading(true);
       try {
         console.debug("Running app", appId);
@@ -108,16 +108,16 @@ export function useRunApp() {
             : {
                 message: error?.toString() || "Unknown error",
                 source: "eezi-app",
-              }
+              },
         );
       } finally {
         setLoading(false);
       }
     },
-    [processAppOutput]
+    [processAppOutput],
   );
 
-  const stopApp = useCallback(async (appId: number) => {
+  const stopApp = useCallback(async (appId: string) => {
     if (appId === null) {
       return;
     }
@@ -135,7 +135,7 @@ export function useRunApp() {
           : {
               message: error?.toString() || "Unknown error",
               source: "eezi-app",
-            }
+            },
       );
     } finally {
       setLoading(false);
@@ -156,7 +156,7 @@ export function useRunApp() {
         console.debug(
           "Restarting app",
           appId,
-          removeNodeModules ? "with node_modules cleanup" : ""
+          removeNodeModules ? "with node_modules cleanup" : "",
         );
 
         // Clear the URL and add restart message
@@ -186,7 +186,7 @@ export function useRunApp() {
             // Process normally (including input requests)
             processAppOutput(output);
           },
-          removeNodeModules
+          removeNodeModules,
         );
       } catch (error) {
         console.error(`Error restarting app ${appId}:`, error);
@@ -196,7 +196,7 @@ export function useRunApp() {
             : {
                 message: error?.toString() || "Unknown error",
                 source: "eezi-app",
-              }
+              },
         );
       } finally {
         setPreviewPanelKey((prevKey) => prevKey + 1);
@@ -211,7 +211,7 @@ export function useRunApp() {
       setPreviewPanelKey,
       processAppOutput,
       onHotModuleReload,
-    ]
+    ],
   );
 
   const refreshAppIframe = useCallback(async () => {

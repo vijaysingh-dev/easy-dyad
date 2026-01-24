@@ -10,7 +10,7 @@ export interface ParsedRoute {
 /**
  * Loads the app router file and parses available routes for quick navigation.
  */
-export function useParseRouter(appId: number | null) {
+export function useParseRouter(appId: string | null) {
   const [routes, setRoutes] = useState<ParsedRoute[]>([]);
 
   // Load app to access the file list

@@ -9,7 +9,7 @@ export function useSelectChat() {
   const navigate = useNavigate();
 
   return {
-    selectChat: ({ chatId, appId }: { chatId: number; appId: number }) => {
+    selectChat: ({ chatId, appId }: { chatId: number; appId: string }) => {
       setSelectedChatId(chatId);
       setSelectedAppId(appId);
       navigate({

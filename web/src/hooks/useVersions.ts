@@ -8,7 +8,7 @@ import type { RevertVersionResponse, Version } from "@/shared/eeziTypes";
 import { toast } from "sonner";
 import api from "@/api";
 
-export function useVersions(appId: number | null) {
+export function useVersions(appId: string | null) {
   const [, setVersionsAtom] = useAtom(versionsListAtom);
   const selectedChatId = useAtomValue(selectedChatIdAtom);
   const setMessagesById = useSetAtom(chatMessagesByIdAtom);

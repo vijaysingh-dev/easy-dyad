@@ -7,16 +7,16 @@ import api from "@/api";
 export function useAddAppToFavorite() {
   const [_, setApps] = useAtom(appsListAtom);
 
-  const mutation = useMutation<boolean, Error, number>({
-    mutationFn: async (appId: number): Promise<boolean> => {
+  const mutation = useMutation<boolean, Error, string>({
+    mutationFn: async (appId: string): Promise<boolean> => {
       const result = await api.app.addAppToFavorite(appId);
       return result.isFavorite;
     },
     onSuccess: (newIsFavorite, appId) => {
       setApps((currentApps) =>
         currentApps.map((app) =>
-          app.id === appId ? { ...app, isFavorite: newIsFavorite } : app
-        )
+          app.id === appId ? { ...app, isFavorite: newIsFavorite } : app,
+        ),
       );
       showSuccess("App favorite status updated");
     },

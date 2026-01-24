@@ -5,7 +5,7 @@ import { useAtomValue } from "jotai";
 import api from "@/api";
 
 interface RenameBranchParams {
-  appId: number;
+  appId: string;
   oldBranchName: string;
   newBranchName: string;
 }

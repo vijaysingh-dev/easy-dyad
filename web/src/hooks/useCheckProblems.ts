@@ -3,7 +3,7 @@ import type { ProblemReport } from "@/shared/eeziTypes";
 import { useSettings } from "./useSettings";
 import api from "@/api";
 
-export function useCheckProblems(appId: number | null) {
+export function useCheckProblems(appId: string | null) {
   const { settings } = useSettings();
   const {
     data: problemReport,

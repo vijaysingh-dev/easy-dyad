@@ -16,37 +16,26 @@ import {
   AppChatContext,
 } from "@/shared/schemas";
 import { AxiosRequestConfig } from "axios";
-import { showError } from "@/components/Toast";
 import eeziClient from "./client";
 import Api from "./api";
 
 class ChatApiService {
   // Get all chats
   public async getAllChats(appId?: number) {
-    try {
-      const config: AxiosRequestConfig = { params: { appId } };
-      if (!appId) delete config.params.appId;
+    const config: AxiosRequestConfig = { params: { appId } };
+    if (!appId) delete config.params.appId;
 
-      const { data } = await Api.get("/chat/get-chats", { config });
-      return ChatSummariesSchema.parse(data);
-    } catch (error) {
-      showError(error);
-      return [];
-    }
+    const { data } = await Api.get("/chat/get-chats", { config });
+    return ChatSummariesSchema.parse(data);
   }
 
   public async getChat(chatId: number) {
-    try {
-      const { data } = await Api.get(`/chat/get-chat/${chatId}`);
-      return data;
-    } catch (error) {
-      showError(error);
-      throw error;
-    }
+    const { data } = await Api.get(`/chat/get-chat/${chatId}`);
+    return data;
   }
 
   // Create a new chat for an app
-  public async createChat(appId: number) {
+  public async createChat(appId: string) {
     const { data } = await Api.post("/chat/create-chat", { appId });
     return data;
   }
@@ -69,24 +58,19 @@ class ChatApiService {
   }
 
   // search for chats
-  public async searchChats(appId: number, query: string): Promise<ChatSearchResult[]> {
-    try {
-      const config: AxiosRequestConfig = { params: { query } };
-      const { data } = await Api.get(`/chat/search-chats/${appId}`, { config });
-      return ChatSearchResultsSchema.parse(data);
-    } catch (error) {
-      showError(error);
-      throw error;
-    }
+  public async searchChats(appId: string, query: string): Promise<ChatSearchResult[]> {
+    const config: AxiosRequestConfig = { params: { query } };
+    const { data } = await Api.get(`/chat/search-chats/${appId}`, { config });
+    return ChatSearchResultsSchema.parse(data);
   }
 
-  public async getChatContextResults(params: { appId: number }) {
+  public async getChatContextResults(params: { appId: string }) {
     const config: AxiosRequestConfig = { params };
     const { data } = await Api.get("/chat/get-context-paths", { config });
     return data;
   }
 
-  public async setChatContext(params: { appId: number; chatContext: AppChatContext }) {
+  public async setChatContext(params: { appId: string; chatContext: AppChatContext }) {
     const { data } = await Api.post("/chat/set-context-paths", params);
     return data;
   }
@@ -99,15 +83,10 @@ class ChatApiService {
   // --- Proposal Management ---
   // Get proposal details
   public async getProposal(chatId: number) {
-    try {
-      const { data } = await Api.get(`/chat/get-proposal/${chatId}`);
-      // Assuming the main process returns data matching the ProposalResult interface
-      // Add a type check/guard if necessary for robustness
-      return data as ProposalResult | null;
-    } catch (error) {
-      showError(error);
-      throw error;
-    }
+    const { data } = await Api.get(`/chat/get-proposal/${chatId}`);
+    // Assuming the main process returns data matching the ProposalResult interface
+    // Add a type check/guard if necessary for robustness
+    return data as ProposalResult | null;
   }
 
   // Example methods for listening to events (if needed)
@@ -127,13 +106,8 @@ class ChatApiService {
 
   // Count tokens for a chat and input
   public async countTokens(params: TokenCountParams) {
-    try {
-      const { data } = await Api.post("/chat/count-tokens", params);
-      return data as TokenCountResult;
-    } catch (error) {
-      showError(error);
-      throw error;
-    }
+    const { data } = await Api.post("/chat/count-tokens", params);
+    return data as TokenCountResult;
   }
 
   public streamMessage(
@@ -147,7 +121,7 @@ class ChatApiService {
       onEnd: (response: ChatResponseEnd) => void;
       onError: (error: string) => void;
       onProblems?: (problems: ChatProblemsEvent) => void;
-    }
+    },
   ): void {
     const { chatId, redo, attachments, selectedComponent, onUpdate, onEnd, onError } =
       options;
@@ -174,8 +148,8 @@ class ChatApiService {
                 reader.onerror = () =>
                   reject(new Error(`Failed to read file: ${attachment.file.name}`));
                 reader.readAsDataURL(attachment.file);
-              })
-          )
+              }),
+          ),
         )
       : Promise.resolve([]);
 
@@ -195,12 +169,10 @@ class ChatApiService {
             eeziClient.initChatStreamSSE(url);
           })
           .catch((err) => {
-            showError(err);
             onError(String(err));
           });
       })
       .catch((err) => {
-        showError(err);
         onError(String(err));
       });
   }
@@ -218,7 +190,7 @@ class ChatApiService {
       onChunk: (delta: string) => void;
       onEnd: () => void;
       onError: (error: string) => void;
-    }
+    },
   ): void {
     Api.post(`/chat/help/${sessionId}/start`, { message })
       .then(() => {
@@ -230,7 +202,6 @@ class ChatApiService {
         eeziClient.initHelpStreamSSE(url);
       })
       .catch((err) => {
-        showError(err);
         options.onError(String(err));
       });
   }

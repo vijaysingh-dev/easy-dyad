@@ -22,7 +22,7 @@ if (!TARGET_ORIGIN) {
 let rememberedOrigin = null; // e.g. "http://localhost:5173"
 try {
   rememberedOrigin = new URL(TARGET_ORIGIN).origin;
-  console.log(`[eezi-proxy] Upstream set to ${rememberedOrigin}`);
+  // console.log(`[eezi-proxy] Upstream set to ${rememberedOrigin}`);
 } catch (e) {
   console.error("Invalid TARGET_ORIGIN:", TARGET_ORIGIN);
   process.exit(1);
@@ -36,14 +36,13 @@ let eeziComponentSelectorClientContent = null;
 try {
   const stackTraceLibPath = path.join(
     __dirname,
-    "..",
     "node_modules",
     "stacktrace-js",
     "dist",
     "stacktrace.min.js",
   );
   stacktraceJsContent = fs.readFileSync(stackTraceLibPath, "utf-8");
-  console.log("[eezi-proxy] stacktrace.js loaded.");
+  // console.log("[eezi-proxy] stacktrace.js loaded.");
 } catch (error) {
   console.log(`[eezi-proxy] Failed to read stacktrace.js: ${error.message}`);
 }
@@ -51,7 +50,7 @@ try {
 try {
   const eeziShimPath = path.join(__dirname, "eezi-shim.js");
   eeziShimContent = fs.readFileSync(eeziShimPath, "utf-8");
-  console.log("[eezi-proxy] eezi-shim.js loaded.");
+  // console.log("[eezi-proxy] eezi-shim.js loaded.");
 } catch (error) {
   console.log(`[eezi-proxy] Failed to read eezi-shim.js: ${error.message}`);
 }
@@ -65,7 +64,7 @@ try {
     eeziComponentSelectorClientPath,
     "utf-8",
   );
-  console.log("[eezi-proxy] eezi-component-selector-client.js loaded.");
+  // console.log("[eezi-proxy] eezi-component-selector-client.js loaded.");
 } catch (error) {
   console.log(
     `[eezi-proxy] Failed to read eezi-component-selector-client.js: ${error.message}`,
@@ -148,7 +147,11 @@ const server = http.createServer((clientReq, clientRes) => {
   const lib = isTLS ? https : http;
 
   /* Copy request headers but rewrite Host / Origin / Referer */
-  const headers = { ...clientReq.headers, host: target.host };
+  const headers = { ...clientReq.headers };
+  headers.host = clientReq.headers.host;
+  headers["x-forwarded-host"] = clientReq.headers.host;
+  headers["x-forwarded-proto"] = clientReq.socket.encrypted ? "https" : "http";
+
   if (headers.origin) headers.origin = target.origin;
   if (headers.referer) {
     try {
@@ -158,7 +161,16 @@ const server = http.createServer((clientReq, clientRes) => {
       delete headers.referer;
     }
   }
-  if (needsInjection) {
+
+  // delete headers["sec-fetch-site"];
+  // delete headers["sec-fetch-mode"];
+  // delete headers["sec-fetch-dest"];
+  // delete headers["sec-fetch-user"];
+  // delete headers["sec-ch-ua"];
+  // delete headers["sec-ch-ua-mobile"];
+  // delete headers["sec-ch-ua-platform"];
+
+  if (needsInjection(target.pathname)) {
     // Request uncompressed content from upstream
     delete headers["accept-encoding"];
   }
@@ -166,53 +178,64 @@ const server = http.createServer((clientReq, clientRes) => {
   if (headers["if-none-match"] && needsInjection(target.pathname))
     delete headers["if-none-match"];
 
-  const upOpts = {
-    protocol: target.protocol,
-    hostname: target.hostname,
-    port: target.port || (isTLS ? 443 : 80),
-    path: target.pathname + target.search,
-    method: clientReq.method,
-    headers,
-  };
+  function proxyRequest(retries = 10) {
+    const upOpts = {
+      protocol: target.protocol,
+      hostname: target.hostname,
+      port: target.port || (isTLS ? 443 : 80),
+      path: target.pathname + target.search,
+      method: clientReq.method,
+      headers,
+    };
 
-  const upReq = lib.request(upOpts, (upRes) => {
-    const inject = needsInjection(target.pathname);
+    const upReq = lib.request(upOpts, (upRes) => {
+      const isHtml =
+        needsInjection(target.pathname) &&
+        (upRes.headers["content-type"] || "").includes("text/html");
 
-    if (!inject) {
-      clientRes.writeHead(upRes.statusCode, upRes.headers);
-      return void upRes.pipe(clientRes);
-    }
-
-    const chunks = [];
-    upRes.on("data", (c) => chunks.push(c));
-    upRes.on("end", () => {
-      try {
-        const merged = Buffer.concat(chunks);
-        const patched = injectHTML(merged);
-
-        const hdrs = {
-          ...upRes.headers,
-          "content-length": Buffer.byteLength(patched),
-        };
-        // If we injected content, it's no longer encoded in the original way
-        delete hdrs["content-encoding"];
-        // Also, remove ETag as content has changed
-        delete hdrs["etag"];
-
-        clientRes.writeHead(upRes.statusCode, hdrs);
-        clientRes.end(patched);
-      } catch (e) {
-        clientRes.writeHead(500, { "content-type": "text/plain" });
-        clientRes.end("Injection failed: " + e.message);
+      if (!isHtml) {
+        clientRes.writeHead(upRes.statusCode, upRes.headers);
+        return void upRes.pipe(clientRes);
       }
-    });
-  });
 
-  clientReq.pipe(upReq);
-  upReq.on("error", (e) => {
-    clientRes.writeHead(502, { "content-type": "text/plain" });
-    clientRes.end("Upstream error: " + e.message);
-  });
+      const chunks = [];
+      upRes.on("data", (c) => chunks.push(c));
+      upRes.on("end", () => {
+        try {
+          const merged = Buffer.concat(chunks);
+          const patched = injectHTML(merged);
+
+          const hdrs = {
+            ...upRes.headers,
+            "content-length": Buffer.byteLength(patched),
+          };
+          // If we injected content, it's no longer encoded in the original way
+          delete hdrs["content-encoding"];
+          // Also, remove ETag as content has changed
+          delete hdrs["etag"];
+
+          clientRes.writeHead(upRes.statusCode, hdrs);
+          clientRes.end(patched);
+        } catch (e) {
+          clientRes.writeHead(500, { "content-type": "text/plain" });
+          clientRes.end("Injection failed: " + e.message);
+        }
+      });
+    });
+
+    upReq.on("error", async (e) => {
+      if (retries > 0) {
+        await new Promise((r) => setTimeout(r, 200));
+        return proxyRequest(retries - 1);
+      }
+      clientRes.writeHead(502, { "content-type": "text/plain" });
+      clientRes.end("Upstream error: " + e.message);
+    });
+
+    clientReq.pipe(upReq);
+  }
+
+  proxyRequest();
 });
 
 /* ----------------------------------------------------------------------- */
@@ -262,11 +285,4 @@ server.on("upgrade", (req, socket, _head) => {
 
 server.listen(LISTEN_PORT, LISTEN_HOST, () => {
   console.log(`proxy-server-start url=http://${LISTEN_HOST}:${LISTEN_PORT}`);
-});
-
-server.on("request", (req, res) => {
-  if (req.url === "/__eezi_logs") {
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    process.stdout.pipe(res);
-  }
 });

@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { useLoadApps } from "@/hooks/useLoadApps";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AppSearchDialog } from "./AppSearchDialog";
 import { useAddAppToFavorite } from "@/hooks/useAddAppToFavorite";
 import { AppItem } from "./appItem";
@@ -36,7 +36,7 @@ export function AppList({ show }: { show?: boolean }) {
         matchedChatTitle: null,
         matchedChatMessage: null,
       })),
-    [apps]
+    [apps],
   );
 
   const favoriteApps = useMemo(() => apps.filter((app) => app.isFavorite), [apps]);
@@ -47,7 +47,7 @@ export function AppList({ show }: { show?: boolean }) {
     return null;
   }
 
-  const handleAppClick = (id: number) => {
+  const handleAppClick = (id: string) => {
     setSelectedAppId(id);
     setSelectedChatId(null);
     setIsSearchDialogOpen(false);
@@ -62,7 +62,7 @@ export function AppList({ show }: { show?: boolean }) {
     // We'll eventually need a create app workflow
   };
 
-  const handleToggleFavorite = (appId: number, e: React.MouseEvent) => {
+  const handleToggleFavorite = (appId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     toggleFavorite(appId);
   };

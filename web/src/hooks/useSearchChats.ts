@@ -2,7 +2,7 @@ import type { ChatSearchResult } from "@/shared/schemas";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import api from "@/api";
 
-export function useSearchChats(appId: number | null, query: string) {
+export function useSearchChats(appId: string | null, query: string) {
   const enabled = Boolean(appId && query && query.trim().length > 0);
 
   const { data, isFetching, isLoading } = useQuery({

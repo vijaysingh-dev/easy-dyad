@@ -53,7 +53,7 @@ const ProblemItem = ({ problem }: ProblemItemProps) => {
 };
 
 interface RecheckButtonProps {
-  appId: number;
+  appId: string;
   size?: "sm" | "default" | "lg";
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   className?: string;
@@ -104,7 +104,7 @@ const RecheckButton = ({
 
 interface ProblemsSummaryProps {
   problemReport: ProblemReport;
-  appId: number;
+  appId: string;
 }
 
 const ProblemsSummary = ({ problemReport, appId }: ProblemsSummaryProps) => {

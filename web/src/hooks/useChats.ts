@@ -10,7 +10,7 @@ const chatListAtom = atom(async (get) => {
   return await api.chat.getAllChats(selectedAppId || undefined);
 });
 
-export function useChats(appId: number | null) {
+export function useChats(appId: string | null) {
   const [chatList] = useAtom(chatListAtom);
   const [chats, setChats] = useAtom(chatsAtom);
   const [loading, setLoading] = useAtom(chatsLoadingAtom);

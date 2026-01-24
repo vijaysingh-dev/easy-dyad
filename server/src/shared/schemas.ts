@@ -13,7 +13,7 @@ export type Secret = z.infer<typeof SecretSchema>;
  */
 export const ChatSummarySchema = z.object({
   id: z.number(),
-  appId: z.number(),
+  appId: z.string(),
   title: z.string().nullable(),
   createdAt: z.coerce.date(),
 });
@@ -33,7 +33,7 @@ export const ChatSummariesSchema = z.array(ChatSummarySchema);
  */
 export const ChatSearchResultSchema = z.object({
   id: z.number(),
-  appId: z.number(),
+  appId: z.string(),
   title: z.string().nullable(),
   createdAt: z.date(),
   matchedMessageContent: z.string().nullable(),

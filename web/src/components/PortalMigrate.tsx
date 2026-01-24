@@ -9,7 +9,7 @@ import { useVersions } from "@/hooks/useVersions";
 import api from "@/api";
 
 interface PortalMigrateProps {
-  appId: number;
+  appId: string;
 }
 
 export const PortalMigrate = ({ appId }: PortalMigrateProps) => {
@@ -40,7 +40,7 @@ export const PortalMigrate = ({ appId }: PortalMigrateProps) => {
 
   const openDocs = () => {
     api.app.openExternalUrl(
-      "https://www.dyad.sh/docs/templates/portal#create-a-database-migration"
+      "https://www.dyad.sh/docs/templates/portal#create-a-database-migration",
     );
   };
 

@@ -24,7 +24,7 @@ import { Label } from "@/components/ui/label";
 import api from "@/api";
 
 interface GitHubConnectorProps {
-  appId: number | null;
+  appId: string | null;
   folderName: string;
   expanded?: boolean;
 }
@@ -41,7 +41,7 @@ interface GitHubBranch {
 }
 
 interface ConnectedGitHubConnectorProps {
-  appId: number;
+  appId: string;
   app: any;
   refreshApp: () => void;
   triggerAutoSync?: boolean;
@@ -49,7 +49,7 @@ interface ConnectedGitHubConnectorProps {
 }
 
 interface UnconnectedGitHubConnectorProps {
-  appId: number | null;
+  appId: string | null;
   folderName: string;
   settings: any;
   refreshSettings: () => void;
@@ -113,7 +113,7 @@ function ConnectedGitHubConnector({
         setIsSyncing(false);
       }
     },
-    [appId]
+    [appId],
   );
 
   // Auto-sync when triggerAutoSync prop is true
@@ -137,7 +137,7 @@ function ConnectedGitHubConnector({
         onClick={(e) => {
           e.preventDefault();
           api.app.openExternalUrl(
-            `https://github.com/${app.githubOrg}/${app.githubRepo}`
+            `https://github.com/${app.githubOrg}/${app.githubRepo}`,
           );
         }}
         className="cursor-pointer text-blue-600 hover:underline dark:text-blue-400"
@@ -199,7 +199,7 @@ function ConnectedGitHubConnector({
               onClick={(e) => {
                 e.preventDefault();
                 api.app.openExternalUrl(
-                  "https://www.dyad.sh/docs/integrations/github#troubleshooting"
+                  "https://www.dyad.sh/docs/integrations/github#troubleshooting",
                 );
               }}
               className="cursor-pointer text-blue-600 hover:underline dark:text-blue-400"
@@ -257,7 +257,7 @@ function ConnectedGitHubConnector({
                     <li>{t("Overwrite the remote repository history")}</li>
                     <li>
                       {t(
-                        "Permanently delete commits that exist on the remote but not locally"
+                        "Permanently delete commits that exist on the remote but not locally",
                       )}
                     </li>
                   </ul>
@@ -301,7 +301,7 @@ function UnconnectedGitHubConnector({
   // --- GitHub Device Flow State ---
   const [githubUserCode, setGithubUserCode] = useState<string | null>(null);
   const [githubVerificationUri, setGithubVerificationUri] = useState<string | null>(
-    null
+    null,
   );
   const [githubError, setGithubError] = useState<string | null>(null);
   const [isConnectingToGithub, setIsConnectingToGithub] = useState(false);
@@ -452,7 +452,7 @@ function UnconnectedGitHubConnector({
         setIsCheckingRepo(false);
       }
     },
-    [githubOrg]
+    [githubOrg],
   );
 
   const debouncedCheckRepoAvailability = useCallback(
@@ -464,7 +464,7 @@ function UnconnectedGitHubConnector({
         checkRepoAvailability(name);
       }, 500);
     },
-    [checkRepoAvailability]
+    [checkRepoAvailability],
   );
 
   const handleSetupRepo = async (e: React.FormEvent) => {
@@ -481,7 +481,7 @@ function UnconnectedGitHubConnector({
           githubOrg,
           repoName,
           appId,
-          selectedBranch
+          selectedBranch,
         );
       } else {
         const [owner, repo] = selectedRepo.split("/");
@@ -491,7 +491,7 @@ function UnconnectedGitHubConnector({
           owner,
           repo,
           branchToUse,
-          appId
+          appId,
         );
       }
 
@@ -501,7 +501,7 @@ function UnconnectedGitHubConnector({
     } catch (err: any) {
       setCreateRepoError(
         err.message ||
-          `Failed to ${repoSetupMode === "create" ? "create" : "connect to"} repository.`
+          `Failed to ${repoSetupMode === "create" ? "create" : "connect to"} repository.`,
       );
     } finally {
       setIsCreatingRepo(false);
@@ -829,8 +829,8 @@ function UnconnectedGitHubConnector({
                   ? t("Creating...")
                   : t("Connecting...")
                 : repoSetupMode === "create"
-                ? t("Create Repo")
-                : t("Connect to Repo")}
+                  ? t("Create Repo")
+                  : t("Connect to Repo")}
             </Button>
           </form>
 

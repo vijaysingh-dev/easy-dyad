@@ -38,7 +38,7 @@ import { ExternalLink } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import api from "@/api";
 
-export function SupabaseConnector({ appId }: { appId: number }) {
+export function SupabaseConnector({ appId }: { appId: string }) {
   const { t, dir } = useI18n();
   const { settings, refreshSettings } = useSettings();
   const { app, refreshApp } = useLoadApp(appId);
@@ -96,7 +96,7 @@ export function SupabaseConnector({ appId }: { appId: number }) {
                 variant="outline"
                 onClick={() => {
                   api.app.openExternalUrl(
-                    `https://supabase.com/dashboard/project/${app.supabaseProjectId}`
+                    `https://supabase.com/dashboard/project/${app.supabaseProjectId}`,
                   );
                 }}
                 className="ml-2 px-2 py-1"
@@ -215,7 +215,7 @@ export function SupabaseConnector({ appId }: { appId: number }) {
               });
             } else {
               await api.app.openExternalUrl(
-                "https://supabase-oauth.dyad.sh/api/connect-supabase/login"
+                "https://supabase-oauth.dyad.sh/api/connect-supabase/login",
               );
             }
           }}

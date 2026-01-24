@@ -52,7 +52,11 @@ export function getAppVersion(): string {
   return packageJson.version;
 }
 
-const DEFAULT_COMMAND = `(pnpm install && pnpm run dev -- --host ${settings.APP_HOST} --port ${settings.APP_PORT} --hmr-protocol ${settings.HMR_PROTOCOL} --hmr-host ${settings.HMR_HOST} --hmr-port ${settings.HMR_PORT}) || (npm install --legacy-peer-deps && npm run dev -- --host ${settings.APP_HOST} --port ${settings.APP_PORT} --hmr-protocol ${settings.HMR_PROTOCOL} --hmr-host ${settings.HMR_HOST} --hmr-port ${settings.HMR_PORT})`;
+const DEFAULT_COMMAND = `
+(pnpm install && pnpm run dev -- --mode development --host ${settings.APP_HOST} --port ${settings.APP_PORT} --strictPort --hmr-protocol ${settings.HMR_PROTOCOL} --hmr-host ${settings.HMR_HOST} --hmr-port ${settings.HMR_PORT})
+||
+(npm install --legacy-peer-deps && npm run dev -- --mode development --host ${settings.APP_HOST} --port ${settings.APP_PORT} --strictPort --hmr-protocol ${settings.HMR_PROTOCOL} --hmr-host ${settings.HMR_HOST} --hmr-port ${settings.HMR_PORT})
+`;
 
 export function getCommand({
   installCommand,
@@ -187,6 +191,7 @@ export async function getSystemDebugInfo({
 // Define a type for the value stored in runningApps
 type DockerRuntimeInfo = {
   runtime: "docker";
+  runId: string;
   networkName: string;
   appContainerName: string;
   proxyContainerName: string;

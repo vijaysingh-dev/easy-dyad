@@ -4,7 +4,7 @@ import type { UserSettings } from "@/shared/schemas";
 import api from "@/api";
 
 export const currentAppAtom = atom<App | null>(null);
-export const selectedAppIdAtom = atom<number | null>(null);
+export const selectedAppIdAtom = atom<string | null>(null);
 export const appsListAtom = atom<App[]>([]);
 export const appBasePathAtom = atom<string>("");
 export const versionsListAtom = atom<Version[]>([]);
@@ -14,7 +14,7 @@ export const previewModeAtom = atom<
 export const selectedVersionIdAtom = atom<string | null>(null);
 export const appOutputAtom = atom<AppOutput[]>([]);
 export const appUrlAtom = atom<
-  | { appUrl: string; appId: number; originalUrl: string }
+  | { appUrl: string; appId: string; originalUrl: string }
   | { appUrl: null; appId: null; originalUrl: null }
 >({ appUrl: null, appId: null, originalUrl: null });
 

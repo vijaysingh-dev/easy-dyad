@@ -72,7 +72,7 @@ export function ChatList({ show }: { show?: boolean }) {
     return;
   }
 
-  const handleChatClick = ({ chatId, appId }: { chatId: number; appId: number }) => {
+  const handleChatClick = ({ chatId, appId }: { chatId: number; appId: string }) => {
     selectChat({ chatId, appId });
     setIsSearchDialogOpen(false);
   };
@@ -251,7 +251,7 @@ export function ChatList({ show }: { show?: boolean }) {
                                 onClick={() =>
                                   handleDeleteChatClick(
                                     chat.id,
-                                    chat.title || t("New Chat")
+                                    chat.title || t("New Chat"),
                                   )
                                 }
                                 className="py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 focus:bg-red-50 dark:focus:bg-red-950/50"

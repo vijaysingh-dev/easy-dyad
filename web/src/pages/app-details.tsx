@@ -56,7 +56,7 @@ export default function AppDetailsPage() {
   const nameExists = checkNameResult?.exists ?? false;
 
   // Get the appId from search params and find the corresponding app
-  const appId = search.appId ? Number(search.appId) : null;
+  const appId = search.appId ? search.appId : null;
   const selectedApp = appId ? appsList.find((app) => app.id === appId) : null;
   console.log("AppId", appId, "appsList", appsList, "selectedApp", selectedApp);
 

@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { VercelDeployment } from "@/shared/eeziTypes";
 import api from "@/api";
 
-export function useVercelDeployments(appId: number) {
+export function useVercelDeployments(appId: string) {
   const queryClient = useQueryClient();
 
   const {

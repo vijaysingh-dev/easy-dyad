@@ -21,7 +21,7 @@ import {
 import api from "@/api";
 
 interface CapacitorControlsProps {
-  appId: number;
+  appId: string;
 }
 
 type CapacitorStatus = "idle" | "syncing" | "opening";
@@ -132,7 +132,7 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
               onClick={() => {
                 // TODO: Add actual help link
                 api.app.openExternalUrl(
-                  "https://dyad.sh/docs/guides/mobile-app#troubleshooting"
+                  "https://dyad.sh/docs/guides/mobile-app#troubleshooting",
                 );
               }}
               className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center gap-1"
@@ -206,7 +206,7 @@ export function CapacitorControls({ appId }: CapacitorControlsProps) {
             </DialogTitle>
             <DialogDescription dir={dir}>
               {t(
-                "An error occurred while running the Capacitor command. See details below:"
+                "An error occurred while running the Capacitor command. See details below:",
               )}
             </DialogDescription>
           </DialogHeader>

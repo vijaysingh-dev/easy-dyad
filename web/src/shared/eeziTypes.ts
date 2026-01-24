@@ -17,11 +17,11 @@ export interface AppOutput {
   type: "stdout" | "stderr" | "info" | "client-error" | "input-requested";
   message: string;
   timestamp: number;
-  appId: number;
+  appId: string;
 }
 
 export interface RespondToAppInputParams {
-  appId: number;
+  appId: string;
   response: string;
 }
 
@@ -51,7 +51,7 @@ export interface ChatResponseEnd {
 
 export interface ChatProblemsEvent {
   chatId: number;
-  appId: number;
+  appId: string;
   problems: ProblemReport;
 }
 
@@ -61,9 +61,9 @@ export interface CreateAppParams {
 
 export interface CreateAppResult {
   app: {
-    id: number;
-    name: string;
+    id: string;
     path: string;
+    name: string;
     createdAt: string;
     updatedAt: string;
   };
@@ -89,7 +89,7 @@ export interface Chat {
 }
 
 export interface App {
-  id: number;
+  id: string;
   name: string;
   path: string;
   files: string[];
@@ -255,18 +255,18 @@ export interface ImportAppParams {
 }
 
 export interface CopyAppParams {
-  appId: number;
+  appId: string;
   newAppName: string;
   withHistory: boolean;
 }
 
 export interface ImportAppResult {
-  appId: number;
+  appId: string;
   chatId: number;
 }
 
 export interface RenameBranchParams {
-  appId: number;
+  appId: string;
   oldBranchName: string;
   newBranchName: string;
 }
@@ -304,17 +304,17 @@ export interface EnvVar {
 }
 
 export interface SetAppEnvVarsParams {
-  appId: number;
+  appId: string;
   envVars: EnvVar[];
 }
 
 export interface GetAppEnvVarsParams {
-  appId: number;
+  appId: string;
 }
 
 export interface ConnectToExistingVercelProjectParams {
   projectId: string;
-  appId: number;
+  appId: string;
 }
 
 export interface IsVercelProjectAvailableResponse {
@@ -324,11 +324,11 @@ export interface IsVercelProjectAvailableResponse {
 
 export interface CreateVercelProjectParams {
   name: string;
-  appId: number;
+  appId: string;
 }
 
 export interface GetVercelDeploymentsParams {
-  appId: number;
+  appId: string;
 }
 
 export interface VercelDeployment {
@@ -341,7 +341,7 @@ export interface VercelDeployment {
 }
 
 export interface DisconnectVercelProjectParams {
-  appId: number;
+  appId: string;
 }
 
 export interface IsVercelProjectAvailableParams {
@@ -364,7 +364,7 @@ export interface UpdateChatParams {
 }
 
 export interface UploadFileToCodebaseParams {
-  appId: number;
+  appId: string;
   filePath: string;
   fileData: string; // Base64 encoded file data
   fileName: string;
@@ -403,7 +403,7 @@ export interface FileAttachment {
 // --- Neon Types ---
 export interface CreateNeonProjectParams {
   name: string;
-  appId: number;
+  appId: string;
 }
 
 export interface NeonProject {
@@ -423,7 +423,7 @@ export interface NeonBranch {
 }
 
 export interface GetNeonProjectParams {
-  appId: number;
+  appId: string;
 }
 
 export interface GetNeonProjectResponse {
@@ -434,7 +434,7 @@ export interface GetNeonProjectResponse {
 }
 
 export interface RevertVersionParams {
-  appId: number;
+  appId: string;
   previousVersionId: string;
 }
 
@@ -484,8 +484,10 @@ export interface McpServer {
   updatedAt: number;
 }
 
-export interface CreateMcpServer
-  extends Omit<McpServer, "id" | "createdAt" | "updatedAt"> {}
+export interface CreateMcpServer extends Omit<
+  McpServer,
+  "id" | "createdAt" | "updatedAt"
+> {}
 export type McpServerUpdate = Partial<McpServer> & Pick<McpServer, "id">;
 export type McpToolConsentType = "ask" | "always" | "denied";
 

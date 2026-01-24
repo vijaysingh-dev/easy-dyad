@@ -34,10 +34,10 @@ class EeziClient {
 
   // Streams
   public chatStreams = new Map<number, ChatStreamCallbacks>();
-  public appStreams = new Map<number, AppStreamCallbacks>();
+  public appStreams = new Map<string, AppStreamCallbacks>();
   public helpStreams = new Map<string, HelpStreamCallbacks>();
   public mcpConsentHandlers = new Map<string, (payload: any) => void>();
-  public githubStreams = new Map<number, GithubStreamCallbacks>();
+  public githubStreams = new Map<string, GithubStreamCallbacks>();
 
   // EventSource connections per type
   public eventSources: {
@@ -55,7 +55,7 @@ class EeziClient {
   private initEventSource(
     key: keyof typeof this.eventSources,
     url: string,
-    onData: (data: any) => void
+    onData: (data: any) => void,
   ) {
     const existing = this.eventSources[key];
     if (existing && existing.readyState !== EventSource.CLOSED) {

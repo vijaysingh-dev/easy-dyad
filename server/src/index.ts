@@ -5,7 +5,6 @@ import logger from "@/logger";
 logger.info(`Configuration:
   NODE_ENV: ${settings.NODE_ENV}
   PORT: ${settings.PORT}
-  PUBLIC_IP: ${settings.PUBLIC_IP}
   IS_TEST_BUILD: ${settings.IS_TEST_BUILD}
 `);
 
@@ -21,8 +20,7 @@ import settingsRoutes from "./routes/settings.route";
 import versionRoutes from "./routes/version.route";
 
 import { requestLogger } from "./middlewares/requestLogger";
-import { runningApps } from "./utils/process_manager";
-import { stopRunningApp } from "./utils/app_utils";
+import { runningApps, stopRunningApp } from "./utils/app_utils";
 
 initializeDatabase();
 
@@ -69,31 +67,34 @@ const server = app.listen(settings.PORT, () => {
   console.log(`Server listening on http://localhost:${settings.PORT}`);
 });
 
-async function shutdown() {
-  console.log("\nGracefully shutting down...");
-  try {
-    for (const appId of runningApps.keys())
-      try {
-        stopRunningApp(appId);
-      } catch (err) {
-        console.error(err);
-      }
+let shuttingDown = false;
 
-    server.close(() => {
-      console.log("Express server closed.");
-      process.exit(0);
-    });
+async function shutdown(signal: string) {
+  if (shuttingDown) return;
+  shuttingDown = true;
 
-    setTimeout(() => {
-      console.warn("Force exiting...");
-      process.exit(1);
-    }, 5000);
-  } catch (err) {
-    console.error("Error during shutdown:", err);
+  console.log(`\nReceived ${signal}. Starting graceful shutdown...`);
+
+  const killer = setTimeout(() => {
+    console.error("Shutdown taking too long. Forcing exit.");
     process.exit(1);
+  }, 20000);
+
+  try {
+    for (const appId of Array.from(runningApps.keys())) {
+      await stopRunningApp(appId);
+    }
+
+    await new Promise((res) => server.close(res));
+    console.log("All resources cleaned up.");
+  } catch (e) {
+    console.error("Shutdown error:", e);
+  } finally {
+    clearTimeout(killer);
+    process.exit(0);
   }
 }
 
-// Catch Ctrl+C and termination signals
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
+process.on("SIGQUIT", shutdown);

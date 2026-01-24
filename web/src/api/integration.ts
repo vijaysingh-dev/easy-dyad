@@ -16,7 +16,6 @@ import {
   DisconnectVercelProjectParams,
 } from "@/shared/eeziTypes";
 import eeziClient from "./client";
-import { showError } from "@/components/Toast";
 
 class IntegrationApiService {
   private deepLinkHandler: ((data: DeepLinkData) => void) | null = null;
@@ -31,12 +30,12 @@ class IntegrationApiService {
         if (res.status == 200) this.deepLinkHandler?.(res.data as DeepLinkData);
       })
       .catch((error) => {
-        showError(`Error in fakeHandleNeonConnect: ${error}`);
+        console.log(`Error in fakeHandleNeonConnect: ${error}`);
       });
   }
 
   public async fakeHandleSupabaseConnect(params: {
-    appId: number;
+    appId: string;
     fakeProjectId: string;
   }) {
     Api.post("/integration/supabase/fake-connect-and-set-project", params)
@@ -44,7 +43,7 @@ class IntegrationApiService {
         if (res.status == 200) this.deepLinkHandler?.(res.data as DeepLinkData);
       })
       .catch((error) => {
-        showError(`Error in fakeHandleSupabaseConnect: ${error}`);
+        console.log(`Error in fakeHandleSupabaseConnect: ${error}`);
       });
   }
 
@@ -91,10 +90,10 @@ class IntegrationApiService {
 
   public async getGithubRepoBranches(
     owner: string,
-    repo: string
+    repo: string,
   ): Promise<{ name: string; commit: { sha: string } }[]> {
     const { data } = await Api.get(
-      `/integration/github/get-repo-branches/${owner}/${repo}`
+      `/integration/github/get-repo-branches/${owner}/${repo}`,
     );
     return data;
   }
@@ -108,7 +107,7 @@ class IntegrationApiService {
     owner: string,
     repo: string,
     branch: string,
-    appId: number
+    appId: string,
   ) {
     const { data } = await Api.post(`/integration/github/connect-existing-repo`, {
       owner,
@@ -130,8 +129,8 @@ class IntegrationApiService {
   public async createGithubRepo(
     org: string,
     repo: string,
-    appId: number,
-    branch?: string
+    appId: string,
+    branch?: string,
   ) {
     const { data } = await Api.post("/integration/github/create-repo", {
       org,
@@ -143,7 +142,7 @@ class IntegrationApiService {
   }
 
   // Sync (push) local repo to GitHub
-  public async syncGithubRepo(appId: number, force?: boolean) {
+  public async syncGithubRepo(appId: string, force?: boolean) {
     const { data } = await Api.post("/integration/github/push", {
       appId,
       force,
@@ -151,18 +150,18 @@ class IntegrationApiService {
     return data;
   }
 
-  public async disconnectGithubRepo(appId: number) {
+  public async disconnectGithubRepo(appId: string) {
     const { data } = await Api.post("/integration/github/disconnect", { appId });
     return data;
   }
 
   public startGithubDeviceFlow(
-    appId: number,
+    appId: string,
     options: {
       onGithubDeviceFlowUpdate: (data: GitHubDeviceFlowUpdateData) => void;
       onGithubDeviceFlowSuccess: (data: GitHubDeviceFlowSuccessData) => void;
       onGithubDeviceFlowError: (data: GitHubDeviceFlowErrorData) => void;
-    }
+    },
   ): void {
     const {
       onGithubDeviceFlowUpdate,
@@ -196,11 +195,11 @@ class IntegrationApiService {
   }
 
   public async connectToExistingVercelProject(
-    params: ConnectToExistingVercelProjectParams
+    params: ConnectToExistingVercelProjectParams,
   ) {
     const { data } = await Api.post(
       "/integration/vercel/connect-existing-project",
-      params
+      params,
     );
     return data;
   }

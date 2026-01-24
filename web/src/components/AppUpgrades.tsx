@@ -6,7 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AppUpgrade } from "@/shared/eeziTypes";
 import api from "@/api";
 
-export function AppUpgrades({ appId }: { appId: number | null }) {
+export function AppUpgrades({ appId }: { appId: string | null }) {
   const { t, dir } = useI18n();
   const queryClient = useQueryClient();
 
@@ -141,7 +141,7 @@ export function AppUpgrades({ appId }: { appId: number | null }) {
                         onClick={(e) => {
                           e.stopPropagation();
                           api.app.openExternalUrl(
-                            upgrade.manualUpgradeUrl ?? "https://dyad.sh/docs"
+                            upgrade.manualUpgradeUrl ?? "https://dyad.sh/docs",
                           );
                         }}
                         className="underline font-medium hover:dark:text-red-200"

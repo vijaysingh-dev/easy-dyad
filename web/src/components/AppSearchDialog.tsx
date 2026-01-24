@@ -14,7 +14,7 @@ import type { AppSearchResult } from "@/shared/schemas";
 type AppSearchDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelectApp: (appId: number) => void;
+  onSelectApp: (appId: string) => void;
   allApps: AppSearchResult[];
 };
 
@@ -51,7 +51,7 @@ export function AppSearchDialog({
       return 100 - Math.max(0, v.indexOf(q));
     }
     const foundInKeywords = (keywords || []).some((k) =>
-      (k || "").toLowerCase().includes(q)
+      (k || "").toLowerCase().includes(q),
     );
     return foundInKeywords ? 50 : 0;
   };
@@ -59,7 +59,7 @@ export function AppSearchDialog({
   function getSnippet(
     text: string,
     query: string,
-    radius = 50
+    radius = 50,
   ): {
     before: string;
     match: string;

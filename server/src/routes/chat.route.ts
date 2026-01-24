@@ -288,7 +288,7 @@ router.post("/search-chats/:appId", async (req, res) => {
 router.get("/get-context-paths", async (req, res) => {
   try {
     const appId = req.query.appId as string;
-    z.object({ appId: z.number() }).parse({ appId });
+    z.object({ appId: z.string() }).parse({ appId });
     const app = await db.query.apps.findFirst({
       where: eq(apps.id, appId),
     });
@@ -371,7 +371,7 @@ router.post("/set-context-paths", async (req, res) => {
   try {
     const { appId, chatContext } = req.body;
     const schema = z.object({
-      appId: z.number(),
+      appId: z.string(),
       chatContext: AppChatContextSchema,
     });
     schema.parse({ appId, chatContext });

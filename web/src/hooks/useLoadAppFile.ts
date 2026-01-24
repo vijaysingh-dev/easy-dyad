@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "@/api";
 
-export function useLoadAppFile(appId: number | null, filePath: string | null) {
+export function useLoadAppFile(appId: string | null, filePath: string | null) {
   const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);

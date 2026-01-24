@@ -7,7 +7,7 @@ import { selectedFileAtom } from "@/atoms/viewAtoms";
 import { useI18n } from "@/lib/i18n";
 
 interface App {
-  id?: number;
+  id?: string;
   files?: string[];
 }
 

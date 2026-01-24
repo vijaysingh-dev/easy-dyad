@@ -91,7 +91,7 @@ export default function HomePage() {
   }, [appVersion, settings, updateSettings, theme]);
 
   // Get the appId from search params
-  const appId = search.appId ? Number(search.appId) : null;
+  const appId = search.appId ? search.appId : null;
 
   // State for random prompts
   const [randomPrompts, setRandomPrompts] = useState<typeof INSPIRATION_PROMPTS>([]);
@@ -142,7 +142,7 @@ export default function HomePage() {
         attachments,
       });
       await new Promise((resolve) =>
-        setTimeout(resolve, settings?.isTestMode ? 0 : 2000)
+        setTimeout(resolve, settings?.isTestMode ? 0 : 2000),
       );
 
       setInputValue("");
@@ -275,7 +275,7 @@ export default function HomePage() {
               onClick={() =>
                 window.open(
                   releaseUrl.replace("?hideHeader=true&theme=" + theme, ""),
-                  "_blank"
+                  "_blank",
                 )
               }
             >

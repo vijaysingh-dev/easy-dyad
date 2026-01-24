@@ -7,6 +7,6 @@ export const homeRoute = createRoute({
   path: "/",
   component: HomePage,
   validateSearch: z.object({
-    appId: z.number().optional(),
+    appId: z.string().optional(),
   }),
 });

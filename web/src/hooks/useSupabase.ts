@@ -35,7 +35,7 @@ export function useSupabase() {
    * Associate a Supabase project with an app
    */
   const setAppProject = useCallback(
-    async (projectId: string, appId: number) => {
+    async (projectId: string, appId: string) => {
       setLoading(true);
       try {
         await api.integration.setSupabaseAppProject(projectId, appId);
@@ -48,14 +48,14 @@ export function useSupabase() {
         setLoading(false);
       }
     },
-    [setError, setLoading]
+    [setError, setLoading],
   );
 
   /**
    * Remove a Supabase project association from an app
    */
   const unsetAppProject = useCallback(
-    async (appId: number) => {
+    async (appId: string) => {
       setLoading(true);
       try {
         await api.integration.unsetSupabaseAppProject(appId);
@@ -68,7 +68,7 @@ export function useSupabase() {
         setLoading(false);
       }
     },
-    [setError, setLoading]
+    [setError, setLoading],
   );
 
   /**
@@ -78,7 +78,7 @@ export function useSupabase() {
     (projectId: string | null) => {
       setSelectedProject(projectId);
     },
-    [setSelectedProject]
+    [setSelectedProject],
   );
 
   return {

@@ -5,7 +5,7 @@ import { currentAppAtom } from "@/atoms/appAtoms";
 import { App } from "@/shared/eeziTypes";
 import api from "@/api";
 
-export function useLoadApp(appId: number | null) {
+export function useLoadApp(appId: string | null) {
   const [, setApp] = useAtom(currentAppAtom);
 
   const {
@@ -41,7 +41,7 @@ export function useLoadApp(appId: number | null) {
 // Function to invalidate the app query
 export const invalidateAppQuery = (
   queryClient: QueryClient,
-  { appId }: { appId: number | null }
+  { appId }: { appId: string | null },
 ) => {
   return queryClient.invalidateQueries({ queryKey: ["app", appId] });
 };

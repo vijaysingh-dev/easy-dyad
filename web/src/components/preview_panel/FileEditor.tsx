@@ -15,7 +15,7 @@ import { getLanguage } from "@/lib/get_language";
 import api from "@/api";
 
 interface FileEditorProps {
-  appId: number | null;
+  appId: string | null;
   filePath: string;
 }
 
@@ -165,7 +165,7 @@ export const FileEditor = ({ appId, filePath }: FileEditorProps) => {
       const { warning } = await api.app.editAppFile(
         appId,
         filePath,
-        currentValueRef.current
+        currentValueRef.current,
       );
       await queryClient.invalidateQueries({ queryKey: ["versions", appId] });
       if (settings?.enableAutoFixProblems) {

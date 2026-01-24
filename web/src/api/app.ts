@@ -16,7 +16,6 @@ import {
   ImportAppParams,
   AppUpgrade,
 } from "@/shared/eeziTypes";
-import { showError } from "@/components/Toast";
 import eeziClient from "./client";
 
 class AppApiService {
@@ -94,7 +93,7 @@ class AppApiService {
   }
 
   // --- Portal Management ---
-  public async portalMigrateCreate(params: { appId: number }) {
+  public async portalMigrateCreate(params: { appId: string }) {
     const { data } = await Api.post("/app/portal/migrate-create", params);
     return data;
   }
@@ -109,7 +108,7 @@ class AppApiService {
     const { data } = await Api.post(`/app/copy-app`, params);
     return data;
   }
-  public async getApp(appId: number) {
+  public async getApp(appId: string) {
     const { data } = await Api.get(`/app/get-app/${appId}`);
     return data;
   }
@@ -119,7 +118,7 @@ class AppApiService {
     return data as ListAppsResponse;
   }
 
-  public async readAppFile(appId: number, filePath: string) {
+  public async readAppFile(appId: string, filePath: string) {
     const { data } = await Api.get(
       `/app/read-app-file/${appId}/${encodeURIComponent(filePath)}`,
     );
@@ -127,7 +126,7 @@ class AppApiService {
   }
 
   // Run an app
-  public async runApp(appId: number, onOutput: (output: AppOutput) => void) {
+  public async runApp(appId: string, onOutput: (output: AppOutput) => void) {
     eeziClient.appStreams.delete(appId);
     eeziClient.eventSources["app"]?.close();
 
@@ -137,14 +136,14 @@ class AppApiService {
   }
 
   // Stop a running app
-  public async stopApp(appId: number) {
+  public async stopApp(appId: string) {
     const { data } = await Api.post("/app/stop-app", { appId });
     return data;
   }
 
   // Restart a running app
   public async restartApp(
-    appId: number,
+    appId: string,
     onOutput: (output: AppOutput) => void,
     removeNodeModules?: boolean,
   ) {
@@ -160,7 +159,7 @@ class AppApiService {
   }
 
   // Edit a file in an app directory
-  public async editAppFile(appId: number, filePath: string, content: string) {
+  public async editAppFile(appId: string, filePath: string, content: string) {
     const { data } = await Api.post("/app/edit-app-file", {
       appId,
       filePath,
@@ -170,7 +169,7 @@ class AppApiService {
   }
 
   // Delete an app and all its files
-  public async deleteApp(appId: number) {
+  public async deleteApp(appId: string) {
     const { data } = await Api.delete(`/app/delete-app/${appId}`);
     return data;
   }
@@ -186,14 +185,9 @@ class AppApiService {
     return data;
   }
 
-  public async addAppToFavorite(appId: number) {
-    try {
-      const { data } = await Api.post("/app/add-to-favorite", { appId });
-      return data;
-    } catch (error) {
-      showError(error);
-      throw error;
-    }
+  public async addAppToFavorite(appId: string) {
+    const { data } = await Api.post("/app/add-to-favorite", { appId });
+    return data;
   }
   public async importApp(params: ImportAppParams) {
     const { data } = await Api.post("/app/import-app", params);
@@ -201,7 +195,7 @@ class AppApiService {
   }
 
   // Rename an app (update name and path)
-  public async renameApp({ appId, newAppName }: { appId: number; newAppName: string }) {
+  public async renameApp({ appId, newAppName }: { appId: string; newAppName: string }) {
     const { data } = await Api.post("/app/rename-app", {
       appId,
       newAppName,
@@ -217,23 +211,14 @@ class AppApiService {
 
   // Respond to an app input request (y/n prompts)
   public async respondToAppInput(params: RespondToAppInputParams) {
-    try {
-      const { data } = await Api.post("/app/respond-to-app-input", params);
-      return data;
-    } catch (error) {
-      showError(error);
-    }
+    const { data } = await Api.post("/app/respond-to-app-input", params);
+    return data;
   }
 
   // Search apps by name
   public async searchApps(searchQuery: string) {
-    try {
-      const { data } = await Api.post("/app/search-app", { searchQuery });
-      return AppSearchResultsSchema.parse(data);
-    } catch (error) {
-      showError(error);
-      throw error;
-    }
+    const { data } = await Api.post("/app/search-app", { searchQuery });
+    return AppSearchResultsSchema.parse(data);
   }
 
   public async checkAppName(params: { appName: string }) {
@@ -242,45 +227,45 @@ class AppApiService {
     return data;
   }
 
-  public async getAppUpgrades(params: { appId: number }) {
+  public async getAppUpgrades(params: { appId: string }) {
     const config: AxiosRequestConfig = { params };
     const { data } = await Api.get("/app/get-app-upgrades", { config });
     return data as AppUpgrade[];
   }
 
-  public async executeAppUpgrade(params: { appId: number; upgradeId: string }) {
+  public async executeAppUpgrade(params: { appId: string; upgradeId: string }) {
     const { data } = await Api.post("/app/execute-app-upgrade", { params });
     return data;
   }
 
   // Capacitor methods
-  public async isCapacitor(params: { appId: number }) {
+  public async isCapacitor(params: { appId: string }) {
     const config: AxiosRequestConfig = { params };
     const { data } = await Api.get("/app/is-capacitor", { config });
     return data.isCapacitor as boolean;
   }
 
-  public async syncCapacitor(params: { appId: number }) {
+  public async syncCapacitor(params: { appId: string }) {
     // return this.ipcRenderer.invoke("sync-capacitor", params);
     const config: AxiosRequestConfig = { params };
     const { data } = await Api.get("/app/sync-capacitor", { config });
     return data;
   }
 
-  public async openIos(params: { appId: number }): Promise<void> {
+  public async openIos(params: { appId: string }): Promise<void> {
     // return this.ipcRenderer.invoke("open-ios", params);
     const config: AxiosRequestConfig = { params };
     const { data } = await Api.get("/app/open-ios", { config });
     return data;
   }
 
-  public async openAndroid(params: { appId: number }): Promise<void> {
+  public async openAndroid(params: { appId: string }): Promise<void> {
     const config: AxiosRequestConfig = { params };
     const { data } = await Api.get("/app/open-android", { config });
     return data;
   }
 
-  public async checkProblems(params: { appId: number }) {
+  public async checkProblems(params: { appId: string }) {
     const config: AxiosRequestConfig = { params };
     const { data } = await Api.get("/app/check-problems", { config });
     return data;

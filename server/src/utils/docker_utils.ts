@@ -38,44 +38,48 @@ async function streamContainerLogs({
 
   stdout.on("data", async (data) => {
     const message = util.stripVTControlCharacters(data.toString());
-    logger.debug(`App ${appId} (${containerName}) stdout: ${message}`);
-
-    safeSend(res, "app:output", {
-      type: "stdout",
-      message,
-      appId,
-    });
-
-    // ===== PROXY START DETECTION (old startProxy equivalent) =====
-    // Old worker emitted: "proxy-server-start url=http://...."
-    const proxyMatch = message.match(/proxy-server-start url=(.+)/);
-    if (proxyMatch) {
-      const proxyUrl = proxyMatch[1].trim();
-      logger.info(`[proxy] started at ${proxyUrl}`);
-      onProxyStarted?.(proxyUrl);
-    }
-    // ===========================================================
+    logger.debug(`App (${containerName}) stdout: ${message}`);
 
     // Drizzle auto-input (cannot be replicated, logs are read-only)
+    // This is a hacky heuristic to pick up when drizzle is asking for user
+    // to select from one of a few choices. We automatically pick the first
+    // option because it's usually a good default choice. We guard this with
+    // isNeon because: 1) only Neon apps (for the official Eezi templates) should
+    // get this template and 2) it's safer to do this with Neon apps because
+    // their databases have point in time restore built-in.
     if (isNeon && message.includes("created or renamed from another")) {
       logger.warn(
         `App ${appId}: drizzle stdin auto-enter skipped (Docker log stream is read-only)`,
       );
     }
 
-    const inputRequestPattern = /\s*›\s*\([yY]\/[nN]\)\s*$/;
-    if (inputRequestPattern.test(message)) {
-      safeSend(res, "app:output", {
-        type: "input-requested",
-        message,
-        appId,
-      });
+    // ===== PROXY START DETECTION =====
+    const proxyMatch = message.match(/proxy-server-start url=(.+)/);
+    if (proxyMatch) {
+      const proxyUrl = proxyMatch[1].trim();
+      logger.info(`App (${containerName}): [proxy] started at ${proxyUrl}`);
+      onProxyStarted?.(proxyUrl);
+    } else {
+      const inputRequestPattern = /\s*›\s*\([yY]\/[nN]\)\s*$/;
+      if (inputRequestPattern.test(message)) {
+        safeSend(res, "app:output", {
+          type: "input-requested",
+          message,
+          appId,
+        });
+      } else {
+        safeSend(res, "app:output", {
+          type: "stdout",
+          message,
+          appId,
+        });
+      }
     }
   });
 
   stderr.on("data", (data) => {
     const message = util.stripVTControlCharacters(data.toString());
-    logger.error(`App ${appId} (${containerName}) stderr: ${message}`);
+    logger.error(`App (${containerName}) stderr: ${message}`);
     safeSend(res, "app:output", {
       type: "stderr",
       message,
@@ -84,18 +88,50 @@ async function streamContainerLogs({
   });
 }
 
-async function waitForContainerExit(containerName: string, appId: string) {
+async function waitForViteReady(containerName: string): Promise<void> {
+  const container = docker.getContainer(containerName);
+  const stream = await container.logs({ follow: true, stdout: true, stderr: true });
+
+  return new Promise((resolve, reject) => {
+    const stdout = new PassThrough();
+    docker.modem.demuxStream(stream, stdout, new PassThrough());
+
+    const onData = (data: Buffer) => {
+      const msg = data.toString();
+      if (msg.includes("VITE") && msg.includes("ready")) {
+        stdout.off("data", onData);
+        resolve();
+      }
+    };
+
+    stdout.on("data", onData);
+
+    setTimeout(() => {
+      stdout.off("data", onData);
+      reject(new Error("Timeout waiting for Vite readiness"));
+    }, 30000);
+  });
+}
+
+async function waitForContainerExit(
+  containerName: string,
+  appId: string,
+  runId: string,
+) {
   const container = docker.getContainer(containerName);
   try {
     const result = await container.wait();
-    logger.log(
-      `App ${appId} (${containerName}) exited with status ${result.StatusCode}`,
-    );
-    stopRunningApp(appId);
+    logger.log(`App (${containerName}) exited with status ${result.StatusCode}`);
+
+    const current = runningApps.get(appId);
+    if (!current || current.runtime !== "docker" || current.runId !== runId) {
+      logger.log(`Stale watcher ignored for ${appId}`);
+      return;
+    }
+
+    await stopRunningApp(appId);
   } catch (err: any) {
-    logger.error(
-      `Error waiting for container ${containerName} (app ${appId}): ${err.message}`,
-    );
+    logger.error(`Error waiting for container ${containerName}: ${err.message}`);
   }
 }
 
@@ -130,16 +166,16 @@ export async function executeAppInDocker({
 
   // Cleanup previous run (like stop+rm)
   await docker
-    .getNetwork(networkName)
-    .remove()
-    .catch(() => {});
-  await docker
     .getContainer(appContainerName)
     .remove({ force: true })
     .catch(() => {});
   await docker
     .getContainer(proxyContainerName)
     .remove({ force: true })
+    .catch(() => {});
+  await docker
+    .getNetwork(networkName)
+    .remove()
     .catch(() => {});
 
   // Create isolated network (ECS task equivalent)
@@ -203,6 +239,7 @@ export async function executeAppInDocker({
   });
 
   try {
+    await waitForViteReady(appContainerName);
     await proxyContainer.start();
   } catch (err: any) {
     logger.error(`Failed to start proxy for app ${appId}: ${err.message}`);
@@ -223,19 +260,22 @@ export async function executeAppInDocker({
 
       safeSend(res, "app:output", {
         type: "stdout",
-        message: `[eezi-proxy-server]started=[${publicProxyUrl}]`,
+        message: `[eezi-proxy-server]started=[${publicProxyUrl}] original=[http://localhost:${settings.APP_PORT}]`,
         appId,
       });
     },
   });
 
+  const runId = crypto.randomUUID();
+
   // Lifecycle (close / error equivalent)
-  waitForContainerExit(appContainerName, appId);
-  waitForContainerExit(proxyContainerName, appId);
+  // Only watch app container to avoid lifecycle race
+  waitForContainerExit(appContainerName, appId, runId);
 
   // Register running app
   runningApps.set(appId, {
     runtime: "docker",
+    runId,
     networkName,
     appContainerName,
     proxyContainerName,
@@ -328,298 +368,3 @@ export async function stopDockerTask(appId: string): Promise<void> {
     }
   });
 }
-
-// function listenToProcess({
-//   process: spawnedProcess,
-//   appId,
-//   isNeon,
-//   res,
-// }: {
-//   process: ChildProcess;
-//   appId: string;
-//   isNeon: boolean;
-//   res: Response;
-// }) {
-//   // Log output
-//   spawnedProcess.stdout?.on("data", async (data) => {
-//     const message = util.stripVTControlCharacters(data.toString());
-//     logger.debug(`App ${appId} (PID: ${spawnedProcess.pid}) stdout: ${message}`);
-
-//     // This is a hacky heuristic to pick up when drizzle is asking for user
-//     // to select from one of a few choices. We automatically pick the first
-//     // option because it's usually a good default choice. We guard this with
-//     // isNeon because: 1) only Neon apps (for the official Eezi templates) should
-//     // get this template and 2) it's safer to do this with Neon apps because
-//     // their databases have point in time restore built-in.
-//     if (isNeon && message.includes("created or renamed from another")) {
-//       spawnedProcess.stdin?.write(`\r\n`);
-//       logger.info(
-//         `App ${appId} (PID: ${spawnedProcess.pid}) wrote enter to stdin to automatically respond to drizzle push input`,
-//       );
-//     }
-
-//     // Check if this is an interactive prompt requiring user input
-//     const inputRequestPattern = /\s*›\s*\([yY]\/[nN]\)\s*$/;
-//     const isInputRequest = inputRequestPattern.test(message);
-//     if (isInputRequest) {
-//       // Send special input-requested event for interactive prompts
-//       safeSend(res, "app:output", {
-//         type: "input-requested",
-//         message,
-//         appId,
-//       });
-//     } else {
-//       // Normal stdout handling
-//       safeSend(res, "app:output", {
-//         type: "stdout",
-//         message,
-//         appId,
-//       });
-
-//       const urlMatch = message.match(/(https?:\/\/localhost:(\d+)\/?)/);
-//       if (urlMatch) {
-//         const originalUrl = urlMatch[1];
-//         const port = urlMatch[2];
-//         const publicUrl = settings.IS_TEST_BUILD
-//           ? `http://localhost:${port}`
-//           : originalUrl;
-
-//         await startProxy(originalUrl, {
-//           onStarted: (proxyUrl) => {
-//             const match = proxyUrl.match(/^https?:\/\/[^:]+:(\d+)\/?$/);
-//             const publicProxyUrl =
-//               settings.IS_TEST_BUILD && match
-//                 ? `http://localhost:${match[1]}`
-//                 : proxyUrl;
-//             safeSend(res, "app:output", {
-//               type: "stdout",
-//               message: `[eezi-proxy-server]started=[${publicProxyUrl}] original=[${publicUrl}]`,
-//               appId,
-//             });
-//           },
-//         });
-//       }
-//     }
-//   });
-
-//   spawnedProcess.stderr?.on("data", (data) => {
-//     const message = util.stripVTControlCharacters(data.toString());
-//     logger.error(`App ${appId} (PID: ${spawnedProcess.pid}) stderr: ${message}`);
-//     safeSend(res, "app:output", {
-//       type: "stderr",
-//       message,
-//       appId,
-//     });
-//   });
-
-//   // Handle process exit/close
-//   spawnedProcess.on("close", (code, signal) => {
-//     logger.log(
-//       `App ${appId} (PID: ${spawnedProcess.pid}) process closed with code ${code}, signal ${signal}.`,
-//     );
-//     removeAppIfCurrentProcess(appId, spawnedProcess);
-//   });
-
-//   // Handle errors during process lifecycle (e.g., command not found)
-//   spawnedProcess.on("error", (err) => {
-//     logger.error(
-//       `Error in app ${appId} (PID: ${spawnedProcess.pid}) process: ${err.message}`,
-//     );
-//     removeAppIfCurrentProcess(appId, spawnedProcess);
-//     // Note: We don't throw here as the error is asynchronous. The caller got a success response already.
-//     // Consider adding ipcRenderer event emission to notify UI of the error.
-//   });
-// }
-
-// async function executeAppInDocker({
-//   appPath,
-//   appId,
-//   res,
-//   isNeon,
-//   installCommand,
-//   startCommand,
-// }: {
-//   appPath: string;
-//   appId: string;
-//   res: Response;
-//   isNeon: boolean;
-//   installCommand?: string | null;
-//   startCommand?: string | null;
-// }): Promise<void> {
-//   logger.info(`Starting app ${appId} in Docker mode`);
-//   const containerName = `eezi-app-${appId}`;
-
-//   // First, check if Docker is available
-//   try {
-//     await new Promise<void>((resolve, reject) => {
-//       const checkDocker = spawn("docker", ["--version"], { stdio: "pipe" });
-//       checkDocker.on("close", (code) => {
-//         if (code === 0) {
-//           resolve();
-//         } else {
-//           reject(new Error("Docker is not available"));
-//         }
-//       });
-//       checkDocker.on("error", () => {
-//         reject(new Error("Docker is not available"));
-//       });
-//     });
-//   } catch {
-//     throw new Error(
-//       "Docker is required but not available. Please install Docker Desktop and ensure it's running.",
-//     );
-//   }
-
-//   // Stop and remove any existing container with the same name
-//   try {
-//     await new Promise<void>((resolve) => {
-//       const stopContainer = spawn("docker", ["stop", containerName], {
-//         stdio: "pipe",
-//       });
-//       stopContainer.on("close", () => {
-//         const removeContainer = spawn("docker", ["rm", containerName], {
-//           stdio: "pipe",
-//         });
-//         removeContainer.on("close", () => resolve());
-//         removeContainer.on("error", () => resolve()); // Container might not exist
-//       });
-//       stopContainer.on("error", () => resolve()); // Container might not exist
-//     });
-//   } catch (error: any) {
-//     logger.info(`Docker container ${containerName} not found. Ignoring error: ${error}`);
-//   }
-
-//   // Create a Dockerfile in the app directory if it doesn't exist
-//   const dockerfilePath = path.join(appPath, "Dockerfile.eezi");
-//   if (!fs.existsSync(dockerfilePath)) {
-//     const dockerfileContent = `FROM node:22-alpine
-
-// # Install pnpm
-// RUN npm install -g pnpm
-// `;
-
-//     try {
-//       await fsPromises.writeFile(dockerfilePath, dockerfileContent, "utf-8");
-//     } catch (error: any) {
-//       logger.error(`Failed to create Dockerfile for app ${appId}:`, error);
-//       throw new Error(`Failed to create Dockerfile: ${error}`);
-//     }
-//   }
-
-//   // Build the Docker image
-//   const buildProcess = spawn(
-//     "docker",
-//     ["build", "-f", "Dockerfile.eezi", "-t", containerName, "."],
-//     {
-//       cwd: appPath,
-//       stdio: "pipe",
-//     },
-//   );
-
-//   let buildError = "";
-//   buildProcess.stderr?.on("data", (data) => {
-//     buildError += data.toString();
-//   });
-
-//   await new Promise<void>((resolve, reject) => {
-//     buildProcess.on("close", (code) => {
-//       if (code === 0) {
-//         resolve();
-//       } else {
-//         reject(new Error(`Docker build failed: ${buildError}`));
-//       }
-//     });
-//     buildProcess.on("error", (err) => {
-//       reject(new Error(`Docker build process error: ${err.message}`));
-//     });
-//   });
-
-//   // Run the Docker container
-//   const initArgs = ["run", "--rm", "--name", containerName];
-//   const extraArgs = [
-//     "-p",
-//     `${settings.PROXY_PORT}:${settings.PROXY_PORT}`,
-//     "-p",
-//     `${settings.APP_PORT}:${settings.APP_PORT}`,
-//     "-v",
-//     `${appPath}:/workspace`,
-//     "-v",
-//     `eezi-pnpm-${appId}:/workspace/.pnpm-store`,
-//     "-e",
-//     "PNPM_STORE_PATH=/workspace/.pnpm-store",
-//     "-e",
-//     `PORT=${settings.APP_PORT}`,
-//   ];
-//   if (settings.IS_TEST_BUILD) extraArgs.push("-e", "HOST=0.0.0.0");
-
-//   const process = spawn(
-//     "docker",
-//     [
-//       ...initArgs,
-//       ...extraArgs,
-//       "-w",
-//       "/workspace",
-//       containerName,
-//       "sh",
-//       "-c",
-//       getCommand({ installCommand, startCommand }),
-//     ],
-//     {
-//       stdio: "pipe",
-//       detached: false,
-//     },
-//   );
-
-//   // Check if process spawned correctly
-//   if (!process.pid) {
-//     // Attempt to capture any immediate errors if possible
-//     let errorOutput = "";
-//     let spawnErr: any = null;
-//     process.stderr?.on("data", (data) => (errorOutput += data.toString()));
-//     await new Promise<void>((resolve) => {
-//       process.once("error", (err) => {
-//         spawnErr = err;
-//         resolve();
-//       });
-//     }); // Wait for error event
-
-//     const details = [
-//       spawnErr?.message ? `message=${spawnErr.message}` : null,
-//       spawnErr?.code ? `code=${spawnErr.code}` : null,
-//       spawnErr?.errno ? `errno=${spawnErr.errno}` : null,
-//       spawnErr?.syscall ? `syscall=${spawnErr.syscall}` : null,
-//       spawnErr?.path ? `path=${spawnErr.path}` : null,
-//       spawnErr?.spawnargs ? `spawnargs=${JSON.stringify(spawnErr.spawnargs)}` : null,
-//     ]
-//       .filter(Boolean)
-//       .join(", ");
-
-//     logger.error(
-//       `Failed to spawn Docker container for app ${appId}. ${details}\nSTDERR:\n${
-//         errorOutput || "(empty)"
-//       }`,
-//     );
-
-//     throw new Error(
-//       `Failed to spawn Docker container for app ${appId}.
-// Details: ${details || "n/a"}
-// STDERR:
-// ${errorOutput || "(empty)"}`,
-//     );
-//   }
-
-//   // Increment the counter and store the process reference with its ID
-//   const currentProcessId = processCounter.increment();
-//   runningApps.set(appId, {
-//     process,
-//     processId: currentProcessId,
-//     containerName,
-//   });
-
-//   listenToProcess({
-//     process,
-//     appId,
-//     isNeon,
-//     res,
-//   });
-// }

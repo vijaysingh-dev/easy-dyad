@@ -14,8 +14,8 @@ import type { ChatSummary, ChatSearchResult } from "@/shared/schemas";
 type ChatSearchDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelectChat: ({ chatId, appId }: { chatId: number; appId: number }) => void;
-  appId: number | null;
+  onSelectChat: ({ chatId, appId }: { chatId: number; appId: string }) => void;
+  appId: string | null;
   allChats: ChatSummary[];
 };
 
@@ -52,7 +52,7 @@ export function ChatSearchDialog({
       return 100 - Math.max(0, v.indexOf(q));
     }
     const foundInKeywords = (keywords || []).some((k) =>
-      (k || "").toLowerCase().includes(q)
+      (k || "").toLowerCase().includes(q),
     );
     return foundInKeywords ? 50 : 0;
   };
@@ -60,7 +60,7 @@ export function ChatSearchDialog({
   function getSnippet(
     text: string,
     query: string,
-    radius = 50
+    radius = 50,
   ): {
     before: string;
     match: string;
@@ -119,7 +119,7 @@ export function ChatSearchDialog({
             const snippet = hasSnippet
               ? getSnippet(
                   (chat as ChatSearchResult).matchedMessageContent as string,
-                  searchQuery
+                  searchQuery,
                 )
               : null;
             return (

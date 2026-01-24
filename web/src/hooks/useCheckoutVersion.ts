@@ -4,7 +4,7 @@ import { activeCheckoutCounterAtom } from "@/atoms/checkoutAtoms";
 import api from "@/api";
 
 interface CheckoutVersionVariables {
-  appId: number;
+  appId: string;
   versionId: string;
 }
 

@@ -5,7 +5,7 @@ export async function neonTemplateHook({
   appId,
   appName,
 }: {
-  appId: number;
+  appId: string;
   appName: string;
 }) {
   console.log("Creating Neon project");

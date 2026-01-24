@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { BranchResult } from "@/shared/eeziTypes";
 import api from "@/api";
 
-export function useCurrentBranch(appId: number | null) {
+export function useCurrentBranch(appId: string | null) {
   const {
     data: branchInfo,
     isLoading,

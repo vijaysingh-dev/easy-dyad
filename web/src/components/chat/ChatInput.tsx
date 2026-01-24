@@ -82,7 +82,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
   const setIsPreviewOpen = useSetAtom(isPreviewOpenAtom);
   const [showTokenBar, setShowTokenBar] = useAtom(showTokenBarAtom);
   const [selectedComponent, setSelectedComponent] = useAtom(
-    selectedComponentPreviewAtom
+    selectedComponentPreviewAtom,
   );
   const { checkProblems } = useCheckProblems(appId);
   // Use the attachments hook
@@ -108,7 +108,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
   const { proposal, messageId } = proposalResult ?? {};
   useChatModeToggle();
 
-  const lastMessage = (chatId ? messagesById.get(chatId) ?? [] : []).at(-1);
+  const lastMessage = (chatId ? (messagesById.get(chatId) ?? []) : []).at(-1);
   const disableSendButton =
     lastMessage?.role === "assistant" &&
     !lastMessage.approvalState &&
@@ -864,27 +864,27 @@ function ProposalSummary({
 
   if (sqlQueries.length) {
     parts.push(
-      `${sqlQueries.length} ${t(sqlQueries.length === 1 ? "SQL query" : "SQL queries")}`
+      `${sqlQueries.length} ${t(sqlQueries.length === 1 ? "SQL query" : "SQL queries")}`,
     );
   }
 
   if (serverFunctions.length) {
     parts.push(
       `${serverFunctions.length} ${t(
-        serverFunctions.length === 1 ? "Server Function" : "Server Functions"
-      )}`
+        serverFunctions.length === 1 ? "Server Function" : "Server Functions",
+      )}`,
     );
   }
 
   if (packagesAdded.length) {
     parts.push(
-      `${packagesAdded.length} ${t(packagesAdded.length === 1 ? "package" : "packages")}`
+      `${packagesAdded.length} ${t(packagesAdded.length === 1 ? "package" : "packages")}`,
     );
   }
 
   if (filesChanged.length) {
     parts.push(
-      `${filesChanged.length} ${t(filesChanged.length === 1 ? "file" : "files")}`
+      `${filesChanged.length} ${t(filesChanged.length === 1 ? "file" : "files")}`,
     );
   }
 

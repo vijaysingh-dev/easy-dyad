@@ -370,7 +370,6 @@ router.get("/run-app/:appId", async (req, res) => {
 
       const appPath = getEeziAppPath(app.path);
       try {
-        // There may have been a previous run that left a process on port 32100.
         await executeApp({
           appPath,
           appId,

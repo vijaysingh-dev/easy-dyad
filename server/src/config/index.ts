@@ -16,7 +16,7 @@ const baseSettings = {
 
   APP_PORT: 3000,
   PROXY_PORT: 8080,
-  APP_HOST: IS_TEST_BUILD ? "localhost" : "0.0.0.0",
+  APP_HOST: "0.0.0.0",
   HMR_PROTOCOL: IS_TEST_BUILD ? "ws" : "wss",
   HMR_HOST: IS_TEST_BUILD ? "localhost" : "app.eezi.dev",
 };

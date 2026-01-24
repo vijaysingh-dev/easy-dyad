@@ -8,6 +8,6 @@ export const appDetailsRoute = createRoute({
   path: "/app-details",
   component: AppDetailsPage,
   validateSearch: z.object({
-    appId: z.number().optional(),
+    appId: z.string().optional(),
   }),
 });

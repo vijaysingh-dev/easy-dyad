@@ -1,0 +1,8 @@
+{
+  "name": "eezi-proxy",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "stacktrace-js": "^2.0.2"
+  }
+}
