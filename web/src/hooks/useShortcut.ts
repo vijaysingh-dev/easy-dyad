@@ -54,7 +54,7 @@ export function useShortcut(
         return;
       }
 
-      if (event.data?.type === "eezi-select-component-shortcut") {
+      if (event.data?.type === "easy-select-component-shortcut") {
         if (isComponentSelectorInitialized) {
           callback();
         }

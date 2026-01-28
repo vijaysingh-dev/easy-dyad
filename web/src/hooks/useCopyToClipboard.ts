@@ -2,19 +2,19 @@ import { useState, useRef, useEffect } from "react";
 import { getLanguage } from "@/lib/get_language";
 
 const CUSTOM_TAG_NAMES = [
-  "eezi-write",
-  "eezi-rename",
-  "eezi-delete",
-  "eezi-add-dependency",
-  "eezi-execute-sql",
-  "eezi-add-integration",
-  "eezi-output",
-  "eezi-problem-report",
-  "eezi-chat-summary",
-  "eezi-edit",
-  "eezi-codebase-context",
+  "easy-write",
+  "easy-rename",
+  "easy-delete",
+  "easy-add-dependency",
+  "easy-execute-sql",
+  "easy-add-integration",
+  "easy-output",
+  "easy-problem-report",
+  "easy-chat-summary",
+  "easy-edit",
+  "easy-codebase-context",
   "think",
-  "eezi-command",
+  "easy-command",
 ];
 export const useCopyToClipboard = () => {
   const [copied, setCopied] = useState(false);
@@ -29,8 +29,8 @@ export const useCopyToClipboard = () => {
 
   const copyMessageContent = async (messageContent: string) => {
     try {
-      // Use the same parsing logic as EeziMarkdownParser but convert to clean text
-      const formattedContent = convertEeziContentToMarkdown(messageContent);
+      // Use the same parsing logic as EasyMarkdownParser but convert to clean text
+      const formattedContent = convertEasyContentToMarkdown(messageContent);
 
       // Copy to clipboard
       await navigator.clipboard.writeText(formattedContent);
@@ -50,11 +50,11 @@ export const useCopyToClipboard = () => {
     }
   };
 
-  // Convert Eezi content to clean markdown using the same parsing logic as EeziMarkdownParser
-  const convertEeziContentToMarkdown = (content: string): string => {
+  // Convert Easy Dyad content to clean markdown using the same parsing logic as EasyMarkdownParser
+  const convertEasyContentToMarkdown = (content: string): string => {
     if (!content) return "";
 
-    // Use the same parsing functions from EeziMarkdownParser
+    // Use the same parsing functions from EasyMarkdownParser
     const contentPieces = parseCustomTags(content);
 
     let result = "";
@@ -76,7 +76,7 @@ export const useCopyToClipboard = () => {
       .trim();
   };
 
-  // Convert individual custom tags to markdown (reuse the same logic from EeziMarkdownParser)
+  // Convert individual custom tags to markdown (reuse the same logic from EasyMarkdownParser)
   const convertCustomTagToMarkdown = (tagInfo: any): string => {
     const { tag, attributes, content } = tagInfo;
 
@@ -84,7 +84,7 @@ export const useCopyToClipboard = () => {
       case "think":
         return `### Thinking\n\n${content}\n\n`;
 
-      case "eezi-write": {
+      case "easy-write": {
         const writePath = attributes.path || "file";
         const writeDesc = attributes.description || "";
         const language = getLanguage(writePath);
@@ -97,7 +97,7 @@ export const useCopyToClipboard = () => {
         return writeResult;
       }
 
-      case "eezi-edit": {
+      case "easy-edit": {
         const editPath = attributes.path || "file";
         const editDesc = attributes.description || "";
         const editLang = getLanguage(editPath);
@@ -110,23 +110,23 @@ export const useCopyToClipboard = () => {
         return editResult;
       }
 
-      case "eezi-rename": {
+      case "easy-rename": {
         const from = attributes.from || "";
         const to = attributes.to || "";
         return `### Rename: ${from} → ${to}\n\n`;
       }
 
-      case "eezi-delete": {
+      case "easy-delete": {
         const deletePath = attributes.path || "";
         return `### Delete: ${deletePath}\n\n`;
       }
 
-      case "eezi-add-dependency": {
+      case "easy-add-dependency": {
         const packages = attributes.packages || "";
         return `### Add Dependencies\n\n\`\`\`bash\n${packages}\n\`\`\`\n\n`;
       }
 
-      case "eezi-execute-sql": {
+      case "easy-execute-sql": {
         const sqlDesc = attributes.description || "";
         let sqlResult = `### Execute SQL\n\n`;
         if (sqlDesc) {
@@ -136,12 +136,12 @@ export const useCopyToClipboard = () => {
         return sqlResult;
       }
 
-      case "eezi-add-integration": {
+      case "easy-add-integration": {
         const provider = attributes.provider || "";
         return `### Add Integration: ${provider}\n\n`;
       }
 
-      case "eezi-codebase-context": {
+      case "easy-codebase-context": {
         const files = attributes.files || "";
         let contextResult = `### Codebase Context\n\n`;
         if (files) {
@@ -151,7 +151,7 @@ export const useCopyToClipboard = () => {
         return contextResult;
       }
 
-      case "eezi-output": {
+      case "easy-output": {
         const outputType = attributes.type || "info";
         const message = attributes.message || "";
         const emoji =
@@ -167,7 +167,7 @@ export const useCopyToClipboard = () => {
         return outputResult + "\n\n";
       }
 
-      case "eezi-problem-report": {
+      case "easy-problem-report": {
         const summary = attributes.summary || "";
         let problemResult = `### Problem Report\n\n`;
         if (summary) {
@@ -179,8 +179,8 @@ export const useCopyToClipboard = () => {
         return problemResult + "\n\n";
       }
 
-      case "eezi-chat-summary":
-      case "eezi-command":
+      case "easy-chat-summary":
+      case "easy-command":
         // Don't include these in copy
         return "";
 
@@ -189,7 +189,7 @@ export const useCopyToClipboard = () => {
     }
   };
 
-  // Reuse the same parsing functions from EeziMarkdownParser but simplified
+  // Reuse the same parsing functions from EasyMarkdownParser but simplified
   const parseCustomTags = (content: string) => {
     const { processedContent } = preprocessUnclosedTags(content);
 

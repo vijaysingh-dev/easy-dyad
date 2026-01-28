@@ -10,7 +10,7 @@ export function useSearchChats(appId: string | null, query: string) {
     enabled,
     queryFn: async (): Promise<ChatSearchResult[]> => {
       // Non-null assertion safe due to enabled guard
-      return api.chat.searchChats(appId as number, query);
+      return api.chat.searchChats(appId as string, query);
     },
     placeholderData: keepPreviousData,
     retry: 0,

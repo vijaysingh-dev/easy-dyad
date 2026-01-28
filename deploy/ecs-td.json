@@ -1,17 +1,24 @@
 {
-  "family": "dev-eezi-vite-runtime",
+  "family": "dev-easy-vite-runtime",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
   "memory": "1024",
-  "executionRoleArn": "arn:aws:iam::160885287768:role/DEV-EEZI-ECS-TASK-EXEC-ROLE",
-  "taskRoleArn": "arn:aws:iam::160885287768:role/DEV-EEZI-ECS-TASK-ROLE",
+  "executionRoleArn": "arn:aws:iam::160885287768:role/DEV-EASY-ECS-TASK-EXEC-ROLE",
+  "taskRoleArn": "arn:aws:iam::160885287768:role/DEV-EASY-ECS-TASK-ROLE",
   "containerDefinitions": [
     {
       "name": "vite-app",
-      "image": "node:22-alpine",
+      "image": "160885287768.dkr.ecr.eu-north-1.amazonaws.com/dev-easy-node-runtime:22-pnpm10",
+      "user": "1001:1001",
       "essential": true,
       "portMappings": [{ "containerPort": 3000, "protocol": "tcp" }],
+      "command": ["sh", "-c", "sleep infinity"],
+      "environment": [
+        { "name": "HOST", "value": "0.0.0.0" },
+        { "name": "PORT", "value": "3000" },
+        { "name": "PNPM_STORE_PATH", "value": "/workspace/.pnpm-store" }
+      ],
       "mountPoints": [
         {
           "sourceVolume": "workspace",
@@ -19,33 +26,42 @@
           "readOnly": false
         }
       ],
-      "command": [
-        "sh",
-        "-c",
-        "pnpm install && pnpm run dev -- --host 0.0.0.0 --port 3000"
-      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "wget -q -O - http://localhost:3000 || exit 1"],
+        "interval": 10,
+        "timeout": 5,
+        "retries": 5,
+        "startPeriod": 20
+      },
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/dev/eezi/ecs/runtime",
+          "awslogs-group": "/dev/easy-dyad/ecs/runtime",
           "awslogs-region": "eu-north-1",
           "awslogs-stream-prefix": "vite"
         }
       }
     },
     {
-      "name": "eezi-proxy",
-      "image": "eezi/eezi-proxy:latest",
+      "name": "easy-proxy",
+      "image": "160885287768.dkr.ecr.eu-north-1.amazonaws.com/dev-easy-proxy:1.0.0",
       "essential": true,
       "portMappings": [{ "containerPort": 8080, "protocol": "tcp" }],
       "environment": [
+        { "name": "APP_HOST", "value": "0.0.0.0" },
         { "name": "PROXY_PORT", "value": "8080" },
-        { "name": "TARGET_ORIGIN", "value": "http://127.0.0.1:3000" }
+        { "name": "TARGET_ORIGIN", "value": "http://localhost:3000" }
+      ],
+      "dependsOn": [
+        {
+          "containerName": "vite-app",
+          "condition": "HEALTHY"
+        }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/dev/eezi/ecs/runtime",
+          "awslogs-group": "/dev/easy-dyad/ecs/runtime",
           "awslogs-region": "eu-north-1",
           "awslogs-stream-prefix": "proxy"
         }
@@ -59,7 +75,7 @@
         "fileSystemId": "fs-0c56e241a5d6e8038",
         "transitEncryption": "ENABLED",
         "authorizationConfig": {
-          "accessPointId": "fsap-001f3265c4638ab96",
+          "accessPointId": "fsap-0c0c168bafee3896f",
           "iam": "ENABLED"
         }
       }

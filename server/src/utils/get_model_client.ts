@@ -12,7 +12,7 @@ import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 
 import { FREE_OPENROUTER_MODEL_NAMES } from "@/services/llm/language_model_constants";
 import { getLanguageModelProviders } from "@/services/llm/language_model_helpers";
-import { createEeziEngine } from "./llm_engine_provider";
+import { createEasyEngine } from "./llm_engine_provider";
 
 import { getOllamaApiUrl } from "./misc_utils";
 import { getEnvVar } from "./read_env";
@@ -25,10 +25,10 @@ import type {
   VertexProviderSetting,
   AzureProviderSetting,
 } from "@/shared/schemas";
-import { LanguageModelProvider } from "@/shared/eeziTypes";
+import { LanguageModelProvider } from "@/shared/easyTypes";
 
-const eeziEngineUrl = process.env.EEZI_ENGINE_URL;
-const eeziGatewayUrl = process.env.EEZI_GATEWAY_URL;
+const easyEngineUrl = process.env.EASY_ENGINE_URL;
+const easyGatewayUrl = process.env.EASY_GATEWAY_URL;
 
 const AUTO_MODELS = [
   {
@@ -69,7 +69,7 @@ export async function getModelClient(
 }> {
   const allProviders = await getLanguageModelProviders();
 
-  const eeziApiKey = settings.providerSettings?.auto?.apiKey?.value;
+  const easyApiKey = settings.providerSettings?.auto?.apiKey?.value;
 
   // --- Handle specific provider ---
   const providerConfig = allProviders.find((p) => p.id === model.provider);
@@ -78,23 +78,23 @@ export async function getModelClient(
     throw new Error(`Configuration not found for provider: ${model.provider}`);
   }
 
-  // Handle Eezi Pro override
-  if (eeziApiKey && settings.enableEeziPro) {
-    // Check if the selected provider supports Eezi Pro (has a gateway prefix) OR
+  // Handle Easy Dyad Pro override
+  if (easyApiKey && settings.enableEasyPro) {
+    // Check if the selected provider supports Easy Dyad Pro (has a gateway prefix) OR
     // we're using local engine.
     // IMPORTANT: some providers like OpenAI have an empty string gateway prefix,
     // so we do a nullish and not a truthy check here.
-    if (providerConfig.gatewayPrefix != null || eeziEngineUrl) {
+    if (providerConfig.gatewayPrefix != null || easyEngineUrl) {
       const isEngineEnabled =
         settings.enableProSmartFilesContextMode ||
         settings.enableProLazyEditsMode ||
         settings.enableProWebSearch;
       const provider = isEngineEnabled
-        ? createEeziEngine({
-            apiKey: eeziApiKey,
-            baseURL: eeziEngineUrl ?? "https://engine.dyad.sh/v1",
+        ? createEasyEngine({
+            apiKey: easyApiKey,
+            baseURL: easyEngineUrl ?? "https://engine.dyad.sh/v1",
             originalProviderId: model.provider,
-            eeziOptions: {
+            easyOptions: {
               enableLazyEdits:
                 settings.selectedChatMode === "ask"
                   ? false
@@ -107,21 +107,21 @@ export async function getModelClient(
             settings,
           })
         : createOpenAICompatible({
-            name: "eezi-gateway",
-            apiKey: eeziApiKey,
-            baseURL: eeziGatewayUrl ?? "https://llm-gateway.dyad.sh/v1",
+            name: "easy-gateway",
+            apiKey: easyApiKey,
+            baseURL: easyGatewayUrl ?? "https://llm-gateway.dyad.sh/v1",
           });
 
       logger.info(
-        `\x1b[1;97;44m Using Eezi Pro API key for model: ${model.name}. engine_enabled=${isEngineEnabled} \x1b[0m`
+        `\x1b[1;97;44m Using Easy Dyad Pro API key for model: ${model.name}. engine_enabled=${isEngineEnabled} \x1b[0m`
       );
       if (isEngineEnabled) {
         logger.info(
-          `\x1b[1;30;42m Using Eezi Pro engine: ${eeziEngineUrl ?? "<prod>"} \x1b[0m`
+          `\x1b[1;30;42m Using Easy Dyad Pro engine: ${easyEngineUrl ?? "<prod>"} \x1b[0m`
         );
       } else {
         logger.info(
-          `\x1b[1;30;43m Using Eezi Pro gateway: ${eeziGatewayUrl ?? "<prod>"} \x1b[0m`
+          `\x1b[1;30;43m Using Easy Dyad Pro gateway: ${easyGatewayUrl ?? "<prod>"} \x1b[0m`
         );
       }
       // Do not use free variant (for openrouter).
@@ -144,7 +144,7 @@ export async function getModelClient(
       };
     } else {
       logger.warn(
-        `Eezi Pro enabled, but provider ${model.provider} does not have a gateway prefix defined. Falling back to direct provider connection.`
+        `Easy Dyad Pro enabled, but provider ${model.provider} does not have a gateway prefix defined. Falling back to direct provider connection.`
       );
       // Fall through to regular provider logic if gateway prefix is missing
     }

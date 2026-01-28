@@ -4,7 +4,7 @@ import { versionsListAtom } from "@/atoms/appAtoms";
 
 import { chatMessagesByIdAtom, selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { RevertVersionResponse, Version } from "@/shared/eeziTypes";
+import type { RevertVersionResponse, Version } from "@/shared/easyTypes";
 import { toast } from "sonner";
 import api from "@/api";
 

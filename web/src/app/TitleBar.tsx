@@ -5,15 +5,15 @@ import { useRouter, useLocation } from "@tanstack/react-router";
 import { useSettings } from "@/hooks/useSettings";
 import { Button } from "@/components/ui/button";
 // @ts-ignore
-import logoDark from "../../assets/icon/eezi-dark.png";
-import logoLight from "../../assets/icon/eezi.png";
+import logoDark from "../../assets/icon/easy-dyad-dark.png";
+import logoLight from "../../assets/icon/easy-dyad.png";
 import { providerSettingsRoute } from "@/routes/settings/providers/$provider";
 import { cn } from "@/lib/utils";
 import { useDeepLink } from "@/contexts/DeepLinkContext";
 import { useEffect, useState } from "react";
-import { EeziProSuccessDialog } from "@/components/EeziProSuccessDialog";
+import { EasyProSuccessDialog } from "@/components/EasyProSuccessDialog";
 import { useUserBudgetInfo } from "@/hooks/useUserBudgetInfo";
-import { UserBudgetInfo } from "@/shared/eeziTypes";
+import { UserBudgetInfo } from "@/shared/easyTypes";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ActionHeader } from "@/components/preview_panel/ActionHeader";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -33,16 +33,16 @@ export const TitleBar = () => {
   const [selectedAppId] = useAtom(selectedAppIdAtom);
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
 
-  const showEeziProSuccessDialog = () => {
+  const showEasyProSuccessDialog = () => {
     setIsSuccessDialogOpen(true);
   };
 
   const { lastDeepLink } = useDeepLink();
   useEffect(() => {
     const handleDeepLink = async () => {
-      if (lastDeepLink?.type === "eezi-pro-return") {
+      if (lastDeepLink?.type === "easy-pro-return") {
         await refreshSettings();
-        showEeziProSuccessDialog();
+        showEasyProSuccessDialog();
       }
     };
     handleDeepLink();
@@ -64,8 +64,8 @@ export const TitleBar = () => {
     i18n.changeLanguage(i18n.language === "en" ? "ar" : "en");
   };
 
-  const isEeziPro = !!settings?.providerSettings?.auto?.apiKey?.value;
-  const isEeziProEnabled = Boolean(settings?.enableEeziPro);
+  const isEasyPro = !!settings?.providerSettings?.auto?.apiKey?.value;
+  const isEasyProEnabled = Boolean(settings?.enableEasyPro);
 
   return (
     <>
@@ -73,8 +73,8 @@ export const TitleBar = () => {
         <div className="flex items-center">
           <img
             src={isDarkMode ? logoLight : logoDark}
-            alt="Eezi Logo"
-            className="w-12 h-6 m-5"
+            alt="Easy Dyad Logo"
+            className="h-5 w-auto m-5"
           />
           <Button
             dir={dir}
@@ -88,7 +88,7 @@ export const TitleBar = () => {
           >
             {displayText}
           </Button>
-          {isEeziPro && <EeziProButton isEeziProEnabled={isEeziProEnabled} />}
+          {isEasyPro && <EasyProButton isEasyProEnabled={isEasyProEnabled} />}
         </div>
         <div className="flex items-center">
           {/* Preview Header */}
@@ -103,7 +103,7 @@ export const TitleBar = () => {
         </div>
       </div>
 
-      <EeziProSuccessDialog
+      <EasyProSuccessDialog
         isOpen={isSuccessDialogOpen}
         onClose={() => setIsSuccessDialogOpen(false)}
       />
@@ -111,14 +111,14 @@ export const TitleBar = () => {
   );
 };
 
-export function EeziProButton({ isEeziProEnabled }: { isEeziProEnabled: boolean }) {
+export function EasyProButton({ isEasyProEnabled }: { isEasyProEnabled: boolean }) {
   const { t, dir } = useI18n();
   const { navigate } = useRouter();
   const { userBudget } = useUserBudgetInfo();
   return (
     <Button
       dir={dir}
-      data-testid="title-bar-eezi-pro-button"
+      data-testid="title-bar-easy-pro-button"
       onClick={() => {
         navigate({
           to: providerSettingsRoute.id,
@@ -128,12 +128,12 @@ export function EeziProButton({ isEeziProEnabled }: { isEeziProEnabled: boolean 
       variant="outline"
       className={cn(
         "hidden @2xl:block ml-1 no-app-region-drag h-7 bg-indigo-600 text-white dark:bg-indigo-600 dark:text-white text-xs px-2 pt-1 pb-1",
-        !isEeziProEnabled && "bg-zinc-600 dark:bg-zinc-600"
+        !isEasyProEnabled && "bg-zinc-600 dark:bg-zinc-600"
       )}
       size="sm"
     >
-      {isEeziProEnabled ? t("Pro") : t("Pro (off)")}
-      {userBudget && isEeziProEnabled && <AICreditStatus userBudget={userBudget} />}
+      {isEasyProEnabled ? t("Pro") : t("Pro (off)")}
+      {userBudget && isEasyProEnabled && <AICreditStatus userBudget={userBudget} />}
     </Button>
   );
 }

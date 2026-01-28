@@ -23,10 +23,10 @@ export function ProBanner() {
     return options[Math.floor(Math.random() * options.length)];
   });
 
-  if (settings?.enableEeziPro || userBudget) {
+  if (settings?.enableEasyPro || userBudget) {
     return (
       <div dir={dir} className="mt-6 max-w-2xl mx-auto">
-        <ManageEeziProButton />
+        <ManageEasyProButton />
       </div>
     );
   }
@@ -40,12 +40,12 @@ export function ProBanner() {
       ) : (
         <TurboBanner />
       )}
-      <SetupEeziProButton />
+      <SetupEasyProButton />
     </div>
   );
 }
 
-export function ManageEeziProButton() {
+export function ManageEasyProButton() {
   const { t, dir } = useI18n();
   return (
     <Button
@@ -58,12 +58,12 @@ export function ManageEeziProButton() {
       }}
     >
       <KeyRound aria-hidden="true" />
-      {t("Manage Eezi Pro subscription")}
+      {t("Manage Easy Dyad Pro subscription")}
     </Button>
   );
 }
 
-export function SetupEeziProButton() {
+export function SetupEasyProButton() {
   const { t, dir } = useI18n();
   return (
     <Button
@@ -76,7 +76,7 @@ export function SetupEeziProButton() {
       }}
     >
       <KeyRound aria-hidden="true" />
-      {t("Already have Eezi Pro? Add your key")}
+      {t("Already have Easy Dyad Pro? Add your key")}
     </Button>
   );
 }
@@ -89,7 +89,7 @@ export function AiAccessBanner() {
       className="w-full py-2 sm:py-2.5 md:py-3 rounded-lg bg-gradient-to-br from-white via-indigo-50 to-sky-100 dark:from-indigo-700 dark:via-indigo-700 dark:to-indigo-900 flex items-center justify-center relative overflow-hidden ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-[1px]"
       onClick={() => {
         api.app.openExternalUrl(
-          "https://www.dyad.sh/pro#ai?utm_source=eezi-app&utm_medium=app&utm_campaign=in-app-banner-ai-access"
+          "https://www.dyad.sh/pro#ai?utm_source=easy-app&utm_medium=app&utm_campaign=in-app-banner-ai-access"
         );
       }}
     >
@@ -108,10 +108,10 @@ export function AiAccessBanner() {
           </div>
           <button
             type="button"
-            aria-label={t("Subscribe to Eezi Pro")}
+            aria-label={t("Subscribe to Easy Dyad Pro")}
             className="inline-flex items-center rounded-md bg-white/90 text-indigo-800 hover:bg-white shadow px-3 py-1.5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white/50"
           >
-            {t("Get Eezi Pro")}
+            {t("Get Easy Dyad Pro")}
           </button>
         </div>
 
@@ -157,7 +157,7 @@ export function SmartContextBanner() {
       className="w-full py-2 sm:py-2.5 md:py-3 rounded-lg bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200 dark:from-emerald-700 dark:via-emerald-700 dark:to-emerald-900 flex items-center justify-center relative overflow-hidden ring-1 ring-inset ring-emerald-900/10 dark:ring-white/10 shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-[1px]"
       onClick={() => {
         api.app.openExternalUrl(
-          "https://www.dyad.sh/pro#ai?utm_source=eezi-app&utm_medium=app&utm_campaign=in-app-banner-smart-context"
+          "https://www.dyad.sh/pro#ai?utm_source=easy-app&utm_medium=app&utm_campaign=in-app-banner-smart-context"
         );
       }}
     >
@@ -181,10 +181,10 @@ export function SmartContextBanner() {
           </div>
           <button
             type="button"
-            aria-label={t("Get Eezi Pro")}
+            aria-label={t("Get Easy Dyad Pro")}
             className="inline-flex items-center rounded-md bg-white/90 text-emerald-800 hover:bg-white shadow px-3 py-1.5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white/50"
           >
-            {t("Get Eezi Pro")}
+            {t("Get Easy Dyad Pro")}
           </button>
         </div>
       </div>
@@ -200,7 +200,7 @@ export function TurboBanner() {
       className="w-full py-2 sm:py-2.5 md:py-3 rounded-lg bg-gradient-to-br from-rose-50 via-rose-100 to-rose-200 dark:from-rose-800 dark:via-fuchsia-800 dark:to-rose-800 flex items-center justify-center relative overflow-hidden ring-1 ring-inset ring-rose-900/10 dark:ring-white/5 shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-[1px]"
       onClick={() => {
         api.app.openExternalUrl(
-          "https://www.dyad.sh/pro#ai?utm_source=eezi-app&utm_medium=app&utm_campaign=in-app-banner-turbo"
+          "https://www.dyad.sh/pro#ai?utm_source=easy-app&utm_medium=app&utm_campaign=in-app-banner-turbo"
         );
       }}
     >
@@ -224,10 +224,10 @@ export function TurboBanner() {
           </div>
           <button
             type="button"
-            aria-label={t("Get Eezi Pro")}
+            aria-label={t("Get Easy Dyad Pro")}
             className="inline-flex items-center rounded-md bg-white/90 text-rose-800 hover:bg-white shadow px-3 py-1.5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white/50"
           >
-            {t("Get Eezi Pro")}
+            {t("Get Easy Dyad Pro")}
           </button>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import logger from "@/logger";
-import { getEeziAppPath } from "@/paths";
+import { getEasyAppPath } from "@/paths";
 import { estimateTokens } from "@/utils/token_utils";
 import { extractCodebase } from "@/utils/codebase";
 import { validateChatContext } from "@/utils/context_paths_utils";
@@ -67,7 +67,7 @@ export async function getCodebaseTokenCount(
   logger.log(`Calculating codebase token count for chatId: ${chatId}`);
   const codebase = (
     await extractCodebase({
-      appPath: getEeziAppPath(appPath),
+      appPath: getEasyAppPath(appPath),
       chatContext: validateChatContext(chatContext),
     })
   ).formattedOutput;

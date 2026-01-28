@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import type { FileAttachment } from "@/shared/eeziTypes";
+import type { FileAttachment } from "@/shared/easyTypes";
 
 export function useAttachments() {
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);

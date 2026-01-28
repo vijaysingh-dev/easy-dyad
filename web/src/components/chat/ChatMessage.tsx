@@ -1,5 +1,5 @@
-import type { Message } from "@/shared/eeziTypes";
-import { EeziMarkdownParser, VanillaMarkdownParser } from "./EeziMarkdownParser";
+import type { Message } from "@/shared/easyTypes";
+import { EasyMarkdownParser, VanillaMarkdownParser } from "./EasyMarkdownParser";
 import { motion } from "framer-motion";
 import { useStreamChat } from "@/hooks/useStreamChat";
 import { CheckCircle, XCircle, Clock, GitCommit, Copy, Check } from "lucide-react";
@@ -111,7 +111,7 @@ const ChatMessage = ({ message, isLastMessage }: ChatMessageProps) => {
             >
               {message.role === "assistant" ? (
                 <>
-                  <EeziMarkdownParser content={message.content} />
+                  <EasyMarkdownParser content={message.content} />
                   {isLastMessage && isStreaming && (
                     <div className="mt-4 ml-4 relative w-5 h-5 animate-spin">
                       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-(--primary) dark:bg-blue-500 rounded-full"></div>
@@ -190,7 +190,7 @@ const ChatMessage = ({ message, isLastMessage }: ChatMessageProps) => {
                 <GitCommit className="h-3 w-3" />
                 {messageVersion && messageVersion.message && (
                   <span className="max-w-70 truncate font-medium">
-                    {messageVersion.message.replace(/^\[eezi\]\s*/i, "").split("\n")[0]}
+                    {messageVersion.message.replace(/^\[easy-dyad\]\s*/i, "").split("\n")[0]}
                   </span>
                 )}
               </div>

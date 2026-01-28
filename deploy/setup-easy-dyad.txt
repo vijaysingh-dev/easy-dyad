@@ -1,0 +1,160 @@
+Current setup
+==============
+- App user = easy-dyad
+- Repo cloned to /var/www/easy-dyad
+- You already have these files in the repo:
+- deploy/easy-dyad.conf
+- deploy/easy-startup.sh
+- deploy/easy-startup.service
+- Backend runs on port 8001
+- Nginx listens on 8000
+- PM2 runs as easy-dyad
+- Systemd service runs as easy-dyad
+- Frontend is on S3+CloudFront
+- API domain: api.dev.easy-dyad.ai
+
+1. Create user and basic dirs
+sudo groupadd -g 1001 easy-dyad
+sudo useradd -m -u 1001 -g 1001 -s /bin/bash easy-dyad
+
+sudo mkdir -p /var/www
+sudo chown easy-dyad:easy-dyad /var/www
+
+2. Install system packages
+sudo yum update -y
+sudo yum install -y nginx git docker
+sudo systemctl enable nginx docker
+sudo systemctl start nginx docker
+
+3. Install Node + PM2 (global for easy-dyad)
+sudo -iu easy-dyad
+curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
+sudo yum install -y nodejs
+npm install -g pm2
+exit
+
+4. Clone project
+sudo -iu easy-dyad
+cd /var/www
+git clone <repo-url> easy-dyad
+cd easy-dyad
+exit
+
+5. Install Nginx config
+sudo cp /var/www/easy-dyad/deploy/easy-dyad.conf /etc/nginx/conf.d/easy-dyad.conf
+sudo nginx -t
+sudo systemctl reload nginx
+
+
+File path used:
+
+/etc/nginx/conf.d/easy-dyad.conf
+
+6. Install startup script
+sudo cp /var/www/easy-dyad/deploy/easy-startup.sh /usr/local/bin/easy-startup.sh
+sudo chown easy-dyad:easy-dyad /usr/local/bin/easy-startup.sh
+sudo chmod 755 /usr/local/bin/easy-startup.sh
+
+
+File path used:
+
+/usr/local/bin/easy-startup.sh
+
+7. Install systemd service
+sudo cp /var/www/easy-dyad/deploy/easy-startup.service /etc/systemd/system/easy-startup.service
+sudo chmod 644 /etc/systemd/system/easy-startup.service
+sudo systemctl daemon-reload
+sudo systemctl enable easy-startup
+
+File path used:
+/etc/systemd/system/easy-startup.service
+
+Service content must reference:
+ExecStart=/usr/local/bin/easy-startup.sh
+User=easy-dyad
+WorkingDirectory=/var/www/easy-dyad
+
+8. Build & start backend
+sudo -iu easy-dyad
+cd /var/www/easy-dyad
+/usr/local/bin/easy-startup.sh --build-server
+pm2 ls
+exit
+
+9. Verify
+curl http://127.0.0.1:8001/health
+curl http://127.0.0.1:8000/health
+
+10. Reboot test
+sudo reboot
+
+
+After reboot:
+
+sudo -iu easy-dyad pm2 ls
+systemctl status easy-startup
+
+Final file locations summary
+Purpose	Path
+Repo	/var/www/easy-dyad
+Startup script	/usr/local/bin/easy-startup.sh
+Systemd service	/etc/systemd/system/easy-startup.service
+Nginx config	/etc/nginx/conf.d/easy-dyad.conf
+Backend	/var/www/easy-dyad/server
+Frontend build (S3)	s3://dev-easy-web
+PM2 home	/home/easy-dyad/.pm2
+
+This sequence reproduces current architecture exactly:
+
+CloudFront (HTTPS)
+→ api.dev.easy-dyad.ai (ALB)
+→ Nginx :8000
+→ Node :8001 (PM2, easy-dyad user)
+
+################################################################################
+
+# Mount /efs to AWS EFS
+
+sudo yum install -y amazon-efs-utils
+sudo mkdir -p /efs
+sudo mount -t efs fs-xxxxxxxx:/ /efs
+
+# Add configuration to make it permanent
+fs-xxxxxxxx:/  /efs  efs  _netdev,tls  0  0
+# Add this line in /etc/fstab (sudo nano /etc/fstab)
+
+sudo mkdir -p /efs/easy-apps
+
+mkdir -p /efs/easy-apps/.cache
+mkdir -p /efs/easy-apps/.cache/corepack
+mkdir -p /efs/easy-apps/.npm-cache
+mkdir -p /efs/easy-apps/.pnpm-store
+
+chown -R easy-dyad:easy-dyad /efs/easy-apps
+chmod -R 755 /efs/easy-apps
+
+######################### Setup docker images ########################################
+1. Create ecr repositories
+aws ecr create-repository --repository-name dev-easy-node-runtime --region eu-north-1
+aws ecr create-repository --repository-name dev-easy-proxy --region eu-north-1
+
+2. Login to ecr
+aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 160885287768.dkr.ecr.eu-north-1.amazonaws.com
+
+3. Create, tag and push images
+[/var/www/easy-dyad/docker]$ docker build -t easy-dyad/node-runtime:22 ./node-runtime
+docker tag easy-dyad/node-runtime:22 160885287768.dkr.ecr.eu-north-1.amazonaws.com/dev-easy-node-runtime:22-pnpm10
+docker push 160885287768.dkr.ecr.eu-north-1.amazonaws.com/dev-easy-node-runtime:22-pnpm10
+
+[/var/www/easy-dyad/docker]$ docker build -t easy-dyad/easy-proxy:latest ./easy-proxy
+docker tag easy-dyad/easy-proxy:latest 160885287768.dkr.ecr.eu-north-1.amazonaws.com/dev-easy-proxy:1.0.0
+docker push 160885287768.dkr.ecr.eu-north-1.amazonaws.com/dev-easy-proxy:1.0.0
+
+######################### Setup redis ################################################
+sudo mkdir -p /efs/redis-data
+sudo chown -R easy-dyad:easy-dyad /efs/redis-data
+sudo chmod 750 /efs/redis-data
+
+cd /var/www/easy-dyad/docker/easy-redis
+docker build -t easy-dyad/easy-redis:latest .
+docker compose up -d

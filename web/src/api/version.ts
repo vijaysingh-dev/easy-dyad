@@ -1,6 +1,6 @@
 import Api from "./api";
 import { AxiosRequestConfig } from "axios";
-import { DoesReleaseNoteExistParams, RevertVersionParams } from "@/shared/eeziTypes";
+import { DoesReleaseNoteExistParams, RevertVersionParams } from "@/shared/easyTypes";
 
 class VersionApiService {
   async doesReleaseNoteExist(params: DoesReleaseNoteExistParams) {

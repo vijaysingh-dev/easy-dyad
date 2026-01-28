@@ -1,4 +1,4 @@
-import type { ProblemReport } from "@/shared/eeziTypes";
+import type { ProblemReport } from "@/shared/easyTypes";
 
 /**
  * Creates a more concise version of the problem fix prompt for cases where

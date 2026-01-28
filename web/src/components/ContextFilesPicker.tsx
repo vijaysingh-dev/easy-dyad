@@ -106,7 +106,7 @@ export function ContextFilesPicker() {
   };
 
   const isSmartContextEnabled =
-    settings?.enableEeziPro && settings?.enableProSmartFilesContextMode;
+    settings?.enableEasyPro && settings?.enableProSmartFilesContextMode;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -149,11 +149,11 @@ export function ContextFilesPicker() {
                     {isSmartContextEnabled ? (
                       <p dir={dir}>
                         {t(
-                          "With Smart Context, Eezi uses the most relevant files as context."
+                          "With Smart Context, Easy Dyad uses the most relevant files as context."
                         )}
                       </p>
                     ) : (
-                      <p dir={dir}>{t("By default, Eezi uses your whole codebase.")}</p>
+                      <p dir={dir}>{t("By default, Easy Dyad uses your whole codebase.")}</p>
                     )}
                   </TooltipContent>
                 </Tooltip>
@@ -225,9 +225,9 @@ export function ContextFilesPicker() {
                 <p className="text-sm text-muted-foreground" dir={dir}>
                   {isSmartContextEnabled
                     ? t(
-                        "Eezi will use Smart Context to automatically find the most relevant files to use as context."
+                        "Easy Dyad will use Smart Context to automatically find the most relevant files to use as context."
                       )
-                    : t("Eezi will use the entire codebase as context.")}
+                    : t("Easy Dyad will use the entire codebase as context.")}
                 </p>
               </div>
             )}

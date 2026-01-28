@@ -1,0 +1,15 @@
+[Unit]
+Description=Easy Dyad app startup (runs as user easy-dyad)
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=easy-dyad
+WorkingDirectory=/var/www/easy-dyad
+Environment=PATH=/home/easy-dyad/.npm-global/bin:/usr/bin:/bin
+ExecStart=/var/www/easy-dyad/deploy/easy-startup.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

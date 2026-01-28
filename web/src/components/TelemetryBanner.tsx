@@ -34,7 +34,7 @@ export function PrivacyBanner() {
             {t("Share anonymous data?")}
           </h4>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1" dir={dir}>
-            {t("Help improve Eezi with anonymous usage data.")}
+            {t("Help improve Easy Dyad with anonymous usage data.")}
             <em className="block italic mt-0.5" dir={dir}>
               {t("Note: this does not log your code or messages.")}
             </em>

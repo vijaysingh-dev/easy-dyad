@@ -11,7 +11,7 @@
     }
   },
 
-  "include": ["src", "src/worker", "../docker/eezi-proxy/proxy_ser../docker/eezi-proxy/eezi-shim.jsezi-../docker/eezi-proxy/eezi-component-selector-client.jsr-client.js"],
+  "include": ["src", "src/worker", "../docker/easy-proxy/proxy_ser../docker/easy-proxy/easy-shim.jsezi-../docker/easy-proxy/easy-component-selector-client.jsr-client.js"],
   "exclude": ["node_modules", "dist"],
   "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo"
 }

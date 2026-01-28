@@ -1,1 +1,1 @@
-# Welcome to your Eezi app
+# Welcome to your Easy Dyad app

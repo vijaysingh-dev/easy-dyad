@@ -56,7 +56,7 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
   const supportsCustomModels =
     providerData?.type === "custom" || providerData?.type === "cloud";
 
-  const isEezi = provider === "auto";
+  const isEasyDyad = provider === "auto";
 
   const { t, dir } = useI18n();
   const [apiKeyInput, setApiKeyInput] = useState("");
@@ -64,15 +64,15 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
   const [saveError, setSaveError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Use fetched data (or defaults for Eezi)
-  const providerDisplayName = isEezi
-    ? "Eezi"
+  // Use fetched data (or defaults for Easy Dyad)
+  const providerDisplayName = isEasyDyad
+    ? "Easy Dyad"
     : providerData?.name ?? t("Unknown Provider");
-  const providerWebsiteUrl = isEezi
+  const providerWebsiteUrl = isEasyDyad
     ? "https://academy.dyad.sh/settings"
     : providerData?.websiteUrl;
-  const hasFreeTier = isEezi ? false : providerData?.hasFreeTier;
-  const envVarName = isEezi ? undefined : providerData?.envVarName;
+  const hasFreeTier = isEasyDyad ? false : providerData?.hasFreeTier;
+  const envVarName = isEasyDyad ? undefined : providerData?.envVarName;
 
   // Use provider ID (which is the 'provider' prop)
   const userApiKey = settings?.providerSettings?.[provider]?.apiKey?.value;
@@ -134,8 +134,8 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
           },
         },
       };
-      if (isEezi) {
-        settingsUpdate.enableEeziPro = true;
+      if (isEasyDyad) {
+        settingsUpdate.enableEasyPro = true;
       }
       await updateSettings(settingsUpdate);
       setApiKeyInput(""); // Clear input on success
@@ -171,15 +171,15 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
     }
   };
 
-  // --- Toggle Eezi Pro Handler ---
-  const handleToggleEeziPro = async (enabled: boolean) => {
+  // --- Toggle Easy Dyad Pro Handler ---
+  const handleToggleEasyPro = async (enabled: boolean) => {
     setIsSaving(true);
     try {
       await updateSettings({
-        enableEeziPro: enabled,
+        enableEasyPro: enabled,
       });
     } catch (error: any) {
-      showError(`Error toggling Eezi Pro: ${error}`);
+      showError(`Error toggling Easy Dyad Pro: ${error}`);
     } finally {
       setIsSaving(false);
     }
@@ -239,7 +239,7 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
   }
 
   // Handle case where provider is not found (e.g., invalid ID in URL)
-  if (!providerData && !isEezi) {
+  if (!providerData && !isEasyDyad) {
     return (
       <div className="min-h-screen px-8 py-4">
         <div className="max-w-4xl mx-auto">
@@ -277,7 +277,7 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
           isLoading={settingsLoading}
           hasFreeTier={hasFreeTier}
           providerWebsiteUrl={providerWebsiteUrl}
-          isEezi={isEezi}
+          isEasyDyad={isEasyDyad}
           onBackClick={() => router.history.back()}
         />
 
@@ -305,24 +305,24 @@ export function ProviderSettingsPage({ provider }: ProviderSettingsPageProps) {
             onApiKeyInputChange={setApiKeyInput}
             onSaveKey={handleSaveKey}
             onDeleteKey={handleDeleteKey}
-            isEezi={isEezi}
+            isEasyDyad={isEasyDyad}
             updateSettings={updateSettings}
           />
         )}
 
-        {isEezi && !settingsLoading && (
+        {isEasyDyad && !settingsLoading && (
           <div className="mt-6 flex items-center justify-between p-4 bg-(--background-lightest) rounded-lg border">
             <div>
               <h3 dir={dir} className="font-medium">
-                {t("Enable Eezi Pro")}
+                {t("Enable Easy Dyad Pro")}
               </h3>
               <p dir={dir} className="text-sm text-gray-600 dark:text-gray-400">
-                {t("Toggle to enable Eezi Pro")}
+                {t("Toggle to enable Easy Dyad Pro")}
               </p>
             </div>
             <Switch
-              checked={settings?.enableEeziPro}
-              onCheckedChange={handleToggleEeziPro}
+              checked={settings?.enableEasyPro}
+              onCheckedChange={handleToggleEasyPro}
               disabled={isSaving}
             />
           </div>

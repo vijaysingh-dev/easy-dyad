@@ -102,7 +102,7 @@ export function AzureConfiguration({
         variant: "default" as const,
         title: t("Azure OpenAI Configured"),
         description: t(
-          "Eezi will use the credentials saved in Settings for Azure OpenAI models."
+          "Easy Dyad will use the credentials saved in Settings for Azure OpenAI models."
         ),
         icon: KeyRound,
         titleClassName: "",
@@ -279,12 +279,12 @@ export function AzureConfiguration({
             <div className="text-sm text-muted-foreground space-y-2">
               <p dir={dir}>
                 {t(
-                  "You can continue to configure Azure via environment variables. If both variables are present and no settings are saved, Eezi will use them automatically."
+                  "You can continue to configure Azure via environment variables. If both variables are present and no settings are saved, Easy Dyad will use them automatically."
                 )}
               </p>
               <p dir={dir}>
                 {t(
-                  "Values saved in Settings take precedence over environment variables. Restart Eezi after changing environment variables."
+                  "Values saved in Settings take precedence over environment variables. Restart Easy Dyad after changing environment variables."
                 )}
               </p>
             </div>

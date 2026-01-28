@@ -5,8 +5,8 @@ import { appVersionAtom, userSettingsAtom, envVarsAtom } from "@/atoms/appAtoms"
 import { type UserSettings } from "@/shared/schemas";
 import api from "@/api";
 
-const TELEMETRY_CONSENT_KEY = "eeziTelemetryConsent";
-const TELEMETRY_USER_ID_KEY = "eeziTelemetryUserId";
+const TELEMETRY_CONSENT_KEY = "easyTelemetryConsent";
+const TELEMETRY_USER_ID_KEY = "easyTelemetryUserId";
 
 export function isTelemetryOptedIn() {
   return localStorage.getItem(TELEMETRY_CONSENT_KEY) === "opted_in";

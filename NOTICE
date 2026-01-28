@@ -1,0 +1,25 @@
+easy-dyad
+Copyright 2026 easy-dyad contributors.
+
+This product is a modified version of Dyad (https://github.com/dyad-sh/dyad),
+licensed under the Apache License, Version 2.0. Modifications include, among
+others: running Dyad as a hosted web application with a separate HTTP server
+in place of Electron IPC, container-based app runtimes, and renaming/rebranding
+to easy-dyad.
+
+The original Dyad NOTICE is reproduced below.
+
+----------------------------------------------------------------------------
+
+Dyad
+Copyright (c) Dyad contributors.
+
+This product bundles dependencies that carry separate attribution requirements.
+
+mustardscript
+License: Apache-2.0
+Repository: https://github.com/mustardscript/mustardscript
+
+Playwright
+License: Apache-2.0
+Repository: https://github.com/microsoft/playwright

@@ -445,7 +445,7 @@ export const CLOUD_PROVIDERS: Record<
     displayName: "Google Vertex AI",
     hasFreeTier: false,
     websiteUrl: "https://console.cloud.google.com/vertex-ai",
-    // Use the same gateway prefix as Google Gemini for Eezi Pro compatibility.
+    // Use the same gateway prefix as Google Gemini for Easy Dyad Pro compatibility.
     gatewayPrefix: "gemini/",
     secondary: true,
   },
@@ -456,9 +456,9 @@ export const CLOUD_PROVIDERS: Record<
     gatewayPrefix: "openrouter/",
   },
   auto: {
-    displayName: "Eezi",
+    displayName: "Easy Dyad",
     websiteUrl: "https://academy.dyad.sh/settings",
-    gatewayPrefix: "eezi/",
+    gatewayPrefix: "easy-dyad/",
   },
   azure: {
     displayName: "Azure OpenAI",

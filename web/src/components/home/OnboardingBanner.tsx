@@ -29,7 +29,7 @@ export const OnboardingBanner = ({
           <div className="relative p-2">
             <img
               src="https://img.youtube.com/vi/rgdNoHLaRN4/maxresdefault.jpg"
-              alt={t("Get started with Eezi in 3 minutes")}
+              alt={t("Get started with Easy Dyad in 3 minutes")}
               className="w-28 h-16 object-cover rounded-md"
             />
             <div className="absolute inset-0 flex items-center justify-center">
@@ -41,7 +41,7 @@ export const OnboardingBanner = ({
           <div className="flex-1 px-4 py-3">
             <div className="text-foreground">
               <p dir={dir} className="nfeji font-semibold text-base">
-                {t("Get started with Eezi in 3 minutes")}
+                {t("Get started with Easy Dyad in 3 minutes")}
               </p>
               <p dir={dir} className="text-sm text-muted-foreground">
                 {t("Start building your app for free")}

@@ -52,11 +52,7 @@ export function getAppVersion(): string {
   return packageJson.version;
 }
 
-const DEFAULT_COMMAND = `
-(pnpm install && pnpm run dev -- --mode development --host ${settings.APP_HOST} --port ${settings.APP_PORT} --strictPort --hmr-protocol ${settings.HMR_PROTOCOL} --hmr-host ${settings.HMR_HOST} --hmr-port ${settings.HMR_PORT})
-||
-(npm install --legacy-peer-deps && npm run dev -- --mode development --host ${settings.APP_HOST} --port ${settings.APP_PORT} --strictPort --hmr-protocol ${settings.HMR_PROTOCOL} --hmr-host ${settings.HMR_HOST} --hmr-port ${settings.HMR_PORT})
-`;
+const DEFAULT_COMMAND = `(pnpm install && pnpm run dev -- --mode development --host ${settings.APP_HOST} --port ${settings.APP_PORT} --strictPort) || (npm install --legacy-peer-deps && npm run dev -- --mode development --host ${settings.APP_HOST} --port ${settings.APP_PORT} --strictPort)`;
 
 export function getCommand({
   installCommand,
@@ -121,13 +117,13 @@ export async function getSystemDebugInfo({
     console.error("Failed to get node path:", err);
   }
 
-  // Get Eezi version from package.json
+  // Get Easy Dyad version from package.json
   // const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const packageJsonPath = path.resolve(__dirname, "..", "..", "package.json");
-  let eeziVersion = "unknown";
+  let easyVersion = "unknown";
   try {
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
-    eeziVersion = packageJson.version;
+    easyVersion = packageJson.version;
   } catch (err) {
     console.error("Failed to read package.json:", err);
   }
@@ -181,7 +177,7 @@ export async function getSystemDebugInfo({
     selectedLanguageModel: serializeModelForDebug(settings.selectedModel) || "unknown",
     telemetryConsent: settings.telemetryConsent || "unknown",
     telemetryUrl: "https://us.i.posthog.com", // Hardcoded from renderer.tsx
-    eeziVersion,
+    easyVersion,
     platform: process.platform,
     architecture: arch(),
     logs,
@@ -199,7 +195,9 @@ type DockerRuntimeInfo = {
 
 type EcsRuntimeInfo = {
   runtime: "ecs";
+  runId: string;
   taskArn: string;
+  eniIp: string;
 };
 
 export type RunningAppInfo = DockerRuntimeInfo | EcsRuntimeInfo;
@@ -233,7 +231,6 @@ export async function executeApp({
     });
   } else {
     await executeAppInECS({
-      appPath,
       appId,
       res,
       isNeon,
@@ -245,13 +242,11 @@ export async function executeApp({
 
 export async function removePnpmStoreForApp(appId: string): Promise<void> {
   if (settings.IS_TEST_BUILD) {
-    logger.log(
-      `Removing Docker volumes ${settings.PNPM_STORE_VOLUME_PREFIX}-${appId}...`,
-    );
+    logger.log(`Removing Docker volumes ${settings.PNPM_STORE_VOLUME}...`);
     try {
       await removeDockerVolumesForApp(appId);
       logger.log(
-        `Removed Docker volumes for app ${appId} (${settings.PNPM_STORE_VOLUME_PREFIX}-${appId}).`,
+        `Removed Docker volumes for app ${appId} (${settings.PNPM_STORE_VOLUME}).`,
       );
     } catch (e) {
       // Best-effort cleanup; log and continue
@@ -429,7 +424,7 @@ export async function applyComponentTagger(appPath: string) {
     await gitAddAll({ path: appPath });
     await gitCommit({
       path: appPath,
-      message: "[eezi] add Eezi component tagger",
+      message: "[easy-dyad] add Easy Dyad component tagger",
     });
     logger.info("Successfully committed changes");
   } catch (err) {
@@ -480,7 +475,7 @@ export async function applyCapacitor({
     await gitAddAll({ path: appPath });
     await gitCommit({
       path: appPath,
-      message: "[eezi] add Capacitor for mobile app support",
+      message: "[easy-dyad] add Capacitor for mobile app support",
     });
     logger.info("Successfully committed Capacitor changes");
   } catch (err) {

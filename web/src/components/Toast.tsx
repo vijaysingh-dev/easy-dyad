@@ -150,7 +150,7 @@ export const showExtraFilesToast = ({
 }) => {
   if (error) {
     showError(
-      t("Error committing files: files changed outside of Eezi", {
+      t("Error committing files: files changed outside of Easy Dyad", {
         files: files.join(", "),
         error,
       })
@@ -161,7 +161,7 @@ export const showExtraFilesToast = ({
     });
   } else {
     showWarning(
-      t("Files changed outside of Eezi have automatically been committed: files", {
+      t("Files changed outside of Easy Dyad have automatically been committed: files", {
         files: files.join("\n"),
       })
     );

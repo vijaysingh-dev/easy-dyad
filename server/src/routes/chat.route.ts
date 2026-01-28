@@ -30,7 +30,7 @@ import { parseAppMentions } from "@/shared/parse_mention_apps";
 import { processFullResponseActions } from "@/services/processors/response_processor";
 import { executeAddDependency } from "@/services/processors/executeAddDependency";
 import { generateProblemReport } from "@/workers/tsc";
-import { getPath, ensureDir, getEeziAppPath } from "@/paths";
+import { getPath, ensureDir, getEasyAppPath } from "@/paths";
 import { AsyncVirtualFileSystem } from "@/workers/VirtualFilesystem";
 import { readSettings } from "@/shared/settings";
 
@@ -47,22 +47,22 @@ import { getExtraProviderOptions } from "@/utils/thinking_utils";
 import { cleanFullResponse } from "@/utils/cleanFullResponse";
 import { replacePromptReference } from "@/utils/replacePromptReference";
 import {
-  getEeziWriteTags,
-  getEeziRenameTags,
-  getEeziDeleteTags,
-  getEeziExecuteSqlTags,
-  getEeziAddDependencyTags,
-  getEeziChatSummaryTag,
-  getEeziCommandTags,
-} from "@/utils/eezi_tag_parser";
+  getEasyWriteTags,
+  getEasyRenameTags,
+  getEasyDeleteTags,
+  getEasyExecuteSqlTags,
+  getEasyAddDependencyTags,
+  getEasyChatSummaryTag,
+  getEasyCommandTags,
+} from "@/utils/easy_tag_parser";
 import {
   isTextFile,
   formatMessagesForSummary,
   createOtherAppsCodebasePrompt,
-  removeEeziTags,
+  removeEasyTags,
   removeNonEssentialTags,
   prepareMessageWithAttachments,
-  hasUnclosedEeziWrite,
+  hasUnclosedEasyWrite,
   escapeXml,
   getMcpTools,
   processStreamChunks,
@@ -82,7 +82,7 @@ import {
   ContextPathResults,
 } from "@/shared/schemas";
 import { MAX_CHAT_TURNS_IN_CONTEXT } from "@/shared/constants";
-import { ChatStreamParams, ChatResponseEnd } from "@/shared/eeziTypes";
+import { ChatStreamParams, ChatResponseEnd } from "@/shared/easyTypes";
 
 const router = Router();
 
@@ -161,7 +161,7 @@ router.post("/create-chat/", async (req, res) => {
       // Get the current git revision of main branch
       initialCommitHash = await git.resolveRef({
         fs,
-        dir: getEeziAppPath(app.path),
+        dir: getEasyAppPath(app.path),
         ref: "main",
       });
     } catch (error: any) {
@@ -300,7 +300,7 @@ router.get("/get-context-paths", async (req, res) => {
     if (!app.path) {
       throw new Error("App path not set");
     }
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
 
     const results: ContextPathResults = {
       contextPaths: [],
@@ -413,7 +413,7 @@ router.post("/add-dep", async (req, res) => {
     const message = [...foundMessages]
       .reverse()
       .find((m) =>
-        m.content.includes(`<eezi-add-dependency packages="${packages.join(" ")}">`),
+        m.content.includes(`<easy-add-dependency packages="${packages.join(" ")}">`),
       );
 
     if (!message) {
@@ -423,7 +423,7 @@ router.post("/add-dep", async (req, res) => {
     executeAddDependency({
       packages,
       message,
-      appPath: getEeziAppPath(app.path),
+      appPath: getEasyAppPath(app.path),
     });
     res.status(200).json({ success: true });
   } catch (error: any) {
@@ -444,7 +444,7 @@ const activeChatStreams = new Map<
 const partialResponses = new Map<number, string>();
 
 // Ensure the temp directory exists for storing temporary files
-const TEMP_DIR = ensureDir(path.join(getPath("temp"), "eezi-attachments"));
+const TEMP_DIR = ensureDir(path.join(getPath("temp"), "easy-attachments"));
 
 const CODEBASE_PROMPT_PREFIX = "This is my codebase.";
 function createCodebasePrompt(codebaseInfo: string): string {
@@ -569,7 +569,7 @@ router.get("/:chatId/stream", async (req, res) => {
 
         if (attachment.attachmentType === "upload-to-codebase") {
           // For upload-to-codebase, create a unique file ID and store the mapping
-          const fileId = `eezi-attachment-${index}`;
+          const fileId = `easy-attachment-${index}`;
 
           fileUploadsState.addFileUpload(
             { chatId: chatId, fileId },
@@ -579,7 +579,7 @@ router.get("/:chatId/stream", async (req, res) => {
             },
           );
 
-          // Add instruction for AI to use eezi-write tag
+          // Add instruction for AI to use easy-write tag
           attachmentInfo += `\n\nFile to upload to codebase: ${attachment.name} (file id: ${fileId})\n`;
         } else {
           // For chat-context, use the existing logic
@@ -587,8 +587,8 @@ router.get("/:chatId/stream", async (req, res) => {
           // If it's a text-based file, try to include the content
           if (await isTextFile(filePath)) {
             try {
-              attachmentInfo += `<eezi-text-attachment filename="${attachment.name}" type="${attachment.type}" path="${filePath}">
-                </eezi-text-attachment>
+              attachmentInfo += `<easy-text-attachment filename="${attachment.name}" type="${attachment.type}" path="${filePath}">
+                </easy-text-attachment>
                 \n\n`;
             } catch (err) {
               logger.error(`Error reading file content: ${err}`);
@@ -624,7 +624,7 @@ router.get("/:chatId/stream", async (req, res) => {
       let componentSnippet = "[component snippet not available]";
       try {
         const componentFileContent = await readFile(
-          path.join(getEeziAppPath(chat.app.path), selectedComponent.relativePath),
+          path.join(getEasyAppPath(chat.app.path), selectedComponent.relativePath),
           "utf8",
         );
         const lines = componentFileContent.split("\n");
@@ -707,7 +707,7 @@ router.get("/:chatId/stream", async (req, res) => {
       // Normal AI processing for non-test prompts
       const settings = readSettings();
 
-      const appPath = getEeziAppPath(updatedChat.app.path);
+      const appPath = getEasyAppPath(updatedChat.app.path);
       const chatContext = selectedComponent
         ? {
             contextPaths: [
@@ -805,7 +805,7 @@ router.get("/:chatId/stream", async (req, res) => {
       }
 
       let systemPrompt = constructSystemPrompt({
-        aiRules: await readAiRules(getEeziAppPath(updatedChat.app.path)),
+        aiRules: await readAiRules(getEasyAppPath(updatedChat.app.path)),
         chatMode:
           settings.selectedChatMode === "agent" ? "build" : settings.selectedChatMode,
       });
@@ -849,11 +849,11 @@ router.get("/:chatId/stream", async (req, res) => {
         );
       // If there's mixed attachments (e.g. some upload to codebase attachments and some upload images as chat context attachemnts)
       // we will just include the file upload system prompt, otherwise the AI gets confused and doesn't reliably
-      // print out the eezi-write tags.
+      // print out the easy-write tags.
       // Usually, AI models will want to use the image as reference to generate code (e.g. UI mockups) anyways, so
       // it's not that critical to include the image analysis instructions.
       if (hasUploadedAttachments) {
-        systemPrompt += `When files are attached to this conversation, upload them to the codebase using this exact format:\n<eezi-write path="path/to/destination/filename.ext" description="Upload file to codebase">\neezi-attachment-X\n</eezi-write>\n\nExample for file with id of eezi-attachment-0:\n<eezi-write path="src/components/Button.jsx" description="Upload file to codebase">\neezi-attachment-0\n</eezi-write>`;
+        systemPrompt += `When files are attached to this conversation, upload them to the codebase using this exact format:\n<easy-write path="path/to/destination/filename.ext" description="Upload file to codebase">\neasy-attachment-X\n</easy-write>\n\nExample for file with id of easy-attachment-0:\n<easy-write path="src/components/Button.jsx" description="Upload file to codebase">\neasy-attachment-0\n</easy-write>`;
       } else if (hasImageAttachments) {
         systemPrompt += `# Image Analysis Instructions\nThis conversation includes one or more image attachments. When the user uploads images:\n1. If the user explicitly asks for analysis, description, or information about the image, please analyze the image content.\n2. Describe what you see in the image if asked.\n3. You can use images as references when the user has coding or design-related questions.\n4. For diagrams or wireframes, try to understand the content and structure shown.\n5. For screenshots of code or errors, try to identify the issue or explain the code.`;
       }
@@ -894,7 +894,7 @@ router.get("/:chatId/stream", async (req, res) => {
         // and eats up extra tokens.
         content:
           settings.selectedChatMode === "ask"
-            ? removeEeziTags(removeNonEssentialTags(msg.content))
+            ? removeEasyTags(removeNonEssentialTags(msg.content))
             : removeNonEssentialTags(msg.content),
       }));
 
@@ -942,31 +942,31 @@ router.get("/:chatId/stream", async (req, res) => {
         modelClient,
         tools,
         systemPromptOverride = systemPrompt,
-        eeziDisableFiles = false,
+        easyDisableFiles = false,
       }: {
         chatMessages: ModelMessage[];
         modelClient: ModelClient;
         tools?: ToolSet;
         systemPromptOverride?: string;
-        eeziDisableFiles?: boolean;
+        easyDisableFiles?: boolean;
       }) => {
-        const eeziRequestId = uuidv4();
+        const easyRequestId = uuidv4();
         if (isEngineEnabled) {
-          logger.log("sending AI request to engine with request id:", eeziRequestId);
+          logger.log("sending AI request to engine with request id:", easyRequestId);
         } else {
           logger.log("sending AI request");
         }
         // Build provider options with correct Google/Vertex thinking config gating
         const providerOptions: Record<string, any> = {
-          "eezi-engine": {
-            eeziRequestId,
-            eeziDisableFiles,
-            eeziMentionedApps: mentionedAppsCodebases.map(({ files, appName }) => ({
+          "easy-engine": {
+            easyRequestId,
+            easyDisableFiles,
+            easyMentionedApps: mentionedAppsCodebases.map(({ files, appName }) => ({
               appName,
               files,
             })),
           },
-          "eezi-gateway": getExtraProviderOptions(
+          "easy-gateway": getExtraProviderOptions(
             modelClient.builtinProviderId,
             settings,
           ),
@@ -1027,7 +1027,7 @@ router.get("/:chatId/stream", async (req, res) => {
             }
             const message = errorMessage || JSON.stringify(error);
             const requestIdPrefix = isEngineEnabled
-              ? `[Request ID: ${eeziRequestId}] `
+              ? `[Request ID: ${easyRequestId}] `
               : "";
             safeSend(res, "chat:response:error", {
               chatId: chatId,
@@ -1107,10 +1107,10 @@ router.get("/:chatId/stream", async (req, res) => {
             },
           },
           systemPromptOverride: constructSystemPrompt({
-            aiRules: await readAiRules(getEeziAppPath(updatedChat.app.path)),
+            aiRules: await readAiRules(getEasyAppPath(updatedChat.app.path)),
             chatMode: "agent",
           }),
-          eeziDisableFiles: true,
+          easyDisableFiles: true,
         });
 
         const result = await processStreamChunks({
@@ -1151,16 +1151,16 @@ router.get("/:chatId/stream", async (req, res) => {
         if (
           !abortController.signal.aborted &&
           settings.selectedChatMode !== "ask" &&
-          hasUnclosedEeziWrite(fullResponse)
+          hasUnclosedEasyWrite(fullResponse)
         ) {
           let continuationAttempts = 0;
           while (
-            hasUnclosedEeziWrite(fullResponse) &&
+            hasUnclosedEasyWrite(fullResponse) &&
             continuationAttempts < 2 &&
             !abortController.signal.aborted
           ) {
             logger.warn(
-              `Received unclosed eezi-write tag, attempting to continue, attempt #${
+              `Received unclosed easy-write tag, attempting to continue, attempt #${
                 continuationAttempts + 1
               }`,
             );
@@ -1189,7 +1189,7 @@ router.get("/:chatId/stream", async (req, res) => {
             }
           }
         }
-        const addDependencies = getEeziAddDependencyTags(fullResponse);
+        const addDependencies = getEasyAddDependencyTags(fullResponse);
         if (
           !abortController.signal.aborted &&
           // If there are dependencies, we don't want to auto-fix problems
@@ -1203,7 +1203,7 @@ router.get("/:chatId/stream", async (req, res) => {
             // IF auto-fix is enabled
             let problemReport = await generateProblemReport({
               fullResponse,
-              appPath: getEeziAppPath(updatedChat.app.path),
+              appPath: getEasyAppPath(updatedChat.app.path),
             });
 
             let autoFixAttempts = 0;
@@ -1214,7 +1214,7 @@ router.get("/:chatId/stream", async (req, res) => {
               autoFixAttempts < 2 &&
               !abortController.signal.aborted
             ) {
-              fullResponse += `<eezi-problem-report summary="${
+              fullResponse += `<easy-problem-report summary="${
                 problemReport.problems.length
               } problems">\n${problemReport.problems
                 .map(
@@ -1225,7 +1225,7 @@ router.get("/:chatId/stream", async (req, res) => {
                       problem.message,
                     )}</problem>`,
                 )
-                .join("\n")}\n</eezi-problem-report>`;
+                .join("\n")}\n</easy-problem-report>`;
 
               logger.info(
                 `Attempting to auto-fix problems, attempt #${autoFixAttempts + 1}`,
@@ -1234,15 +1234,15 @@ router.get("/:chatId/stream", async (req, res) => {
               const problemFixPrompt = createProblemFixPrompt(problemReport);
 
               const virtualFileSystem = new AsyncVirtualFileSystem(
-                getEeziAppPath(updatedChat.app.path),
+                getEasyAppPath(updatedChat.app.path),
                 {
                   fileExists: (fileName: string) => fileExists(fileName),
                   readFile: (fileName: string) => readFileWithCache(fileName),
                 },
               );
-              const writeTags = getEeziWriteTags(fullResponse);
-              const renameTags = getEeziRenameTags(fullResponse);
-              const deletePaths = getEeziDeleteTags(fullResponse);
+              const writeTags = getEasyWriteTags(fullResponse);
+              const renameTags = getEasyRenameTags(fullResponse);
+              const deletePaths = getEasyDeleteTags(fullResponse);
               virtualFileSystem.applyResponseChanges({
                 deletePaths,
                 renameTags,
@@ -1304,7 +1304,7 @@ router.get("/:chatId/stream", async (req, res) => {
 
               problemReport = await generateProblemReport({
                 fullResponse,
-                appPath: getEeziAppPath(updatedChat.app.path),
+                appPath: getEasyAppPath(updatedChat.app.path),
               });
             }
           } catch (error: any) {
@@ -1346,9 +1346,9 @@ router.get("/:chatId/stream", async (req, res) => {
 
     // Only save the response and process it if we weren't aborted
     if (!abortController.signal.aborted && fullResponse) {
-      // Scrape from: <eezi-chat-summary>Renaming profile file</eezi-chat-title>
+      // Scrape from: <easy-chat-summary>Renaming profile file</easy-chat-title>
       const chatTitle = fullResponse.match(
-        /<eezi-chat-summary>(.*?)<\/eezi-chat-summary>/,
+        /<easy-chat-summary>(.*?)<\/easy-chat-summary>/,
       );
       if (chatTitle) {
         await db
@@ -1659,13 +1659,13 @@ router.get("/get-proposal/:chatId", async (req, res) => {
           );
           const messageContent = latestAssistantMessage.content;
 
-          const proposalTitle = getEeziChatSummaryTag(messageContent);
+          const proposalTitle = getEasyChatSummaryTag(messageContent);
 
-          const proposalWriteFiles = getEeziWriteTags(messageContent);
-          const proposalRenameFiles = getEeziRenameTags(messageContent);
-          const proposalDeleteFiles = getEeziDeleteTags(messageContent);
-          const proposalExecuteSqlQueries = getEeziExecuteSqlTags(messageContent);
-          const packagesAdded = getEeziAddDependencyTags(messageContent);
+          const proposalWriteFiles = getEasyWriteTags(messageContent);
+          const proposalRenameFiles = getEasyRenameTags(messageContent);
+          const proposalDeleteFiles = getEasyDeleteTags(messageContent);
+          const proposalExecuteSqlQueries = getEasyExecuteSqlTags(messageContent);
+          const packagesAdded = getEasyAddDependencyTags(messageContent);
 
           const filesChanged = [
             ...proposalWriteFiles.map((tag) => ({
@@ -1730,7 +1730,7 @@ router.get("/get-proposal/:chatId", async (req, res) => {
         }
         const actions: ActionProposal["actions"] = [];
         if (latestAssistantMessage?.content) {
-          const writeTags = getEeziWriteTags(latestAssistantMessage.content);
+          const writeTags = getEasyWriteTags(latestAssistantMessage.content);
           const refactorTarget = writeTags.reduce(
             (largest, tag) => {
               const lineCount = tag.content.split("\n").length;
@@ -1753,7 +1753,7 @@ router.get("/get-proposal/:chatId", async (req, res) => {
           }
 
           // Check for command tags and add corresponding actions
-          const commandTags = getEeziCommandTags(latestAssistantMessage.content);
+          const commandTags = getEasyCommandTags(latestAssistantMessage.content);
           if (commandTags.includes("rebuild")) {
             actions.push({
               id: "rebuild",
@@ -1868,7 +1868,7 @@ router.post("/approve-proposal", async (req, res) => {
     }
 
     // 2. Process the actions defined in the message content
-    const chatSummary = getEeziChatSummaryTag(messageToApprove.content);
+    const chatSummary = getEasyChatSummaryTag(messageToApprove.content);
     const processResult = await processFullResponseActions(
       messageToApprove.content,
       chatId,
@@ -1961,7 +1961,7 @@ router.post("/count-tokens", async (req, res) => {
 
     // Count system prompt tokens
     let systemPrompt = constructSystemPrompt({
-      aiRules: await readAiRules(getEeziAppPath(chat.app.path)),
+      aiRules: await readAiRules(getEasyAppPath(chat.app.path)),
       chatMode: settings.selectedChatMode,
     });
     let supabaseContext = "";
@@ -1985,17 +1985,17 @@ router.post("/count-tokens", async (req, res) => {
     let codebaseTokens = 0;
 
     if (chat.app) {
-      const appPath = getEeziAppPath(chat.app.path);
+      const appPath = getEasyAppPath(chat.app.path);
       const { formattedOutput, files } = await extractCodebase({
         appPath,
         chatContext: validateChatContext(chat.app.chatContext),
       });
       codebaseInfo = formattedOutput;
-      if (settings.enableEeziPro && settings.enableProSmartFilesContextMode) {
+      if (settings.enableEasyPro && settings.enableProSmartFilesContextMode) {
         codebaseTokens = estimateTokens(
           files
             // It doesn't need to be the exact format but it's just to get a token estimate
-            .map((file) => `<eezi-file=${file.path}>${file.content}</eezi-file>`)
+            .map((file) => `<easy-file=${file.path}>${file.content}</easy-file>`)
             .join("\n\n"),
         );
       } else {

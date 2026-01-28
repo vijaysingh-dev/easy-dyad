@@ -35,7 +35,7 @@ or to provide a custom fetch implementation for e.g. testing.
   fetch?: FetchFunction;
 
   originalProviderId: string;
-  eeziOptions: {
+  easyOptions: {
     enableLazyEdits?: boolean;
     enableSmartFilesContext?: boolean;
     enableWebSearch?: boolean;
@@ -44,7 +44,7 @@ or to provide a custom fetch implementation for e.g. testing.
   settings: UserSettings;
 }
 
-export interface EeziEngineProvider {
+export interface EasyEngineProvider {
   /**
 Creates a model for text generation.
 */
@@ -59,9 +59,9 @@ Creates a chat model for text generation.
   ): LanguageModelV2;
 }
 
-export function createEeziEngine(options: ExampleProviderSettings): EeziEngineProvider {
+export function createEasyEngine(options: ExampleProviderSettings): EasyEngineProvider {
   const baseURL = withoutTrailingSlash(options.baseURL);
-  logger.info("creating eezi engine with baseURL", baseURL);
+  logger.info("creating easy-dyad engine with baseURL", baseURL);
 
   // Track request ID attempts
   const requestIdAttempts = new Map<string, number>();
@@ -69,7 +69,7 @@ export function createEeziEngine(options: ExampleProviderSettings): EeziEnginePr
   const getHeaders = () => ({
     Authorization: `Bearer ${loadApiKey({
       apiKey: options.apiKey,
-      environmentVariableName: "EEZI_PRO_API_KEY",
+      environmentVariableName: "EASY_PRO_API_KEY",
       description: "Example API key",
     })}`,
     ...options.headers,
@@ -83,7 +83,7 @@ export function createEeziEngine(options: ExampleProviderSettings): EeziEnginePr
   }
 
   const getCommonModelConfig = (): CommonModelConfig => ({
-    provider: `eezi-engine`,
+    provider: `easy-engine`,
     url: ({ path }) => {
       const url = new URL(`${baseURL}${path}`);
       if (options.queryParams) {
@@ -120,17 +120,17 @@ export function createEeziEngine(options: ExampleProviderSettings): EeziEnginePr
             ...JSON.parse(init.body),
             ...getExtraProviderOptions(options.originalProviderId, options.settings),
           };
-          const requestId = parsedBody.eeziRequestId;
-          if ("eeziRequestId" in parsedBody) {
-            delete parsedBody.eeziRequestId;
+          const requestId = parsedBody.easyRequestId;
+          if ("easyRequestId" in parsedBody) {
+            delete parsedBody.easyRequestId;
           }
-          const eeziDisableFiles = parsedBody.eeziDisableFiles;
-          if ("eeziDisableFiles" in parsedBody) {
-            delete parsedBody.eeziDisableFiles;
+          const easyDisableFiles = parsedBody.easyDisableFiles;
+          if ("easyDisableFiles" in parsedBody) {
+            delete parsedBody.easyDisableFiles;
           }
-          const eeziMentionedApps = parsedBody.eeziMentionedApps;
-          if ("eeziMentionedApps" in parsedBody) {
-            delete parsedBody.eeziMentionedApps;
+          const easyMentionedApps = parsedBody.easyMentionedApps;
+          if ("easyMentionedApps" in parsedBody) {
+            delete parsedBody.easyMentionedApps;
           }
 
           // Track and modify requestId with attempt number
@@ -142,16 +142,16 @@ export function createEeziEngine(options: ExampleProviderSettings): EeziEnginePr
           }
 
           // Add files to the request if they exist
-          if (files?.length && !eeziDisableFiles) {
-            parsedBody.eezi_options = {
+          if (files?.length && !easyDisableFiles) {
+            parsedBody.easy_options = {
               files,
-              enable_lazy_edits: options.eeziOptions.enableLazyEdits,
-              enable_smart_files_context: options.eeziOptions.enableSmartFilesContext,
-              smart_context_mode: options.eeziOptions.smartContextMode,
-              enable_web_search: options.eeziOptions.enableWebSearch,
+              enable_lazy_edits: options.easyOptions.enableLazyEdits,
+              enable_smart_files_context: options.easyOptions.enableSmartFilesContext,
+              smart_context_mode: options.easyOptions.smartContextMode,
+              enable_web_search: options.easyOptions.enableWebSearch,
             };
-            if (eeziMentionedApps?.length) {
-              parsedBody.eezi_options.mentioned_apps = eeziMentionedApps;
+            if (easyMentionedApps?.length) {
+              parsedBody.easy_options.mentioned_apps = easyMentionedApps;
             }
           }
 
@@ -161,7 +161,7 @@ export function createEeziEngine(options: ExampleProviderSettings): EeziEnginePr
             headers: {
               ...init.headers,
               ...(modifiedRequestId && {
-                "X-Eezi-Request-Id": modifiedRequestId,
+                "X-Easy-Request-Id": modifiedRequestId,
               }),
             },
             body: JSON.stringify(parsedBody),

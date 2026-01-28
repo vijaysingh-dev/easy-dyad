@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import type { App, AppOutput, Version } from "@/shared/eeziTypes";
+import type { App, AppOutput, Version } from "@/shared/easyTypes";
 import type { UserSettings } from "@/shared/schemas";
 import api from "@/api";
 
@@ -21,7 +21,7 @@ export const appUrlAtom = atom<
 export const previewPanelKeyAtom = atom<number>(0);
 
 export const previewErrorMessageAtom = atom<
-  { message: string; source: "preview-app" | "eezi-app" } | undefined
+  { message: string; source: "preview-app" | "easy-app" } | undefined
 >(undefined);
 
 export const userSettingsAtom = atom<UserSettings | null>(null);

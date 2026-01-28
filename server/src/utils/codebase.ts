@@ -1,9 +1,9 @@
+import settings from "@/config";
 import logger from "@/logger";
 import fs from "node:fs";
 import fsAsync from "node:fs/promises";
 import path from "node:path";
 import { isIgnored } from "isomorphic-git";
-import { IS_TEST_BUILD } from "@/config";
 import { glob } from "glob";
 import { readSettings } from "@/shared/settings";
 import { AppChatContext } from "@/shared/schemas";
@@ -42,9 +42,9 @@ const ALLOWED_EXTENSIONS = [
   ".gradle",
   ".swift",
   // Edge cases
-  // https://github.com/eezi-sh/eezi/issues/880
+  // https://github.com/dyad-sh/dyad/issues/880
   ".py",
-  // https://github.com/eezi-sh/eezi/issues/1221
+  // https://github.com/dyad-sh/dyad/issues/1221
   ".php",
 ];
 
@@ -53,7 +53,7 @@ const ALLOWED_EXTENSIONS = [
 // people don't have their gitignore setup correctly so we want to
 // be conservative and never include these directories.
 //
-// ex: https://github.com/eezi-sh/eezi/issues/727
+// ex: https://github.com/dyad-sh/dyad/issues/727
 const EXCLUDED_DIRS = ["node_modules", ".git", "dist", "build", ".next"];
 
 // Files to always exclude
@@ -182,7 +182,7 @@ async function isGitIgnored(filePath: string, baseDir: string): Promise<boolean>
  */
 export async function readFileWithCache(
   filePath: string,
-  virtualFileSystem?: AsyncVirtualFileSystem
+  virtualFileSystem?: AsyncVirtualFileSystem,
 ): Promise<string | undefined> {
   try {
     // Check virtual filesystem first if provided
@@ -356,9 +356,9 @@ async function formatFile({
   try {
     // Check if we should read file contents
     if (!shouldReadFileContents({ filePath, normalizedRelativePath })) {
-      return `<eezi-file path="${normalizedRelativePath}">
+      return `<easy-file path="${normalizedRelativePath}">
 ${OMITTED_FILE_CONTENT}
-</eezi-file>
+</easy-file>
 
 `;
     }
@@ -366,23 +366,23 @@ ${OMITTED_FILE_CONTENT}
     const content = await readFileWithCache(filePath, virtualFileSystem);
 
     if (content == null) {
-      return `<eezi-file path="${normalizedRelativePath}">
+      return `<easy-file path="${normalizedRelativePath}">
 // Error reading file
-</eezi-file>
+</easy-file>
 
 `;
     }
 
-    return `<eezi-file path="${normalizedRelativePath}">
+    return `<easy-file path="${normalizedRelativePath}">
 ${content}
-</eezi-file>
+</easy-file>
 
 `;
   } catch (error: any) {
     logger.error(`Error reading file: ${filePath}`, error);
-    return `<eezi-file path="${normalizedRelativePath}">
+    return `<easy-file path="${normalizedRelativePath}">
 // Error reading file: ${error}
-</eezi-file>
+</easy-file>
 
 `;
   }
@@ -412,9 +412,9 @@ export async function extractCodebase({
   formattedOutput: string;
   files: CodebaseFile[];
 }> {
-  const settings = readSettings();
+  const userSettings = readSettings();
   const isSmartContextEnabled =
-    settings?.enableEeziPro && settings?.enableProSmartFilesContextMode;
+    userSettings?.enableEasyPro && userSettings?.enableProSmartFilesContextMode;
 
   try {
     await fsAsync.access(appPath);
@@ -435,7 +435,7 @@ export async function extractCodebase({
     const deletedFiles = new Set(
       virtualFileSystem
         .getDeletedFiles()
-        .map((relativePath) => path.resolve(appPath, relativePath))
+        .map((relativePath) => path.resolve(appPath, relativePath)),
     );
     files = files.filter((file) => !deletedFiles.has(file));
 
@@ -579,7 +579,7 @@ export async function extractCodebase({
 
   const endTime = Date.now();
   logger.log("extractCodebase: time taken", endTime - startTime);
-  if (IS_TEST_BUILD) {
+  if (settings.IS_TEST_BUILD) {
     // Why? For some reason, file ordering is not stable on Windows.
     // This is a workaround to ensure stable ordering, although
     // ideally we'd like to sort it by modification time which is
@@ -608,10 +608,10 @@ async function sortFilesByModificationTime(files: string[]): Promise<string[]> {
         logger.warn(`Error getting file stats for ${file}:`, error);
         return { file, mtime: Date.now() };
       }
-    })
+    }),
   );
 
-  if (IS_TEST_BUILD) {
+  if (settings.IS_TEST_BUILD) {
     // Why? For some reason, file ordering is not stable on Windows.
     // This is a workaround to ensure stable ordering, although
     // ideally we'd like to sort it by modification time which is

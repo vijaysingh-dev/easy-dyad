@@ -24,12 +24,12 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { NodeSystemInfo } from "@/shared/eeziTypes";
+import { NodeSystemInfo } from "@/shared/easyTypes";
 import { usePostHog } from "posthog-js/react";
 import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";
 import { useScrollAndNavigateTo } from "@/hooks/useScrollAndNavigateTo";
 // @ts-ignore
-import logo from "../../assets/icon/eezi.png";
+import logo from "../../assets/icon/easy-dyad-icon.png";
 import { OnboardingBanner } from "./home/OnboardingBanner";
 import api from "@/api";
 
@@ -84,10 +84,10 @@ export function SetupBanner() {
       params: { provider: "openrouter" },
     });
   };
-  const handleEeziProSetupClick = () => {
-    posthog.capture("setup-flow:ai-provider-setup:eezi:click");
+  const handleEasyProSetupClick = () => {
+    posthog.capture("setup-flow:ai-provider-setup:easy-dyad:click");
     api.app.openExternalUrl(
-      "https://www.dyad.sh/pro?utm_source=eezi-app&utm_medium=app&utm_campaign=setup-banner"
+      "https://www.dyad.sh/pro?utm_source=easy-app&utm_medium=app&utm_campaign=setup-banner"
     );
   };
 
@@ -151,7 +151,7 @@ export function SetupBanner() {
   return (
     <>
       <p dir={dir} className="text-xl font-medium text-zinc-700 dark:text-zinc-300 p-4">
-        {t("Setup Eezi")}
+        {t("Setup Easy Dyad")}
       </p>
       <OnboardingBanner
         isVisible={isOnboardingVisible}
@@ -292,13 +292,13 @@ export function SetupBanner() {
 
               <SetupProviderCard
                 className="mt-2"
-                variant="eezi"
-                onClick={handleEeziProSetupClick}
+                variant="easy-dyad"
+                onClick={handleEasyProSetupClick}
                 tabIndex={isNodeSetupComplete ? 0 : -1}
                 leadingIcon={
-                  <img src={logo} alt="Eezi Logo" className="w-6 h-6 mr-0.5" />
+                  <img src={logo} alt="Easy Dyad Logo" className="w-6 h-6 mr-0.5" />
                 }
-                title={t("Setup Eezi Pro")}
+                title={t("Setup Easy Dyad Pro")}
                 subtitle={
                   <>
                     <GlobeIcon className="w-3 h-3" />
@@ -406,7 +406,7 @@ function NodeInstallButton({
     case "finished-checking":
       return (
         <div dir={dir} className="mt-3 text-sm text-red-600 dark:text-red-400">
-          {t("Node.js not detected. Closing and re-opening Eezi usually fixes this.")}
+          {t("Node.js not detected. Closing and re-opening Easy Dyad usually fixes this.")}
         </div>
       );
     default:

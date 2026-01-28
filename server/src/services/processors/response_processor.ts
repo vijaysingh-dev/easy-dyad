@@ -4,7 +4,7 @@ import { chats, messages } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import fs from "node:fs";
 import { readFile, writeFile } from "fs/promises";
-import { getEeziAppPath } from "@/paths";
+import { getEasyAppPath } from "@/paths";
 import path from "node:path";
 import git from "isomorphic-git";
 import { safeJoin } from "@/utils/path_utils";
@@ -21,12 +21,12 @@ import { UserSettings } from "@/shared/schemas";
 import { gitCommit } from "@/utils/git_utils";
 import { writeMigrationFile } from "@/utils/file_utils";
 import {
-  getEeziWriteTags,
-  getEeziRenameTags,
-  getEeziDeleteTags,
-  getEeziAddDependencyTags,
-  getEeziExecuteSqlTags,
-} from "@/utils/eezi_tag_parser";
+  getEasyWriteTags,
+  getEasyRenameTags,
+  getEasyDeleteTags,
+  getEasyAddDependencyTags,
+  getEasyExecuteSqlTags,
+} from "@/utils/easy_tag_parser";
 import { storeDbTimestampAtCurrentVersion } from "@/utils/neon_timestamp_utils";
 import { FileUploadsState } from "@/utils/file_uploads_state";
 
@@ -94,7 +94,7 @@ export async function processFullResponseActions(
   }
 
   const settings: UserSettings = readSettings();
-  const appPath = getEeziAppPath(chatWithApp.app.path);
+  const appPath = getEasyAppPath(chatWithApp.app.path);
   const writtenFiles: string[] = [];
   const renamedFiles: string[] = [];
   const deletedFiles: string[] = [];
@@ -105,12 +105,12 @@ export async function processFullResponseActions(
 
   try {
     // Extract all tags
-    const eeziWriteTags = getEeziWriteTags(fullResponse);
-    const eeziRenameTags = getEeziRenameTags(fullResponse);
-    const eeziDeletePaths = getEeziDeleteTags(fullResponse);
-    const eeziAddDependencyPackages = getEeziAddDependencyTags(fullResponse);
-    const eeziExecuteSqlQueries = chatWithApp.app.supabaseProjectId
-      ? getEeziExecuteSqlTags(fullResponse)
+    const easyWriteTags = getEasyWriteTags(fullResponse);
+    const easyRenameTags = getEasyRenameTags(fullResponse);
+    const easyDeletePaths = getEasyDeleteTags(fullResponse);
+    const easyAddDependencyPackages = getEasyAddDependencyTags(fullResponse);
+    const easyExecuteSqlQueries = chatWithApp.app.supabaseProjectId
+      ? getEasyExecuteSqlTags(fullResponse)
       : [];
 
     const message = await db.query.messages.findFirst({
@@ -127,8 +127,8 @@ export async function processFullResponseActions(
     }
 
     // Handle SQL execution tags
-    if (eeziExecuteSqlQueries.length > 0) {
-      for (const query of eeziExecuteSqlQueries) {
+    if (easyExecuteSqlQueries.length > 0) {
+      for (const query of easyExecuteSqlQueries) {
         try {
           await executeSupabaseSql({
             supabaseProjectId: chatWithApp.app.supabaseProjectId!,
@@ -158,20 +158,20 @@ export async function processFullResponseActions(
           });
         }
       }
-      logger.log(`Executed ${eeziExecuteSqlQueries.length} SQL queries`);
+      logger.log(`Executed ${easyExecuteSqlQueries.length} SQL queries`);
     }
 
     // TODO: Handle add dependency tags
-    if (eeziAddDependencyPackages.length > 0) {
+    if (easyAddDependencyPackages.length > 0) {
       try {
         await executeAddDependency({
-          packages: eeziAddDependencyPackages,
+          packages: easyAddDependencyPackages,
           message: message,
           appPath,
         });
       } catch (error: any) {
         errors.push({
-          message: `Failed to add dependencies: ${eeziAddDependencyPackages.join(", ")}`,
+          message: `Failed to add dependencies: ${easyAddDependencyPackages.join(", ")}`,
           error: error,
         });
       }
@@ -199,7 +199,7 @@ export async function processFullResponseActions(
     //////////////////////
 
     // Process all file deletions
-    for (const filePath of eeziDeletePaths) {
+    for (const filePath of easyDeletePaths) {
       const fullFilePath = safeJoin(appPath, filePath);
 
       // Delete the file if it exists
@@ -242,7 +242,7 @@ export async function processFullResponseActions(
     }
 
     // Process all file renames
-    for (const tag of eeziRenameTags) {
+    for (const tag of easyRenameTags) {
       const fromPath = safeJoin(appPath, tag.from);
       const toPath = safeJoin(appPath, tag.to);
 
@@ -305,7 +305,7 @@ export async function processFullResponseActions(
     }
 
     // Process all file writes
-    for (const tag of eeziWriteTags) {
+    for (const tag of easyWriteTags) {
       const filePath = tag.path;
       let content: string | Buffer = tag.content;
       const fullFilePath = safeJoin(appPath, filePath);
@@ -363,7 +363,7 @@ export async function processFullResponseActions(
       writtenFiles.length > 0 ||
       renamedFiles.length > 0 ||
       deletedFiles.length > 0 ||
-      eeziAddDependencyPackages.length > 0;
+      easyAddDependencyPackages.length > 0;
 
     let uncommittedFiles: string[] = [];
     let extraFilesError: string | undefined;
@@ -385,14 +385,14 @@ export async function processFullResponseActions(
         changes.push(`renamed ${renamedFiles.length} file(s)`);
       if (deletedFiles.length > 0)
         changes.push(`deleted ${deletedFiles.length} file(s)`);
-      if (eeziAddDependencyPackages.length > 0)
-        changes.push(`added ${eeziAddDependencyPackages.join(", ")} package(s)`);
-      if (eeziExecuteSqlQueries.length > 0)
-        changes.push(`executed ${eeziExecuteSqlQueries.length} SQL queries`);
+      if (easyAddDependencyPackages.length > 0)
+        changes.push(`added ${easyAddDependencyPackages.join(", ")} package(s)`);
+      if (easyExecuteSqlQueries.length > 0)
+        changes.push(`executed ${easyExecuteSqlQueries.length} SQL queries`);
 
       let message = chatSummary
-        ? `[eezi] ${chatSummary} - ${changes.join(", ")}`
-        : `[eezi] ${changes.join(", ")}`;
+        ? `[easy-dyad] ${chatSummary} - ${changes.join(", ")}`
+        : `[easy-dyad] ${changes.join(", ")}`;
       // Use chat summary, if provided, or default for commit message
       let commitHash = await gitCommit({
         path: appPath,
@@ -416,17 +416,17 @@ export async function processFullResponseActions(
         try {
           commitHash = await gitCommit({
             path: appPath,
-            message: message + " + extra files edited outside of Eezi",
+            message: message + " + extra files edited outside of Easy Dyad",
             amend: true,
           });
           logger.log(
-            `Amend commit with changes outside of eezi: ${uncommittedFiles.join(", ")}`,
+            `Amend commit with changes outside of easy-dyad: ${uncommittedFiles.join(", ")}`,
           );
         } catch (error: any) {
           // Just log, but don't throw an error because the user can still
-          // commit these changes outside of Eezi if needed.
+          // commit these changes outside of Easy Dyad if needed.
           logger.error(
-            `Failed to commit changes outside of eezi: ${uncommittedFiles.join(", ")}`,
+            `Failed to commit changes outside of easy-dyad: ${uncommittedFiles.join(", ")}`,
           );
           extraFilesError = (error as any).toString();
         }
@@ -462,13 +462,13 @@ export async function processFullResponseActions(
     ${warnings
       .map(
         (warning) =>
-          `<eezi-output type="warning" message="${warning.message}">${warning.error}</eezi-output>`,
+          `<easy-output type="warning" message="${warning.message}">${warning.error}</easy-output>`,
       )
       .join("\n")}
     ${errors
       .map(
         (error) =>
-          `<eezi-output type="error" message="${error.message}">${error.error}</eezi-output>`,
+          `<easy-output type="error" message="${error.message}">${error.error}</easy-output>`,
       )
       .join("\n")}
     `;

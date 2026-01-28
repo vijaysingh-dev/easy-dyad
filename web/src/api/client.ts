@@ -5,7 +5,7 @@ import {
   GitHubDeviceFlowUpdateData,
   GitHubDeviceFlowSuccessData,
   GitHubDeviceFlowErrorData,
-} from "@/shared/eeziTypes";
+} from "@/shared/easyTypes";
 
 export interface AppStreamCallbacks {
   onOutput: (output: AppOutput) => void;
@@ -29,7 +29,7 @@ export interface GithubStreamCallbacks {
   onGithubDeviceFlowError: (data: GitHubDeviceFlowErrorData) => void;
 }
 
-class EeziClient {
+class EasyClient {
   public baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
   // Streams
@@ -238,5 +238,5 @@ class EeziClient {
   }
 }
 
-const eeziClient = new EeziClient();
-export default eeziClient;
+const easyClient = new EasyClient();
+export default easyClient;

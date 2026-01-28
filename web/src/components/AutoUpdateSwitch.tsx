@@ -24,12 +24,12 @@ export function AutoUpdateSwitch() {
           updateSettings({ enableAutoUpdate: checked });
           toast(t("Auto-update settings changed"), {
             description: t(
-              "You will need to restart Eezi for your settings to take effect."
+              "You will need to restart Easy Dyad for your settings to take effect."
             ),
             action: {
-              label: t("Restart Eezi"),
+              label: t("Restart Easy Dyad"),
               onClick: () => {
-                api.app.restartEezi();
+                api.app.restartEasyDyad();
               },
             },
           });

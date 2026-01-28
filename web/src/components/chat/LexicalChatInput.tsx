@@ -232,7 +232,7 @@ export function LexicalChatInput({
   onSubmit,
   onPaste,
   excludeCurrentApp,
-  placeholder = "Ask Eezi to build...",
+  placeholder = "Ask Easy Dyad to build...",
   disabled = false,
 }: LexicalChatInputProps) {
   const { t, dir } = useI18n();

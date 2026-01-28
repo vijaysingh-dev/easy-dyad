@@ -161,7 +161,7 @@ export default function AppDetailsPage() {
     );
   }
 
-  const fullAppPath = appBasePath.replace("eezi-apps", selectedApp.path);
+  const fullAppPath = appBasePath.replace("easy-apps", selectedApp.path);
 
   return (
     <div

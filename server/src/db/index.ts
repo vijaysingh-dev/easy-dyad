@@ -1,4 +1,4 @@
-import { SERVER_ROOT, getPath, getEeziAppPath, ensureDir } from "@/paths";
+import { SERVER_ROOT, getPath, getEasyAppPath, ensureDir } from "@/paths";
 import logger from "@/logger";
 import Database from "better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
@@ -42,7 +42,7 @@ export function initializeDatabase(): BetterSQLite3Database<typeof schema> & {
   }
 
   ensureDir(getPath("userData"));
-  ensureDir(getEeziAppPath("."));
+  ensureDir(getEasyAppPath("."));
 
   const sqlite = new Database(dbPath, { timeout: 10000 });
   sqlite.pragma("foreign_keys = ON");

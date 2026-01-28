@@ -1,9 +1,9 @@
-import { IS_TEST_BUILD } from "@/config";
+import settings from "@/config";
 import { getSupabaseClient } from "./supabase_management_client";
 import { SUPABASE_SCHEMA_QUERY } from "./supabase_schema_query";
 
 async function getPublishableKey({ projectId }: { projectId: string }) {
-  if (IS_TEST_BUILD) {
+  if (settings.IS_TEST_BUILD) {
     return "test-publishable-key";
   }
 
@@ -13,19 +13,19 @@ async function getPublishableKey({ projectId }: { projectId: string }) {
     keys = await supabase.getProjectApiKeys(projectId);
   } catch (error: any) {
     throw new Error(
-      `Failed to fetch API keys for Supabase project "${projectId}". This could be due to: 1) Invalid project ID, 2) Network connectivity issues, or 3) Supabase API unavailability. Original error: ${error instanceof Error ? error.message : String(error)}`
+      `Failed to fetch API keys for Supabase project "${projectId}". This could be due to: 1) Invalid project ID, 2) Network connectivity issues, or 3) Supabase API unavailability. Original error: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
   if (!keys) {
     throw new Error("No keys found for Supabase project " + projectId);
   }
   const publishableKey = keys.find(
-    (key) => (key as any)["name"] === "anon" || (key as any)["type"] === "publishable"
+    (key) => (key as any)["name"] === "anon" || (key as any)["type"] === "publishable",
   );
 
   if (!publishableKey) {
     throw new Error(
-      "No publishable key found for project. Make sure you are connected to the correct Supabase account and project. See https://dyad.sh/docs/integrations/supabase#no-publishable-keys"
+      "No publishable key found for project. Make sure you are connected to the correct Supabase account and project. See https://dyad.sh/docs/integrations/supabase#no-publishable-keys",
     );
   }
   return publishableKey.api_key;
@@ -54,7 +54,7 @@ export async function getSupabaseContext({
 }: {
   supabaseProjectId: string;
 }) {
-  if (IS_TEST_BUILD) {
+  if (settings.IS_TEST_BUILD) {
     return "[[TEST_BUILD_SUPABASE_CONTEXT]]";
   }
 

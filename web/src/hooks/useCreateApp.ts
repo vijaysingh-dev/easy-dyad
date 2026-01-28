@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError } from "@/components/Toast";
 import { useLoadApps } from "@/hooks/useLoadApps";
-import type { CreateAppParams, CreateAppResult } from "@/shared/eeziTypes";
+import type { CreateAppParams, CreateAppResult } from "@/shared/easyTypes";
 import api from "@/api";
 
 export function useCreateApp() {

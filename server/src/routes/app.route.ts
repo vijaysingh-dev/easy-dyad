@@ -1,6 +1,7 @@
 import settings from "@/config";
 import logger from "@/logger";
 import db, { getDatabasePath } from "@/db";
+import redis from "@/db/redis";
 import { apps, chats, prompts, messages } from "@/db/schema";
 import { desc, eq, like } from "drizzle-orm";
 import { Router } from "express";
@@ -50,9 +51,9 @@ import {
   getSupabaseProjectName,
 } from "@/services/supabase/supabase_management_client";
 import { localTemplatesData } from "@/shared/templates";
-import { getPath, getEeziAppPath, normalizePath } from "@/paths";
+import { getPath, getEasyAppPath, normalizePath } from "@/paths";
 import { type AppSearchResult } from "@/shared/schemas";
-import { AppUpgrade } from "@/shared/eeziTypes";
+import { AppUpgrade } from "@/shared/easyTypes";
 
 const router = Router();
 
@@ -95,7 +96,7 @@ router.post("/create-app", async (req, res) => {
   try {
     const { name } = req.body;
     const appId = crypto.randomUUID();
-    const fullAppPath = getEeziAppPath(appId);
+    const fullAppPath = getEasyAppPath(appId);
     if (fs.existsSync(fullAppPath)) {
       throw new Error(`App already exists at: ${fullAppPath}`);
     }
@@ -138,7 +139,7 @@ router.post("/create-app", async (req, res) => {
     // Create initial commit
     const commitHash = await gitCommit({
       path: fullAppPath,
-      message: "Init Eezi app",
+      message: "Init Easy Dyad app",
     });
 
     // Update chat with initial commit hash
@@ -178,9 +179,9 @@ router.post("/copy-app", async (req, res) => {
       throw new Error("Original app not found.");
     }
 
-    const originalAppPath = getEeziAppPath(originalApp.path);
+    const originalAppPath = getEasyAppPath(originalApp.path);
     const newAppId = crypto.randomUUID();
-    const newAppPath = getEeziAppPath(newAppId);
+    const newAppPath = getEasyAppPath(newAppId);
 
     // 3. Copy the app folder
     try {
@@ -213,7 +214,7 @@ router.post("/copy-app", async (req, res) => {
       // Create initial commit
       await gitCommit({
         path: newAppPath,
-        message: "Init Eezi app",
+        message: "Init Easy Dyad app",
       });
     }
 
@@ -254,7 +255,7 @@ router.get("/get-app/:appId", async (req, res) => {
     }
 
     // Get app files
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
     let files: string[] = [];
 
     try {
@@ -302,7 +303,7 @@ router.get("/read-app-file/:appId/:filePath", async (req, res) => {
       throw new Error("App not found");
     }
 
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
     const fullPath = path.join(appPath, filePath);
 
     // Check if the path is within the app directory (security check)
@@ -368,7 +369,7 @@ router.get("/run-app/:appId", async (req, res) => {
 
       logger.debug(`Starting app ${appId} in path ${app.path}`);
 
-      const appPath = getEeziAppPath(app.path);
+      const appPath = getEasyAppPath(app.path);
       try {
         await executeApp({
           appPath,
@@ -384,6 +385,7 @@ router.get("/run-app/:appId", async (req, res) => {
         logger.error(`Error running app ${appId}:`, error);
         // Ensure cleanup if error happens during setup but before process events are handled
         runningApps.delete(appId);
+        redis.del(`app:${appId}`);
         throw new Error(`Failed to run app ${appId}: ${error.message}`);
       }
     });
@@ -454,7 +456,7 @@ router.get("/restart-app/:appId", async (req, res) => {
           throw new Error("App not found");
         }
 
-        const appPath = getEeziAppPath(app.path);
+        const appPath = getEasyAppPath(app.path);
 
         // Remove node_modules if requested
         if (removeNodeModules) {
@@ -471,7 +473,7 @@ router.get("/restart-app/:appId", async (req, res) => {
           }
 
           // Also remove container volumes so deps reinstall freshly
-          await removePnpmStoreForApp(appId);
+          // await removePnpmStoreForApp(appId); // Skipping as cache is global now
         }
 
         logger.debug(`Executing app ${appId} in path ${app.path} after restart request`); // Adjusted log
@@ -510,7 +512,7 @@ router.post("/edit-app-file", async (req, res) => {
       throw new Error("App not found");
     }
 
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
     const fullPath = path.join(appPath, filePath);
 
     // Check if the path is within the app directory (security check)
@@ -615,7 +617,7 @@ router.delete("/delete-app/:appId", async (req, res) => {
       }
 
       // Delete app files
-      const appPath = getEeziAppPath(app.path);
+      const appPath = getEasyAppPath(app.path);
       try {
         await fsPromises.rm(appPath, { recursive: true, force: true });
       } catch (error: any) {
@@ -644,7 +646,7 @@ router.get("/get-app-env-vars", async (req, res) => {
       throw new Error("App not found");
     }
 
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
     const envFilePath = path.join(appPath, ENV_FILE_NAME);
 
     // If .env.local doesn't exist, return empty array
@@ -681,7 +683,7 @@ router.post("/set-app-env-vars", async (req, res) => {
       throw new Error("App not found");
     }
 
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
     const envFilePath = path.join(appPath, ENV_FILE_NAME);
 
     // Serialize environment variables to .env.local format
@@ -830,11 +832,11 @@ router.get("/reset-all", async (req, res) => {
     // Doing this last because it's the most time-consuming and the least important
     // in terms of resetting the app state.
     logger.log("removing all app files...");
-    const eeziAppPath = getEeziAppPath(".");
-    if (fs.existsSync(eeziAppPath)) {
-      await fsPromises.rm(eeziAppPath, { recursive: true, force: true });
+    const easyAppPath = getEasyAppPath(".");
+    if (fs.existsSync(easyAppPath)) {
+      await fsPromises.rm(easyAppPath, { recursive: true, force: true });
       // Recreate the base directory
-      await fsPromises.mkdir(eeziAppPath, { recursive: true });
+      await fsPromises.mkdir(easyAppPath, { recursive: true });
     }
     logger.log("all app files removed.");
     logger.log("reset all complete.");
@@ -985,7 +987,7 @@ router.get("/check-app-name", async (req, res) => {
   const appName = req.query.appName as string;
   try {
     // Check filesystem
-    const appPath = getEeziAppPath(appName);
+    const appPath = getEasyAppPath(appName);
     await fsPromises.access(appPath);
     res.status(200).json({ exists: true });
     return;
@@ -1014,7 +1016,7 @@ router.post("/import-app", async (req, res) => {
     }
 
     const newAppId = crypto.randomUUID();
-    const destPath = getEeziAppPath(appName);
+    const destPath = getEasyAppPath(appName);
 
     // Check if the app already exists
     const errorMessage = "An app with this name already exists";
@@ -1026,7 +1028,7 @@ router.post("/import-app", async (req, res) => {
         throw error;
       }
     }
-    // Copy the app folder to the Eezi apps directory.
+    // Copy the app folder to the Easy Dyad apps directory.
     // Why not use fs.cp? Because we want stable ordering for
     // tests.
     await copyDirectoryRecursive(sourcePath, destPath);
@@ -1053,7 +1055,7 @@ router.post("/import-app", async (req, res) => {
       // Create initial commit
       await gitCommit({
         path: destPath,
-        message: "Init Eezi app",
+        message: "Init Easy Dyad app",
       });
     }
 
@@ -1088,7 +1090,7 @@ const availableUpgrades: Omit<AppUpgrade, "isNeeded">[] = [
   {
     id: "component-tagger",
     title: "Enable select component to edit",
-    description: "Installs the Eezi component tagger Vite plugin and its dependencies.",
+    description: "Installs the Easy Dyad component tagger Vite plugin and its dependencies.",
     manualUpgradeUrl: "https://dyad.sh/docs/upgrades/select-component",
   },
   {
@@ -1104,7 +1106,7 @@ router.get("/get-app-upgrades", async (req, res) => {
   try {
     const appId = req.query.appId as string;
     const app = await getApp(appId);
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
 
     const upgradesWithStatus = availableUpgrades.map((upgrade) => {
       let isNeeded = false;
@@ -1131,7 +1133,7 @@ router.post("/execute-app-upgrade", async (req, res) => {
     }
 
     const app = await getApp(appId);
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
 
     if (upgradeId === "component-tagger") {
       await applyComponentTagger(appPath);
@@ -1150,7 +1152,7 @@ router.get("/is-capacitor", async (req, res) => {
   try {
     const appId = req.query.appId as string;
     const app = await getApp(appId);
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
 
     // check for the required Node.js version before running any commands
     const currentNodeVersion = process.version;
@@ -1173,7 +1175,7 @@ router.get("/sync-capacitor", async (req, res) => {
   try {
     const appId = req.query.appId as string;
     const app = await getApp(appId);
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
 
     if (!isCapacitorInstalled(appPath)) {
       throw new Error("Capacitor is not installed in this app");
@@ -1207,7 +1209,7 @@ router.get("/open-ios", async (req, res) => {
   try {
     const appId = req.query.appId as string;
     const app = await getApp(appId);
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
 
     if (!isCapacitorInstalled(appPath)) {
       throw new Error("Capacitor is not installed in this app");
@@ -1236,7 +1238,7 @@ router.get("/open-android", async (req, res) => {
     const appId = req.query.appId as string;
 
     const app = await getApp(appId);
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
 
     if (!isCapacitorInstalled(appPath)) {
       throw new Error("Capacitor is not installed in this app");
@@ -1273,7 +1275,7 @@ router.get("/check-problems", async (req, res) => {
       throw new Error(`App not found: ${appId}`);
     }
 
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
 
     // Call autofix with empty full response to just run TypeScript checking
     const problemReport = await generateProblemReport({
@@ -1349,7 +1351,7 @@ router.get("/get-chat-logs/:chatId", async (req, res) => {
     }
 
     // Extract codebase
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
     const codebase = (
       await extractCodebase({
         appPath,
@@ -1499,7 +1501,7 @@ router.post("/portal/migrate-create", async (req, res) => {
   try {
     const { appId } = req.body;
     const app = await getApp(appId);
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
 
     // Run the migration command
     const migrationOutput = await new Promise<string>((resolve, reject) => {
@@ -1584,7 +1586,7 @@ router.post("/portal/migrate-create", async (req, res) => {
 
       const commitHash = await gitCommit({
         path: appPath,
-        message: "[eezi] Generate database migration file",
+        message: "[easy-dyad] Generate database migration file",
       });
 
       logger.info(`Successfully committed migration changes: ${commitHash}`);

@@ -1,6 +1,6 @@
 import { LargeLanguageModel } from "@/shared/schemas";
 import { readSettings } from "@/shared/settings";
-import { Message } from "@/shared/eeziTypes";
+import { Message } from "@/shared/easyTypes";
 
 import { findLanguageModel } from "./findLanguageModel";
 

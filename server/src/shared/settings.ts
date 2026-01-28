@@ -1,3 +1,4 @@
+import settings from "@/config";
 import logger from "@/logger";
 import fs from "node:fs";
 import path from "node:path";
@@ -5,7 +6,6 @@ import crypto from "crypto";
 import { getPath } from "../paths";
 import { v4 as uuidv4 } from "uuid";
 import { DEFAULT_TEMPLATE_ID } from "./templates";
-import { IS_TEST_BUILD } from "@/config";
 import {
   UserSettingsSchema,
   type UserSettings,
@@ -197,7 +197,7 @@ const IV_LENGTH = 16;
 
 // Encrypt data using AES-256-GCM
 export function encrypt(data: string): Secret {
-  if (IS_TEST_BUILD) {
+  if (settings.IS_TEST_BUILD) {
     return { value: data, encryptionType: "plaintext" };
   }
 

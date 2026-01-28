@@ -1,0 +1,26 @@
+git clone   : /var/www/easy-dyad
+
+backend     : /var/www/easy-dyad/server/dist/index.js
+pm2 .env    : /var/www/easy-dyad/server/.env
+
+ngnix       : /etc/nginx/conf.d/easy-dyad.conf
+easy-startup.service    : /etc/systemd/system/easy-startup.service
+
+Deployment
+==========
+Install (sudo)
+curl==8.5.0, /usr/bin/curl
+
+node==22.21.0, /usr/bin/node
+npm==11.6.2, /usr/bin/npm
+pnpm==10.22.0, /usr/bin/pnpm
+
+ngnix==nginx version: nginx/1.24.0 (Ubuntu), /usr/sbin/nginx
+docker==Docker version 29.0.2, build 8108357, /usr/bin/docker
+
+amazon-efs-utils==amazon-efs-utils-2.4.1-1.amzn2023.x86_64
+
+
+sudo yum install -y yum-utils
+sudo yum-config-manager --add-repo https://openresty.org/package/amazon/openresty.repo
+sudo yum install -y openresty

@@ -106,7 +106,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
     onSuccess: async (result) => {
       showSuccess(
         !hasAiRules
-          ? "App imported successfully. Eezi will automatically generate an AI_RULES.md now."
+          ? "App imported successfully. Easy Dyad will automatically generate an AI_RULES.md now."
           : "App imported successfully"
       );
       onClose();
@@ -162,7 +162,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
         <DialogHeader>
           <DialogTitle dir={dir}>{t("Import App")}</DialogTitle>
           <DialogDescription dir={dir}>
-            {t("Select an existing app folder to import into Eezi.")}
+            {t("Select an existing app folder to import into Easy Dyad.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -298,7 +298,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
                       <TooltipContent dir={dir}>
                         <p dir={dir}>
                           {t(
-                            "AI_RULES.md lets Eezi know which tech stack to use for editing the app"
+                            "AI_RULES.md lets Easy Dyad know which tech stack to use for editing the app"
                           )}
                         </p>
                       </TooltipContent>
@@ -306,7 +306,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
                   </TooltipProvider>
                   <AlertDescription dir={dir}>
                     {t(
-                      "No AI_RULES.md found. Eezi will automatically generate one after importing."
+                      "No AI_RULES.md found. Easy Dyad will automatically generate one after importing."
                     )}
                   </AlertDescription>
                 </Alert>

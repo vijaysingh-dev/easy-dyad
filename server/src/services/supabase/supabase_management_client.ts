@@ -1,10 +1,10 @@
+import settings from "@/config";
 import logger from "@/logger";
 import {
   SupabaseManagementAPI,
   SupabaseManagementAPIError,
 } from "@dyad-sh/supabase-management-js";
 import { readSettings, writeSettings } from "@/shared/settings";
-import { IS_TEST_BUILD } from "@/config";
 import { withLock } from "@/utils/lock_utils";
 
 /**
@@ -15,8 +15,8 @@ function isTokenExpired(expiresIn?: number): boolean {
   if (!expiresIn) return true;
 
   // Get when the token was saved (expiresIn is stored at the time of token receipt)
-  const settings = readSettings();
-  const tokenTimestamp = settings.supabase?.tokenTimestamp || 0;
+  const userSettings = readSettings();
+  const tokenTimestamp = userSettings.supabase?.tokenTimestamp || 0;
   const currentTime = Math.floor(Date.now() / 1000);
 
   // Check if the token is expired or about to expire (within 5 minutes)
@@ -28,10 +28,10 @@ function isTokenExpired(expiresIn?: number): boolean {
  * Updates settings with new tokens and expiration time
  */
 export async function refreshSupabaseToken(): Promise<void> {
-  const settings = readSettings();
-  const refreshToken = settings.supabase?.refreshToken?.value;
+  const userSettings = readSettings();
+  const refreshToken = userSettings.supabase?.refreshToken?.value;
 
-  if (!isTokenExpired(settings.supabase?.expiresIn)) {
+  if (!isTokenExpired(userSettings.supabase?.expiresIn)) {
     return;
   }
 
@@ -49,12 +49,12 @@ export async function refreshSupabaseToken(): Promise<void> {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ refreshToken }),
-      }
+      },
     );
 
     if (!response.ok) {
       throw new Error(
-        `Supabase token refresh failed. Try going to Settings to disconnect Supabase and then reconnect to Supabase. Error status: ${response.statusText}`
+        `Supabase token refresh failed. Try going to Settings to disconnect Supabase and then reconnect to Supabase. Error status: ${response.statusText}`,
       );
     }
 
@@ -87,12 +87,11 @@ export async function refreshSupabaseToken(): Promise<void> {
 
 // Function to get the Supabase Management API client
 export async function getSupabaseClient(): Promise<SupabaseManagementAPI> {
-  const settings = readSettings();
+  const userSettings = readSettings();
 
   // Check if Supabase token exists in settings
-  const supabaseAccessToken = settings.supabase?.accessToken?.value;
-  const expiresIn = settings.supabase?.expiresIn;
-
+  const supabaseAccessToken = userSettings.supabase?.accessToken?.value;
+  const expiresIn = userSettings.supabase?.expiresIn;
   if (!supabaseAccessToken) {
     throw new Error("Supabase access token not found. Please authenticate first.");
   }
@@ -119,7 +118,7 @@ export async function getSupabaseClient(): Promise<SupabaseManagementAPI> {
 }
 
 export async function getSupabaseProjectName(projectId: string): Promise<string> {
-  if (IS_TEST_BUILD) {
+  if (settings.IS_TEST_BUILD) {
     return "Fake Supabase Project";
   }
 
@@ -136,9 +135,7 @@ export async function executeSupabaseSql({
   supabaseProjectId: string;
   query: string;
 }): Promise<string> {
-  if (IS_TEST_BUILD) {
-    return "{}";
-  }
+  if (settings.IS_TEST_BUILD) return "{}";
 
   const supabase = await getSupabaseClient();
   const result = await supabase.runQuery(supabaseProjectId, query);
@@ -153,12 +150,12 @@ export async function deleteSupabaseFunction({
   functionName: string;
 }): Promise<void> {
   logger.info(
-    `Deleting Supabase function: ${functionName} from project: ${supabaseProjectId}`
+    `Deleting Supabase function: ${functionName} from project: ${supabaseProjectId}`,
   );
   const supabase = await getSupabaseClient();
   await supabase.deleteFunction(supabaseProjectId, functionName);
   logger.info(
-    `Deleted Supabase function: ${functionName} from project: ${supabaseProjectId}`
+    `Deleted Supabase function: ${functionName} from project: ${supabaseProjectId}`,
   );
 }
 
@@ -172,7 +169,7 @@ export async function deploySupabaseFunctions({
   content: string;
 }): Promise<void> {
   logger.info(
-    `Deploying Supabase function: ${functionName} to project: ${supabaseProjectId}`
+    `Deploying Supabase function: ${functionName} to project: ${supabaseProjectId}`,
   );
   const supabase = await getSupabaseClient();
   const formData = new FormData();
@@ -181,9 +178,9 @@ export async function deploySupabaseFunctions({
     JSON.stringify({
       entrypoint_path: "index.ts",
       name: functionName,
-      // See: https://github.com/eezi-sh/eezi/issues/1010
+      // See: https://github.com/dyad-sh/dyad/issues/1010
       verify_jwt: false,
-    })
+    }),
   );
   formData.append("file", new Blob([content]), "index.ts");
 
@@ -195,7 +192,7 @@ export async function deploySupabaseFunctions({
         Authorization: `Bearer ${(supabase as any).options.accessToken}`,
       },
       body: formData,
-    }
+    },
   );
 
   if (response.status !== 201) {
@@ -203,7 +200,7 @@ export async function deploySupabaseFunctions({
   }
 
   logger.info(
-    `Deployed Supabase function: ${functionName} to project: ${supabaseProjectId}`
+    `Deployed Supabase function: ${functionName} to project: ${supabaseProjectId}`,
   );
   return response.json();
 }
@@ -215,12 +212,12 @@ async function createResponseError(response: Response, action: string) {
     `Failed to ${action}: ${response.statusText} (${response.status})${
       errorBody ? `: ${errorBody.message}` : ""
     }`,
-    response
+    response,
   );
 }
 
 async function safeParseErrorResponseBody(
-  response: Response
+  response: Response,
 ): Promise<{ message: string } | undefined> {
   try {
     const body = await response.json();

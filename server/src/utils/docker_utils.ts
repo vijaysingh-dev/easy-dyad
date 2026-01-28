@@ -44,7 +44,7 @@ async function streamContainerLogs({
     // This is a hacky heuristic to pick up when drizzle is asking for user
     // to select from one of a few choices. We automatically pick the first
     // option because it's usually a good default choice. We guard this with
-    // isNeon because: 1) only Neon apps (for the official Eezi templates) should
+    // isNeon because: 1) only Neon apps (for the official Easy Dyad templates) should
     // get this template and 2) it's safer to do this with Neon apps because
     // their databases have point in time restore built-in.
     if (isNeon && message.includes("created or renamed from another")) {
@@ -178,6 +178,8 @@ export async function executeAppInDocker({
     .remove()
     .catch(() => {});
 
+  const runId = crypto.randomUUID();
+
   // Create isolated network (ECS task equivalent)
   const network = await docker.createNetwork({
     Name: networkName,
@@ -194,8 +196,9 @@ export async function executeAppInDocker({
     HostConfig: {
       NetworkMode: networkName,
       Binds: [
-        `${appPath}:/workspace`,
-        `${settings.PNPM_STORE_VOLUME_PREFIX}-${appId}:/workspace/.pnpm-store`,
+        `${appPath}:/workspace/${appId}`,
+        `${settings.PNPM_STORE_VOLUME}:/workspace/.pnpm-store`,
+        `${settings.NPM_CACHE_VOLUME}:/workspace/.npm-cache`,
       ],
       PortBindings: {
         [`${settings.APP_PORT}/tcp`]: [{ HostPort: `${settings.APP_PORT}` }],
@@ -207,7 +210,9 @@ export async function executeAppInDocker({
     Env: [
       `HOST=${settings.APP_HOST}`,
       `PORT=${settings.APP_PORT}`,
-      "PNPM_STORE_PATH=/workspace/.pnpm-store",
+      `HMR_PROTOCOL=${settings.HMR_PROTOCOL}`,
+      `HMR_HOST=${settings.IS_TEST_BUILD ? "localhost" : `${appId}.${settings.HMR_HOST_SUFIX}`}`,
+      `HMR_PORT=${settings.HMR_PORT}`,
     ],
   });
 
@@ -260,13 +265,11 @@ export async function executeAppInDocker({
 
       safeSend(res, "app:output", {
         type: "stdout",
-        message: `[eezi-proxy-server]started=[${publicProxyUrl}] original=[http://localhost:${settings.APP_PORT}]`,
+        message: `[easy-proxy-server]started=[${publicProxyUrl}] original=[http://localhost:${settings.APP_PORT}]`,
         appId,
       });
     },
   });
-
-  const runId = crypto.randomUUID();
 
   // Lifecycle (close / error equivalent)
   // Only watch app container to avoid lifecycle race
@@ -287,7 +290,7 @@ export async function executeAppInDocker({
  * Best-effort: resolves even if volumes don't exist.
  */
 export async function removeDockerVolumesForApp(appId: string): Promise<void> {
-  const pnpmVolume = `eezi-pnpm-${appId}`;
+  const pnpmVolume = `easy-pnpm-${appId}`;
 
   try {
     const volume = docker.getVolume(pnpmVolume);
@@ -363,7 +366,6 @@ export async function stopDockerTask(appId: string): Promise<void> {
 
       // Best-effort cleanup from map even on failure
       runningApps.delete(appId);
-
       throw new Error(`Failed to stop app ${appId}: ${error.message}`);
     }
   });

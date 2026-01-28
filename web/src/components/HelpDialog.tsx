@@ -24,7 +24,7 @@ import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { showError } from "@/components/Toast";
 import { HelpBotDialog } from "./HelpBotDialog";
 import { useSettings } from "@/hooks/useSettings";
-import { ChatLogsData } from "@/shared/eeziTypes";
+import { ChatLogsData } from "@/shared/easyTypes";
 import api from "@/api";
 
 interface HelpDialogProps {
@@ -44,7 +44,7 @@ export function HelpDialog({ isOpen, onClose }: HelpDialogProps) {
   const selectedChatId = useAtomValue(selectedChatIdAtom);
   const { settings } = useSettings();
 
-  const isEeziProUser = settings?.providerSettings?.["auto"]?.apiKey?.value;
+  const isEasyProUser = settings?.providerSettings?.["auto"]?.apiKey?.value;
 
   // Function to reset all dialog state
   const resetDialogState = () => {
@@ -94,7 +94,7 @@ Issues that do not meet these requirements will be closed and may need to be res
 <!-- What actually happened? -->
 
 ## System Information
-- Eezi Version: ${debugInfo.eeziVersion}
+- Easy Dyad Version: ${debugInfo.easyVersion}
 - Platform: ${debugInfo.platform}
 - Architecture: ${debugInfo.architecture}
 - Node Version: ${debugInfo.nodeVersion || "n/a"}
@@ -113,17 +113,17 @@ ${debugInfo.logs.slice(-3_500) || "No logs available"}
       const encodedBody = encodeURIComponent(issueBody);
       const encodedTitle = encodeURIComponent("[bug] <WRITE TITLE HERE>");
       const labels = ["bug"];
-      if (isEeziProUser) {
+      if (isEasyProUser) {
         labels.push("pro");
       }
-      const githubIssueUrl = `https://github.com/eezi-sh/eezi/issues/new?title=${encodedTitle}&labels=${labels}&body=${encodedBody}`;
+      const githubIssueUrl = `https://github.com/dyad-sh/dyad/issues/new?title=${encodedTitle}&labels=${labels}&body=${encodedBody}`;
 
       // Open the pre-filled GitHub issue page
       api.app.openExternalUrl(githubIssueUrl);
     } catch (error) {
       console.error("Failed to prepare bug report:", error);
       // Fallback to opening the regular GitHub issue page
-      api.app.openExternalUrl("https://github.com/eezi-sh/eezi/issues/new");
+      api.app.openExternalUrl("https://github.com/dyad-sh/dyad/issues/new");
     } finally {
       setIsLoading(false);
     }
@@ -225,10 +225,10 @@ Session ID: ${sessionId}
     const encodedBody = encodeURIComponent(issueBody);
     const encodedTitle = encodeURIComponent("[session report] <add title>");
     const labels = ["support"];
-    if (isEeziProUser) {
+    if (isEasyProUser) {
       labels.push("pro");
     }
-    const githubIssueUrl = `https://github.com/eezi-sh/eezi/issues/new?title=${encodedTitle}&labels=${labels}&body=${encodedBody}`;
+    const githubIssueUrl = `https://github.com/dyad-sh/dyad/issues/new?title=${encodedTitle}&labels=${labels}&body=${encodedBody}`;
 
     api.app.openExternalUrl(githubIssueUrl);
     handleClose();
@@ -340,7 +340,7 @@ Session ID: ${sessionId}
               </h3>
               <div className="text-sm bg-slate-50 dark:bg-slate-900 rounded p-2 max-h-32 overflow-y-auto">
                 <p dir={dir}>
-                  {t("Eezi Version:")} {chatLogsData.debugInfo.eeziVersion}
+                  {t("Easy Dyad Version:")} {chatLogsData.debugInfo.easyVersion}
                 </p>
                 <p dir={dir}>
                   {t("Platform:")} {chatLogsData.debugInfo.platform}
@@ -391,13 +391,13 @@ Session ID: ${sessionId}
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle dir={dir}>{t("Need help with Eezi?")}</DialogTitle>
+          <DialogTitle dir={dir}>{t("Need help with Easy Dyad?")}</DialogTitle>
         </DialogHeader>
         <DialogDescription dir={dir} className="">
           {t("If you need help or want to report an issue, here are some options:")}
         </DialogDescription>
         <div dir={dir} className="flex flex-col space-y-4 w-full">
-          {isEeziProUser ? (
+          {isEasyProUser ? (
             <div className="flex flex-col space-y-2">
               <Button
                 dir={dir}
@@ -408,11 +408,11 @@ Session ID: ${sessionId}
                 className="w-full py-6 border-primary/50 shadow-sm shadow-primary/10 transition-all hover:shadow-md hover:shadow-primary/15"
               >
                 <SparklesIcon className="mr-2 h-5 w-5" />{" "}
-                {t("Chat with Eezi help bot (Pro)")}
+                {t("Chat with Easy Dyad help bot (Pro)")}
               </Button>
               <p dir={dir} className="text-sm text-muted-foreground px-2">
                 {t(
-                  "Opens an in-app help chat assistant that searches through Eezi's docs."
+                  "Opens an in-app help chat assistant that searches through Easy Dyad's docs."
                 )}
               </p>
             </div>

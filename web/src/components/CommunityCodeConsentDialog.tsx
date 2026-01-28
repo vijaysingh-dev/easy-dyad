@@ -30,7 +30,7 @@ export const CommunityCodeConsentDialog: React.FC<CommunityCodeConsentDialogProp
           <AlertDialogTitle dir={dir}>{t("Community Code Notice")}</AlertDialogTitle>
           <AlertDialogDescription className="space-y-3" dir={dir}>
             <p dir={dir}>
-              {t("This code was created by a Eezi community member, not our core team.")}
+              {t("This code was created by an Easy Dyad community member, not our core team.")}
             </p>
             <p dir={dir}>
               {t(

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
 
-type SetupProviderVariant = "google" | "openrouter" | "eezi";
+type SetupProviderVariant = "google" | "openrouter" | "easy-dyad";
 
 export function SetupProviderCard({
   variant,
@@ -82,7 +82,7 @@ function getVariantStyles(variant: SetupProviderVariant) {
         subtitleColor: "text-teal-600 dark:text-teal-400",
         chevronColor: "text-teal-600 dark:text-teal-400",
       } as const;
-    case "eezi":
+    case "easy-dyad":
       return {
         container:
           "bg-primary/10 border-primary/50 dark:bg-violet-800/50 dark:border-violet-700 hover:bg-violet-100 dark:hover:bg-violet-900/70",

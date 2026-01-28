@@ -14,7 +14,7 @@ import {
   getLanguageModelsByProviders,
 } from "@/services/llm/language_model_helpers";
 import { getOllamaApiUrl, LM_STUDIO_BASE_URL } from "@/utils/misc_utils";
-import { LocalModel, OllamaModel, LMStudioModel } from "@/shared/eeziTypes";
+import { LocalModel, OllamaModel, LMStudioModel } from "@/shared/easyTypes";
 
 const router = Router();
 

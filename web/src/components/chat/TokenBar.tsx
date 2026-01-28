@@ -147,12 +147,12 @@ export function TokenBar({ chatId }: TokenBarProps) {
           {error}
         </div>
       )}
-      {(!settings?.enableProSmartFilesContextMode || !settings?.enableEeziPro) && (
+      {(!settings?.enableProSmartFilesContextMode || !settings?.enableEasyPro) && (
         <div className="text-xs text-center text-muted-foreground mt-2" dir={dir}>
           {t("Optimize your tokens with")}{" "}
           <a
             onClick={() =>
-              settings?.enableEeziPro
+              settings?.enableEasyPro
                 ? api.app.openExternalUrl(
                     "https://www.dyad.sh/docs/guides/ai-models/pro-modes#smart-context"
                   )
@@ -161,7 +161,7 @@ export function TokenBar({ chatId }: TokenBarProps) {
             className="text-blue-500 dark:text-blue-400 cursor-pointer hover:underline"
             dir={dir}
           >
-            {t("Eezi Pro's Smart Context")}
+            {t("Easy Dyad Pro's Smart Context")}
           </a>
         </div>
       )}

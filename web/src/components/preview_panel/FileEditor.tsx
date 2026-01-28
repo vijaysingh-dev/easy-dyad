@@ -123,7 +123,7 @@ export const FileEditor = ({ appId, filePath }: FileEditorProps) => {
   const isDarkMode =
     theme === "dark" ||
     (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-  const editorTheme = isDarkMode ? "eezi-dark" : "eezi-light";
+  const editorTheme = isDarkMode ? "easy-dark" : "easy-light";
 
   // Handle editor mount
   const handleEditorDidMount: OnMount = (editor) => {

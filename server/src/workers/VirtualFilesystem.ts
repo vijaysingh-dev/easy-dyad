@@ -68,7 +68,7 @@ export abstract class BaseVirtualFileSystem {
   }
 
   /**
-   * Apply changes from a response containing eezi tags
+   * Apply changes from a response containing easy-dyad tags
    */
   public applyResponseChanges({
     deletePaths,

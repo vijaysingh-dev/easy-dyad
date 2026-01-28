@@ -5,7 +5,7 @@ import {
   VertexProviderSetting,
   AzureProviderSetting,
 } from "@/shared/schemas";
-import type { LanguageModelProvider } from "@/shared/eeziTypes";
+import type { LanguageModelProvider } from "@/shared/easyTypes";
 import api from "@/api";
 
 export function useLanguageModelProviders() {

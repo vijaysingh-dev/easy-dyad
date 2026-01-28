@@ -1,6 +1,6 @@
 import Api from "./api";
 import { AxiosRequestConfig } from "axios";
-import { NodeSystemInfo } from "@/shared/eeziTypes";
+import { NodeSystemInfo } from "@/shared/easyTypes";
 import { UserSettings } from "@/shared/schemas";
 
 class SettingsApiService {

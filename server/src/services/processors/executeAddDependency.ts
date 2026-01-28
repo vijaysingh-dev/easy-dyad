@@ -3,7 +3,7 @@ import { messages } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
-import { Message } from "@/shared/eeziTypes";
+import { Message } from "@/shared/easyTypes";
 
 export const execPromise = promisify(exec);
 
@@ -29,14 +29,14 @@ export async function executeAddDependency({
   // Update the message content with the installation results
   const updatedContent = message.content.replace(
     new RegExp(
-      `<eezi-add-dependency packages="${packages.join(
+      `<easy-add-dependency packages="${packages.join(
         " "
-      )}">[^<]*</eezi-add-dependency>`,
+      )}">[^<]*</easy-add-dependency>`,
       "g"
     ),
-    `<eezi-add-dependency packages="${packages.join(
+    `<easy-add-dependency packages="${packages.join(
       " "
-    )}">${installResults}</eezi-add-dependency>`
+    )}">${installResults}</easy-add-dependency>`
   );
 
   // Save the updated message back to the database

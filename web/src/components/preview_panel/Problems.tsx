@@ -11,7 +11,7 @@ import {
   RefreshCw,
   Check,
 } from "lucide-react";
-import { Problem, ProblemReport } from "@/shared/eeziTypes";
+import { Problem, ProblemReport } from "@/shared/easyTypes";
 import { Button } from "@/components/ui/button";
 
 import { useStreamChat } from "@/hooks/useStreamChat";

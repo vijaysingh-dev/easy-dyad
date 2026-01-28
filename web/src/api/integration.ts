@@ -14,8 +14,8 @@ import {
   CreateVercelProjectParams,
   GetVercelDeploymentsParams,
   DisconnectVercelProjectParams,
-} from "@/shared/eeziTypes";
-import eeziClient from "./client";
+} from "@/shared/easyTypes";
+import easyClient from "./client";
 
 class IntegrationApiService {
   private deepLinkHandler: ((data: DeepLinkData) => void) | null = null;
@@ -66,7 +66,7 @@ class IntegrationApiService {
     return data;
   }
 
-  public async setSupabaseAppProject(project: string, app: number) {
+  public async setSupabaseAppProject(project: string, app: string) {
     const { data } = await Api.post("/integration/supabase/set-app-project", {
       project,
       app,
@@ -74,7 +74,7 @@ class IntegrationApiService {
     return data;
   }
 
-  public async unsetSupabaseAppProject(app: number) {
+  public async unsetSupabaseAppProject(app: string) {
     const { data } = await Api.post("/integration/supabase/unset-app-project", {
       app,
     });
@@ -169,15 +169,15 @@ class IntegrationApiService {
       onGithubDeviceFlowError,
     } = options;
 
-    eeziClient.githubStreams.set(appId, {
+    easyClient.githubStreams.set(appId, {
       onGithubDeviceFlowUpdate,
       onGithubDeviceFlowSuccess,
       onGithubDeviceFlowError,
     });
-    eeziClient.eventSources["github"]?.close();
+    easyClient.eventSources["github"]?.close();
 
-    const url = eeziClient.baseURL + `/integration/github/${appId}/start-flow`;
-    eeziClient.initGithubStreamSSE(url);
+    const url = easyClient.baseURL + `/integration/github/${appId}/start-flow`;
+    easyClient.initGithubStreamSSE(url);
   }
   // --- End GitHub Repo Management ---
 

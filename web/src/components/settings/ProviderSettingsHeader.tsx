@@ -18,7 +18,7 @@ interface ProviderSettingsHeaderProps {
   isLoading: boolean;
   hasFreeTier?: boolean;
   providerWebsiteUrl?: string;
-  isEezi: boolean;
+  isEasyDyad: boolean;
   onBackClick: () => void;
 }
 
@@ -28,7 +28,7 @@ export function ProviderSettingsHeader({
   isLoading,
   hasFreeTier,
   providerWebsiteUrl,
-  isEezi,
+  isEasyDyad,
   onBackClick,
 }: ProviderSettingsHeaderProps) {
   const { t, dir } = useI18n();
@@ -40,10 +40,10 @@ export function ProviderSettingsHeader({
   };
 
   function getKeyButtonText() {
-    if (isEezi) {
+    if (isEasyDyad) {
       return isConfigured
-        ? t("Manage Eezi Pro Subscription")
-        : t("Setup Eezi Pro Subscription");
+        ? t("Manage Easy Dyad Pro Subscription")
+        : t("Setup Easy Dyad Pro Subscription");
     }
     return isConfigured ? t("Manage API Keys") : t("Setup API Key");
   }

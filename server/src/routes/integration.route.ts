@@ -1,3 +1,4 @@
+import settings from "@/config";
 import logger from "@/logger";
 import db from "@/db";
 import { apps } from "@/db/schema";
@@ -24,12 +25,11 @@ import {
   getDefaultTeamId,
   updateAppVercelProject,
 } from "@/utils/integration_utils";
-import { IS_TEST_BUILD } from "@/config";
 import { withLock } from "@/utils/lock_utils";
 import { retryOnLocked } from "@/utils/retryOnLocked";
 import { safeSend } from "@/utils/safe_sender";
-import { getEeziAppPath } from "@/paths";
-import { NeonBranch } from "@/shared/eeziTypes";
+import { getEasyAppPath } from "@/paths";
+import { NeonBranch } from "@/shared/easyTypes";
 
 const router = Router();
 
@@ -266,7 +266,7 @@ router.get("/supabase/list-projects", async (req, res) => {
   }
 });
 
-// Set app project - links a Eezi app to a Supabase project
+// Set app project - links an Easy Dyad app to a Supabase project
 router.post("/supabase/set-app-project", async (req, res) => {
   try {
     const { project, app } = req.body as { project: string; app: string };
@@ -279,7 +279,7 @@ router.post("/supabase/set-app-project", async (req, res) => {
   }
 });
 
-// Unset app project - removes the link between a Eezi app and a Supabase project
+// Unset app project - removes the link between an Easy Dyad app and a Supabase project
 router.post("/supabase/unset-app-project", async (req, res) => {
   try {
     const { app } = req.body as { app: string };
@@ -301,16 +301,16 @@ router.post("/supabase/unset-app-project", async (req, res) => {
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || "Ov23liWV2HdC0RBLecWx";
 
 // Use test server URLs when in test mode
-const GITHUB_DEVICE_CODE_URL = IS_TEST_BUILD
+const GITHUB_DEVICE_CODE_URL = settings.IS_TEST_BUILD
   ? `${TEST_SERVER_BASE}/github/login/device/code`
   : "https://github.com/login/device/code";
-const GITHUB_ACCESS_TOKEN_URL = IS_TEST_BUILD
+const GITHUB_ACCESS_TOKEN_URL = settings.IS_TEST_BUILD
   ? `${TEST_SERVER_BASE}/github/login/oauth/access_token`
   : "https://github.com/login/oauth/access_token";
-const GITHUB_API_BASE = IS_TEST_BUILD
+const GITHUB_API_BASE = settings.IS_TEST_BUILD
   ? `${TEST_SERVER_BASE}/github/api`
   : "https://api.github.com";
-const GITHUB_GIT_BASE = IS_TEST_BUILD
+const GITHUB_GIT_BASE = settings.IS_TEST_BUILD
   ? `${TEST_SERVER_BASE}/github/git`
   : "https://github.com";
 
@@ -530,7 +530,7 @@ router.post("/github/rename-branch", async (req, res) => {
       throw new Error("App not found");
     }
 
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
 
     const result = await withLock(appId, async () => {
       try {
@@ -736,8 +736,8 @@ router.post("/github/push", async (req, res) => {
   try {
     const { appId, force } = req.body;
     // Get access token from settings
-    const settings = readSettings();
-    const accessToken = settings.githubAccessToken?.value;
+    const userSettings = readSettings();
+    const accessToken = userSettings.githubAccessToken?.value;
     if (!accessToken) {
       return res
         .status(401)
@@ -750,11 +750,11 @@ router.post("/github/push", async (req, res) => {
         .status(400)
         .json({ success: false, error: "App is not linked to a GitHub repo." });
     }
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
     const branch = app.githubBranch || "main";
 
     // Set up remote URL with token
-    const remoteUrl = IS_TEST_BUILD
+    const remoteUrl = settings.IS_TEST_BUILD
       ? `${GITHUB_GIT_BASE}/${app.githubOrg}/${app.githubRepo}.git`
       : `https://${accessToken}:x-oauth-basic@github.com/${app.githubOrg}/${app.githubRepo}.git`;
     // Set or update remote URL using git config
@@ -1065,7 +1065,7 @@ router.post("/vercel/create-project", async (req, res) => {
     }
 
     // Detect the framework from the app's directory
-    const detectedFramework = await detectFramework(getEeziAppPath(app.path));
+    const detectedFramework = await detectFramework(getEasyAppPath(app.path));
 
     logger.info(
       `Detected framework: ${detectedFramework || "none detected"} for app at ${

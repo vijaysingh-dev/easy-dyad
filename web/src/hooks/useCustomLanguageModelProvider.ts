@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   CreateCustomLanguageModelProviderParams,
   LanguageModelProvider,
-} from "@/shared/eeziTypes";
+} from "@/shared/easyTypes";
 import { showError } from "@/components/Toast";
 import api from "@/api";
 

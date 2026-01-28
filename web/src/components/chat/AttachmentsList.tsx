@@ -1,6 +1,6 @@
 import { FileText, X, MessageSquare, Upload } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import type { FileAttachment } from "@/shared/eeziTypes";
+import type { FileAttachment } from "@/shared/easyTypes";
 
 interface AttachmentsListProps {
   attachments: FileAttachment[];

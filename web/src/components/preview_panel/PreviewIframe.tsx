@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useStreamChat } from "@/hooks/useStreamChat";
 import { selectedComponentPreviewAtom } from "@/atoms/previewAtoms";
-import { ComponentSelection } from "@/shared/eeziTypes";
+import { ComponentSelection } from "@/shared/easyTypes";
 import {
   Tooltip,
   TooltipContent,
@@ -45,7 +45,7 @@ import { cn } from "@/lib/utils";
 import api from "@/api";
 
 interface ErrorBannerProps {
-  error: { message: string; source: "preview-app" | "eezi-app" } | undefined;
+  error: { message: string; source: "preview-app" | "easy-app" } | undefined;
   onDismiss: () => void;
   onAIFix: () => void;
 }
@@ -80,20 +80,20 @@ const ErrorBanner = ({ error, onDismiss, onAIFix }: ErrorBannerProps) => {
         <X size={14} className="text-red-500 dark:text-red-400" />
       </button>
 
-      {/* Add a little chip that says "Internal error" if source is "eezi-app" */}
-      {error.source === "eezi-app" && (
+      {/* Add a little chip that says "Internal error" if source is "easy-app" */}
+      {error.source === "easy-app" && (
         <div
           dir={dir}
           className="absolute top-1 right-1 p-1 bg-red-100 dark:bg-red-900 rounded-md text-xs font-medium text-red-700 dark:text-red-300"
         >
-          {t("Internal Eezi error")}
+          {t("Internal Easy Dyad error")}
         </div>
       )}
 
       {/* Error message in the middle */}
       <div
         dir={dir}
-        className={cn("px-6 py-1 text-sm", error.source === "eezi-app" && "pt-6")}
+        className={cn("px-6 py-1 text-sm", error.source === "easy-app" && "pt-6")}
       >
         <div
           dir={dir}
@@ -120,9 +120,9 @@ const ErrorBanner = ({ error, onDismiss, onAIFix }: ErrorBannerProps) => {
             <span className="font-medium">{t("Tip:")}</span>
             {isDockerError
               ? t("Make sure Docker Desktop is running and try restarting the app.")
-              : error.source === "eezi-app"
+              : error.source === "easy-app"
               ? t(
-                  "Try restarting the Eezi app or restarting your computer to see if that fixes the error."
+                  "Try restarting the Easy Dyad app or restarting your computer to see if that fixes the error."
                 )
               : t("Check if restarting the app fixes the error.")}
           </span>
@@ -181,7 +181,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
     if (!selectedComponentPreview) {
       if (iframeRef.current?.contentWindow) {
         iframeRef.current.contentWindow.postMessage(
-          { type: "deactivate-eezi-component-selector" },
+          { type: "deactivate-easy-component-selector" },
           "*"
         );
       }
@@ -197,12 +197,12 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
         return;
       }
 
-      if (event.data?.type === "eezi-component-selector-initialized") {
+      if (event.data?.type === "easy-component-selector-initialized") {
         setIsComponentSelectorInitialized(true);
         return;
       }
 
-      if (event.data?.type === "eezi-component-selected") {
+      if (event.data?.type === "easy-component-selected") {
         console.log("Component picked:", event.data);
         setSelectedComponentPreview(parseComponentSelection(event.data));
         setIsPicking(false);
@@ -320,8 +320,8 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
       iframeRef.current.contentWindow.postMessage(
         {
           type: newIsPicking
-            ? "activate-eezi-component-selector"
-            : "deactivate-eezi-component-selector",
+            ? "activate-easy-component-selector"
+            : "deactivate-easy-component-selector",
         },
         "*"
       );
@@ -596,7 +596,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
 function parseComponentSelection(data: any): ComponentSelection | null {
   if (
     !data ||
-    data.type !== "eezi-component-selected" ||
+    data.type !== "easy-component-selected" ||
     typeof data.id !== "string" ||
     typeof data.name !== "string"
   ) {

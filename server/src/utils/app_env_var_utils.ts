@@ -5,13 +5,13 @@
 import logger from "@/logger";
 import path from "path";
 import fs from "fs";
-import { getEeziAppPath } from "@/paths";
-import { EnvVar } from "@/shared/eeziTypes";
+import { getEasyAppPath } from "@/paths";
+import { EnvVar } from "@/shared/easyTypes";
 
 export const ENV_FILE_NAME = ".env.local";
 
 function getEnvFilePath({ appPath }: { appPath: string }): string {
-  return path.join(getEeziAppPath(appPath), ENV_FILE_NAME);
+  return path.join(getEasyAppPath(appPath), ENV_FILE_NAME);
 }
 
 export async function updatePostgresUrlEnvVar({
@@ -57,13 +57,13 @@ export async function updateDbPushEnvVar({
       envVars = [];
     }
 
-    // Update or add EEZI_DISABLE_DB_PUSH
-    const existingVar = envVars.find((envVar) => envVar.key === "EEZI_DISABLE_DB_PUSH");
+    // Update or add EASY_DISABLE_DB_PUSH
+    const existingVar = envVars.find((envVar) => envVar.key === "EASY_DISABLE_DB_PUSH");
     if (existingVar) {
       existingVar.value = disabled ? "true" : "false";
     } else {
       envVars.push({
-        key: "EEZI_DISABLE_DB_PUSH",
+        key: "EASY_DISABLE_DB_PUSH",
         value: disabled ? "true" : "false",
       });
     }

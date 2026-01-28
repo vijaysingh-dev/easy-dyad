@@ -1,15 +1,15 @@
+import settings from "@/config";
 import logger from "@/logger";
 import { Router } from "express";
 import { execSync } from "child_process";
 import { platform, arch } from "os";
 import fixPath from "fix-path";
 import { getEnvVar } from "@/utils/read_env";
-import { IS_TEST_BUILD } from "@/config";
 import { runShellCommand } from "@/utils/runShellCommand";
 import { getLanguageModelProviders } from "@/services/llm/language_model_helpers";
 import { readSettings, writeSettings } from "@/shared/settings";
 import { type UserSettings } from "@/shared/schemas";
-import { UserBudgetInfoSchema } from "@/shared/eeziTypes";
+import { UserBudgetInfoSchema } from "@/shared/easyTypes";
 
 const router = Router();
 
@@ -18,19 +18,19 @@ const CONVERSION_RATIO = (10 * 3) / 2;
 // This method should try to avoid throwing errors because this is auxiliary
 // information and isn't critical to using the app
 router.get("/get-user-budget", async (req, res) => {
-  if (IS_TEST_BUILD) {
+  if (settings.IS_TEST_BUILD) {
     // Avoid spamming the API in E2E tests.
     res.send(null);
     return;
   }
   logger.info("Attempting to fetch user budget information.");
 
-  const settings = readSettings();
+  const userSettings = readSettings();
 
-  const apiKey = settings.providerSettings?.auto?.apiKey?.value;
+  const apiKey = userSettings.providerSettings?.auto?.apiKey?.value;
 
   if (!apiKey) {
-    logger.error("LLM Gateway API key (Eezi Pro) is not configured.");
+    logger.error("LLM Gateway API key (Easy Dyad Pro) is not configured.");
     res.send(null);
     return;
   }
@@ -51,7 +51,7 @@ router.get("/get-user-budget", async (req, res) => {
     if (!response.ok) {
       const errorBody = await response.text();
       logger.error(
-        `Failed to fetch user budget. Status: ${response.status}. Body: ${errorBody}`
+        `Failed to fetch user budget. Status: ${response.status}. Body: ${errorBody}`,
       );
       res.send(null);
       return;
@@ -65,7 +65,7 @@ router.get("/get-user-budget", async (req, res) => {
         usedCredits: userInfoData["spend"] * CONVERSION_RATIO,
         totalCredits: userInfoData["max_budget"] * CONVERSION_RATIO,
         budgetResetDate: new Date(userInfoData["budget_reset_at"]),
-      })
+      }),
     );
   } catch (error: any) {
     logger.error(`Error fetching user budget: ${error.message}`, error);
@@ -76,8 +76,8 @@ router.get("/get-user-budget", async (req, res) => {
 // Get user settings
 router.get("/get-user-settings", async (_req, res) => {
   try {
-    const settings = readSettings();
-    res.status(200).json(settings);
+    const userSettings = readSettings();
+    res.status(200).json(userSettings);
   } catch (error: any) {
     logger.error("Error getting user settings:", error.message);
     res.status(500).json({ error: "Failed to get user settings" });
@@ -87,9 +87,9 @@ router.get("/get-user-settings", async (_req, res) => {
 // Update user settings
 router.patch("/set-user-settings", async (req, res) => {
   try {
-    const settings: Partial<UserSettings> = req.body;
+    const userSettings: Partial<UserSettings> = req.body;
     // Update settings file
-    writeSettings(settings);
+    writeSettings(userSettings);
     // Return full updated settings
     res.status(200).json(readSettings());
   } catch (error: any) {
@@ -126,7 +126,7 @@ router.get("/nodejs-status", async (_req, res) => {
       // If not, try to install it using corepack.
       // If both fail, then pnpm is not available.
       runShellCommand(
-        "pnpm --version || (corepack enable pnpm && pnpm --version) || (npm install -g pnpm@latest-10 && pnpm --version)"
+        "pnpm --version || (corepack enable pnpm && pnpm --version) || (npm install -g pnpm@latest-10 && pnpm --version)",
       ),
     ]);
     // Default to mac download url.

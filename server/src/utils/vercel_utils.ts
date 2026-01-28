@@ -1,18 +1,18 @@
+import settings from "@/config";
 import logger from "@/logger";
 import { readSettings } from "@/shared/settings";
-import { IS_TEST_BUILD } from "@/config";
 
 // Use test server URLs when in test mode
 const TEST_SERVER_BASE = "http://localhost:3500";
 
-const VERCEL_API_BASE = IS_TEST_BUILD
+const VERCEL_API_BASE = settings.IS_TEST_BUILD
   ? `${TEST_SERVER_BASE}/vercel/api`
   : "https://api.vercel.com";
 
 export async function getVercelTeamSlug(teamId: string): Promise<string | null> {
   try {
-    const settings = readSettings();
-    const accessToken = settings.vercelAccessToken?.value;
+    const userSettings = readSettings();
+    const accessToken = userSettings.vercelAccessToken?.value;
 
     if (!accessToken) {
       logger.warn("No Vercel access token found when trying to get team slug");
@@ -28,7 +28,7 @@ export async function getVercelTeamSlug(teamId: string): Promise<string | null> 
 
     if (!response.ok) {
       logger.error(
-        `Failed to fetch team details: ${response.status} ${response.statusText}`
+        `Failed to fetch team details: ${response.status} ${response.statusText}`,
       );
       return null;
     }

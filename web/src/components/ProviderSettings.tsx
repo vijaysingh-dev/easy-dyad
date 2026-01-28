@@ -2,7 +2,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { useI18n } from "@/lib/i18n";
 import { useNavigate } from "@tanstack/react-router";
 import { providerSettingsRoute } from "@/routes/settings/providers/$provider";
-import type { LanguageModelProvider } from "@/shared/eeziTypes";
+import type { LanguageModelProvider } from "@/shared/easyTypes";
 
 import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";
 import { useCustomLanguageModelProvider } from "@/hooks/useCustomLanguageModelProvider";

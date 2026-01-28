@@ -28,7 +28,7 @@ import { showError } from "@/components/Toast";
 import { invalidateAppQuery } from "@/hooks/useLoadApp";
 import { useQueryClient } from "@tanstack/react-query";
 
-import type { FileAttachment } from "@/shared/eeziTypes";
+import type { FileAttachment } from "@/shared/easyTypes";
 import { NEON_TEMPLATE_IDS } from "@/shared/templates";
 import { neonTemplateHook } from "@/lib/template_hook";
 import { ProBanner } from "@/components/ProBanner";

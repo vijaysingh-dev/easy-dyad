@@ -11,7 +11,7 @@ import {
   MODEL_OPTIONS,
   PROVIDER_TO_ENV_VAR,
 } from "./language_model_constants";
-import type { LanguageModelProvider, LanguageModel } from "@/shared/eeziTypes";
+import type { LanguageModelProvider, LanguageModel } from "@/shared/easyTypes";
 
 /**
  * Fetches language model providers from both the database (custom) and hardcoded constants (cloud),

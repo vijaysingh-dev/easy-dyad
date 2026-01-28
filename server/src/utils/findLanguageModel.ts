@@ -1,6 +1,6 @@
 import { getLanguageModels } from "@/services/llm/language_model_helpers";
 import { LargeLanguageModel } from "@/shared/schemas";
-import { LanguageModel } from "@/shared/eeziTypes";
+import { LanguageModel } from "@/shared/easyTypes";
 
 export async function findLanguageModel(
   model: LargeLanguageModel

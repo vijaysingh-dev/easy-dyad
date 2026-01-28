@@ -29,7 +29,7 @@ export function getPath(
     | "logs"
     | "userData"
     | "appBase"
-    | "eeziApp"
+    | "easyApp"
     | "temp"
     | "sessionData"
     | "typeScriptCache"
@@ -47,7 +47,7 @@ export function getPath(
     case "userData":
       return settings.IS_TEST_BUILD ? path.join(PROJECT_ROOT, "userData") : "/efs";
     case "appBase":
-      return path.join(getPath("userData"), "eezi-apps");
+      return path.join(getPath("userData"), "easy-apps");
 
     case "temp":
       return path.join(getPath("userData"), "temp");
@@ -68,6 +68,6 @@ export function getPath(
   }
 }
 
-export function getEeziAppPath(appPath: string): string {
+export function getEasyAppPath(appPath: string): string {
   return path.join(getPath("appBase"), appPath);
 }

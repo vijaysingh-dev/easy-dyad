@@ -1,6 +1,6 @@
 import Api from "./api";
-import { CreateMcpServer, McpServerUpdate } from "@/shared/eeziTypes";
-import eeziClient from "./client";
+import { CreateMcpServer, McpServerUpdate } from "@/shared/easyTypes";
+import easyClient from "./client";
 
 class McpApiService {
   public async listMcpServers() {
@@ -54,9 +54,9 @@ class McpApiService {
       inputPreview?: string | null;
     }) => void
   ) {
-    eeziClient.mcpConsentHandlers.set("consent", handler as any);
+    easyClient.mcpConsentHandlers.set("consent", handler as any);
     return () => {
-      eeziClient.mcpConsentHandlers.delete("consent");
+      easyClient.mcpConsentHandlers.delete("consent");
     };
   }
 

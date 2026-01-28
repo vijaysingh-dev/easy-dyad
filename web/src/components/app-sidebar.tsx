@@ -175,7 +175,7 @@ function AppIcons({ onHoverChange }: { onHoverChange: (state: HoverState) => voi
   return (
     // When collapsed: only show the main menu
     <SidebarGroup className="pr-0">
-      {/* <SidebarGroupLabel>Eezi</SidebarGroupLabel> */}
+      {/* <SidebarGroupLabel>Easy Dyad</SidebarGroupLabel> */}
 
       <SidebarGroupContent>
         <SidebarMenu>

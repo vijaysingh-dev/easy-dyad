@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { BranchResult } from "@/shared/eeziTypes";
+import type { BranchResult } from "@/shared/easyTypes";
 import api from "@/api";
 
 export function useCurrentBranch(appId: string | null) {

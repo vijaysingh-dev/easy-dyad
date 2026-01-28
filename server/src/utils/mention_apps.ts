@@ -1,6 +1,6 @@
 import logger from "@/logger";
 import db from "@/db";
-import { getEeziAppPath } from "@/paths";
+import { getEasyAppPath } from "@/paths";
 import { CodebaseFile, extractCodebase } from "./codebase";
 import { validateChatContext } from "./context_paths_utils";
 
@@ -31,7 +31,7 @@ export async function extractMentionedAppsCodebases(
 
   for (const app of mentionedApps) {
     try {
-      const appPath = getEeziAppPath(app.path);
+      const appPath = getEasyAppPath(app.path);
       const chatContext = validateChatContext(app.chatContext);
 
       const { formattedOutput, files } = await extractCodebase({

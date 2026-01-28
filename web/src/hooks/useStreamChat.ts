@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { ComponentSelection, Message, FileAttachment } from "@/shared/eeziTypes";
+import type { ComponentSelection, Message, FileAttachment } from "@/shared/easyTypes";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   chatErrorByIdAtom,
@@ -9,7 +9,7 @@ import {
   recentStreamChatIdsAtom,
 } from "@/atoms/chatAtoms";
 import { isPreviewOpenAtom } from "@/atoms/viewAtoms";
-import type { ChatResponseEnd } from "@/shared/eeziTypes";
+import type { ChatResponseEnd } from "@/shared/easyTypes";
 import { useChats } from "./useChats";
 import { useLoadApp } from "./useLoadApp";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";

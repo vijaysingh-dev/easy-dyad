@@ -102,7 +102,7 @@ var BaseVirtualFileSystem = /** @class */ (function () {
             : normalizedPath;
     };
     /**
-     * Apply changes from a response containing eezi tags
+     * Apply changes from a response containing easy-dyad tags
      */
     BaseVirtualFileSystem.prototype.applyResponseChanges = function (_a) {
         var deletePaths = _a.deletePaths, renameTags = _a.renameTags, writeTags = _a.writeTags;

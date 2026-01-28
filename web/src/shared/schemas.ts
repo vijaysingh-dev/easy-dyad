@@ -178,11 +178,11 @@ export const ExperimentsSchema = z.object({
 });
 export type Experiments = z.infer<typeof ExperimentsSchema>;
 
-export const EeziProBudgetSchema = z.object({
+export const EasyProBudgetSchema = z.object({
   budgetResetAt: z.string(),
   maxBudget: z.number(),
 });
-export type EeziProBudget = z.infer<typeof EeziProBudgetSchema>;
+export type EasyProBudget = z.infer<typeof EasyProBudgetSchema>;
 
 export const GlobPathSchema = z.object({
   globPath: z.string(),
@@ -226,7 +226,7 @@ export const UserSettingsSchema = z.object({
   telemetryConsent: z.enum(["opted_in", "opted_out", "unset"]).optional(),
   telemetryUserId: z.string().optional(),
   hasRunBefore: z.boolean().optional(),
-  enableEeziPro: z.boolean().optional(),
+  enableEasyPro: z.boolean().optional(),
   experiments: ExperimentsSchema.optional(),
   lastShownReleaseNotesVersion: z.string().optional(),
   maxChatTurnsInContext: z.number().optional(),
@@ -255,7 +255,7 @@ export const UserSettingsSchema = z.object({
   // DEPRECATED.
   ////////////////////////////////
   enableProSaverMode: z.boolean().optional(),
-  eeziProBudget: EeziProBudgetSchema.optional(),
+  easyProBudget: EasyProBudgetSchema.optional(),
   runtimeMode: RuntimeModeSchema.optional(),
 });
 
@@ -264,11 +264,11 @@ export const UserSettingsSchema = z.object({
  */
 export type UserSettings = z.infer<typeof UserSettingsSchema>;
 
-export function isEeziProEnabled(settings: UserSettings): boolean {
-  return settings.enableEeziPro === true && hasEeziProKey(settings);
+export function isEasyProEnabled(settings: UserSettings): boolean {
+  return settings.enableEasyPro === true && hasEasyProKey(settings);
 }
 
-export function hasEeziProKey(settings: UserSettings): boolean {
+export function hasEasyProKey(settings: UserSettings): boolean {
   return !!settings.providerSettings?.auto?.apiKey?.value;
 }
 

@@ -1,3 +1,4 @@
+import settings from "@/config";
 import logger from "@/logger";
 import db from "@/db";
 import { apps, messages, versions } from "@/db/schema";
@@ -6,10 +7,8 @@ import { eq } from "drizzle-orm";
 import { Router } from "express";
 import * as fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import git, { type ReadCommitResult } from "isomorphic-git";
-import { getEeziAppPath } from "@/paths";
-import { IS_TEST_BUILD } from "@/config";
+import { getEasyAppPath } from "@/paths";
 import { withLock } from "@/utils/lock_utils";
 import { retryOnLocked } from "@/utils/retryOnLocked";
 import { gitCheckout, gitCommit, gitStageToRevert } from "@/utils/git_utils";
@@ -23,14 +22,14 @@ import {
   getNeonClient,
   getNeonErrorMessage,
 } from "@/services/neon_admin/neon_management_client";
-import { Version } from "@/shared/eeziTypes";
+import { Version } from "@/shared/easyTypes";
 
 const router = Router();
 
 router.get("/does-release-note-exist", async (req, res) => {
   // For E2E tests, we don't want to check for release notes
   // or show release notes, as it interferes with the tests.
-  if (IS_TEST_BUILD) {
+  if (settings.IS_TEST_BUILD) {
     res.status(200).json({ exists: false });
     return;
   }
@@ -83,7 +82,7 @@ router.get("/list-versions/:appId", async (req, res) => {
       return [];
     }
 
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
 
     // Just return an empty array if the app is not a git repo.
     if (!fs.existsSync(path.join(appPath, ".git"))) {
@@ -142,7 +141,7 @@ router.get("/get-current-branch/:appId", async (req, res) => {
       throw new Error("App not found");
     }
 
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
 
     // Return appropriate result if the app is not a git repo
     if (!fs.existsSync(path.join(appPath, ".git"))) {
@@ -183,7 +182,7 @@ router.post("/revert-version", async (req, res) => {
         throw new Error("App not found");
       }
 
-      const appPath = getEeziAppPath(app.path);
+      const appPath = getEasyAppPath(app.path);
       // Get the current commit hash before reverting
       const currentCommitHash = await git.resolveRef({
         fs,
@@ -392,7 +391,7 @@ router.post("/checkout-version", async (req, res) => {
           }
         }
       }
-      const fullAppPath = getEeziAppPath(app.path);
+      const fullAppPath = getEasyAppPath(app.path);
       await gitCheckout({
         path: fullAppPath,
         ref: gitRef,

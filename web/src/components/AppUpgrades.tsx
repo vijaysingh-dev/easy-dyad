@@ -3,7 +3,7 @@ import { useI18n } from "@/lib/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AppUpgrade } from "@/shared/eeziTypes";
+import { AppUpgrade } from "@/shared/easyTypes";
 import api from "@/api";
 
 export function AppUpgrades({ appId }: { appId: string | null }) {
@@ -105,7 +105,7 @@ export function AppUpgrades({ appId }: { appId: string | null }) {
           className="p-4 bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-800/50 rounded-lg text-sm text-green-800 dark:text-green-300"
           dir={dir}
         >
-          {t("App is up-to-date and has all Eezi capabilities enabled")}
+          {t("App is up-to-date and has all Easy Dyad capabilities enabled")}
         </div>
       ) : (
         <div className="space-y-4" dir={dir}>

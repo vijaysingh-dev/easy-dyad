@@ -4,7 +4,7 @@ import { Star } from "lucide-react";
 import { SidebarMenuItem } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import i18n, { useI18n } from "@/lib/i18n";
-import { App } from "@/shared/eeziTypes";
+import { App } from "@/shared/easyTypes";
 
 type AppItemProps = {
   app: App;

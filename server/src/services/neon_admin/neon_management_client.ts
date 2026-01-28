@@ -1,7 +1,7 @@
+import settings from "@/config";
 import logger from "@/logger";
 import { Api, createApiClient } from "@neondatabase/api-client";
 import { withLock } from "@/utils/lock_utils";
-import { IS_TEST_BUILD } from "@/config";
 import { readSettings, writeSettings } from "@/shared/settings";
 
 /**
@@ -12,8 +12,8 @@ function isTokenExpired(expiresIn?: number): boolean {
   if (!expiresIn) return true;
 
   // Get when the token was saved (expiresIn is stored at the time of token receipt)
-  const settings = readSettings();
-  const tokenTimestamp = settings.neon?.tokenTimestamp || 0;
+  const userSettings = readSettings();
+  const tokenTimestamp = userSettings.neon?.tokenTimestamp || 0;
   const currentTime = Math.floor(Date.now() / 1000);
 
   // Check if the token is expired or about to expire (within 5 minutes)
@@ -25,10 +25,10 @@ function isTokenExpired(expiresIn?: number): boolean {
  * Updates settings with new tokens and expiration time
  */
 export async function refreshNeonToken(): Promise<void> {
-  const settings = readSettings();
-  const refreshToken = settings.neon?.refreshToken?.value;
+  const userSettings = readSettings();
+  const refreshToken = userSettings.neon?.refreshToken?.value;
 
-  if (!isTokenExpired(settings.neon?.expiresIn)) {
+  if (!isTokenExpired(userSettings.neon?.expiresIn)) {
     return;
   }
 
@@ -47,7 +47,7 @@ export async function refreshNeonToken(): Promise<void> {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ refreshToken }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -83,7 +83,7 @@ export async function refreshNeonToken(): Promise<void> {
 
 // Function to get the Neon API client
 export async function getNeonClient(): Promise<Api<unknown>> {
-  if (IS_TEST_BUILD) {
+  if (settings.IS_TEST_BUILD) {
     // Return a mock client for testing
     return {
       createProject: async (params: any) => ({
@@ -175,11 +175,11 @@ export async function getNeonClient(): Promise<Api<unknown>> {
     } as unknown as Api<unknown>;
   }
 
-  const settings = readSettings();
+  const userSettings = readSettings();
 
   // Check if Neon token exists in settings
-  const neonAccessToken = settings.neon?.accessToken?.value;
-  const expiresIn = settings.neon?.expiresIn;
+  const neonAccessToken = userSettings.neon?.accessToken?.value;
+  const expiresIn = userSettings.neon?.expiresIn;
 
   if (!neonAccessToken) {
     throw new Error("Neon access token not found. Please authenticate first.");
@@ -212,7 +212,7 @@ export async function getNeonClient(): Promise<Api<unknown>> {
 export async function getNeonOrganizationId(): Promise<string> {
   const neonClient = await getNeonClient();
 
-  if (IS_TEST_BUILD) {
+  if (settings.IS_TEST_BUILD) {
     return "test-org-id";
   }
 

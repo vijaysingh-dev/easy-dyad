@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { UserBudgetInfo } from "@/shared/eeziTypes";
+import type { UserBudgetInfo } from "@/shared/easyTypes";
 import api from "@/api";
 
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;

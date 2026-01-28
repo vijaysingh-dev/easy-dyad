@@ -1,4 +1,4 @@
-import { isEeziProEnabled, type LargeLanguageModel } from "@/shared/schemas";
+import { isEasyProEnabled, type LargeLanguageModel } from "@/shared/schemas";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -18,7 +18,7 @@ import { useLocalModels } from "@/hooks/useLocalModels";
 import { useLocalLMSModels } from "@/hooks/useLMStudioModels";
 import { useLanguageModelsByProviders } from "@/hooks/useLanguageModelsByProviders";
 
-import { LocalModel } from "@/shared/eeziTypes";
+import { LocalModel } from "@/shared/easyTypes";
 import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";
 import { useSettings } from "@/hooks/useSettings";
 import { PriceBadge } from "@/components/PriceBadge";
@@ -107,12 +107,12 @@ export function ModelPicker() {
       ? modelsByProviders["auto"].filter((model) => {
           if (
             settings &&
-            !isEeziProEnabled(settings) &&
+            !isEasyProEnabled(settings) &&
             ["turbo", "value"].includes(model.apiName)
           ) {
             return false;
           }
-          if (settings && isEeziProEnabled(settings) && model.apiName === "free") {
+          if (settings && isEasyProEnabled(settings) && model.apiName === "free") {
             return false;
           }
           return true;
@@ -129,7 +129,7 @@ export function ModelPicker() {
   }
   const selectedModel = settings?.selectedModel;
   const isSmartAutoEnabled =
-    settings.enableProSmartFilesContextMode && isEeziProEnabled(settings);
+    settings.enableProSmartFilesContextMode && isEasyProEnabled(settings);
   const modelDisplayName = getModelDisplayName();
   // Split providers into primary and secondary groups (excluding auto)
   const providerEntries =
@@ -141,7 +141,7 @@ export function ModelPicker() {
     const provider = providers?.find((p) => p.id === providerId);
     return !(provider && provider.secondary);
   });
-  if (settings && isEeziProEnabled(settings)) {
+  if (settings && isEasyProEnabled(settings)) {
     primaryProviders.unshift(["auto", TURBO_MODELS]);
   }
   const secondaryProviders = providerEntries.filter(([providerId, models]) => {
@@ -271,17 +271,17 @@ export function ModelPicker() {
             {/* Primary providers as submenus */}
             {primaryProviders.map(([providerId, models]) => {
               models = models.filter((model) => {
-                // Don't show free models if Eezi Pro is enabled because
-                // we will use the paid models (in Eezi Pro backend) which
+                // Don't show free models if Easy Dyad Pro is enabled because
+                // we will use the paid models (in Easy Dyad Pro backend) which
                 // don't have the free limitations.
-                if (isEeziProEnabled(settings) && model.apiName.endsWith(":free")) {
+                if (isEasyProEnabled(settings) && model.apiName.endsWith(":free")) {
                   return false;
                 }
                 return true;
               });
               const provider = providers?.find((p) => p.id === providerId);
               const providerDisplayName =
-                provider?.id === "auto" ? t("Eezi Turbo") : provider?.name ?? providerId;
+                provider?.id === "auto" ? t("Easy Dyad Turbo") : provider?.name ?? providerId;
               return (
                 <DropdownMenuSub key={providerId}>
                   <DropdownMenuSubTrigger className="w-full font-normal" dir={dir}>
@@ -290,7 +290,7 @@ export function ModelPicker() {
                         <span dir={dir}>{providerDisplayName}</span>
                         {provider?.type === "cloud" &&
                           !provider?.secondary &&
-                          isEeziProEnabled(settings) && (
+                          isEasyProEnabled(settings) && (
                             <span
                               className="text-[10px] bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 bg-[length:200%_100%] animate-[shimmer_5s_ease-in-out_infinite] text-white px-1.5 py-0.5 rounded-full font-medium"
                               dir={dir}

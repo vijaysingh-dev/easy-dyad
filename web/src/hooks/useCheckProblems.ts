@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { ProblemReport } from "@/shared/eeziTypes";
+import type { ProblemReport } from "@/shared/easyTypes";
 import { useSettings } from "./useSettings";
 import api from "@/api";
 

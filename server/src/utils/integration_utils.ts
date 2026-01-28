@@ -1,3 +1,4 @@
+import settings from "@/config";
 import logger from "@/logger";
 import db from "@/db";
 import { apps } from "@/db/schema";
@@ -7,12 +8,11 @@ import * as path from "path";
 import { Vercel } from "@vercel/sdk";
 import { CreateProjectFramework } from "@vercel/sdk/models/createprojectop.js";
 import { readSettings, writeSettings } from "@/shared/settings";
-import { IS_TEST_BUILD } from "@/config";
 import { GithubUser } from "@/shared/schemas";
 
 // Use test server URLs when in test mode
 const TEST_SERVER_BASE = "http://localhost:3500";
-const VERCEL_API_BASE = IS_TEST_BUILD
+const VERCEL_API_BASE = settings.IS_TEST_BUILD
   ? `${TEST_SERVER_BASE}/vercel/api`
   : "https://api.vercel.com";
 
@@ -22,10 +22,10 @@ const VERCEL_API_BASE = IS_TEST_BUILD
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || "Ov23liWV2HdC0RBLecWx";
 
 // Use test server URLs when in test mode
-const GITHUB_ACCESS_TOKEN_URL = IS_TEST_BUILD
+const GITHUB_ACCESS_TOKEN_URL = settings.IS_TEST_BUILD
   ? `${TEST_SERVER_BASE}/github/login/oauth/access_token`
   : "https://github.com/login/oauth/access_token";
-const GITHUB_API_BASE = IS_TEST_BUILD
+const GITHUB_API_BASE = settings.IS_TEST_BUILD
   ? `${TEST_SERVER_BASE}/github/api`
   : "https://api.github.com";
 
@@ -55,11 +55,11 @@ export async function updateAppGithubRepo({
  * @returns {Promise<string|null>} The GitHub username, or null if not authenticated or on error.
  */
 export async function getGithubUser(): Promise<GithubUser | null> {
-  const settings = readSettings();
-  const email = settings.githubUser?.email;
+  const userSettings = readSettings();
+  const email = userSettings.githubUser?.email;
   if (email) return { email };
   try {
-    const accessToken = settings.githubAccessToken?.value;
+    const accessToken = userSettings.githubAccessToken?.value;
     if (!accessToken) return null;
     const res = await fetch(`${GITHUB_API_BASE}/user/emails`, {
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -86,7 +86,7 @@ export async function getGithubUser(): Promise<GithubUser | null> {
 export function createVercelClient(token: string): Vercel {
   return new Vercel({
     bearerToken: token,
-    ...(IS_TEST_BUILD && { serverURL: VERCEL_API_BASE }),
+    ...(settings.IS_TEST_BUILD && { serverURL: VERCEL_API_BASE }),
   });
 }
 

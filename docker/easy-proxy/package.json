@@ -1,0 +1,9 @@
+{
+  "name": "easy-proxy",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "stacktrace-js": "^2.0.2"
+  }
+}

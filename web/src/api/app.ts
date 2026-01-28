@@ -15,8 +15,8 @@ import {
   SetAppEnvVarsParams,
   ImportAppParams,
   AppUpgrade,
-} from "@/shared/eeziTypes";
-import eeziClient from "./client";
+} from "@/shared/easyTypes";
+import easyClient from "./client";
 
 class AppApiService {
   // Open an external URL using the default browser
@@ -45,7 +45,7 @@ class AppApiService {
     return data;
   }
 
-  public async restartEezi(): Promise<void> {
+  public async restartEasyDyad(): Promise<void> {
     window.location.reload();
   }
 
@@ -127,12 +127,12 @@ class AppApiService {
 
   // Run an app
   public async runApp(appId: string, onOutput: (output: AppOutput) => void) {
-    eeziClient.appStreams.delete(appId);
-    eeziClient.eventSources["app"]?.close();
+    easyClient.appStreams.delete(appId);
+    easyClient.eventSources["app"]?.close();
 
-    eeziClient.appStreams.set(appId, { onOutput });
-    const url = eeziClient.baseURL + `/app/run-app/${appId}`;
-    eeziClient.initAppStreamSSE(url);
+    easyClient.appStreams.set(appId, { onOutput });
+    const url = easyClient.baseURL + `/app/run-app/${appId}`;
+    easyClient.initAppStreamSSE(url);
   }
 
   // Stop a running app
@@ -147,15 +147,15 @@ class AppApiService {
     onOutput: (output: AppOutput) => void,
     removeNodeModules?: boolean,
   ) {
-    eeziClient.appStreams.delete(appId);
-    eeziClient.eventSources["app"]?.close();
+    easyClient.appStreams.delete(appId);
+    easyClient.eventSources["app"]?.close();
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    eeziClient.appStreams.set(appId, { onOutput });
+    easyClient.appStreams.set(appId, { onOutput });
     const url =
-      eeziClient.baseURL +
+      easyClient.baseURL +
       `/app/restart-app/${appId}?removeNodeModules=${!!removeNodeModules}`;
-    eeziClient.initAppStreamSSE(url);
+    easyClient.initAppStreamSSE(url);
   }
 
   // Edit a file in an app directory

@@ -27,7 +27,7 @@ interface ApiKeyConfigurationProps {
   onApiKeyInputChange: (value: string) => void;
   onSaveKey: (value: string) => Promise<void>;
   onDeleteKey: () => Promise<void>;
-  isEezi: boolean;
+  isEasyDyad: boolean;
   updateSettings: (settings: Partial<UserSettings>) => Promise<UserSettings>;
 }
 
@@ -43,7 +43,7 @@ export function ApiKeyConfiguration({
   onApiKeyInputChange,
   onSaveKey,
   onDeleteKey,
-  isEezi,
+  isEasyDyad,
   updateSettings,
 }: ApiKeyConfigurationProps) {
   const { t, dir } = useI18n();
@@ -75,7 +75,7 @@ export function ApiKeyConfiguration({
   if (isValidUserKey || !hasEnvKey) {
     defaultAccordionValue.push("settings-key");
   }
-  if (!isEezi && hasEnvKey) {
+  if (!isEasyDyad && hasEnvKey) {
     defaultAccordionValue.push("env-key");
   }
 
@@ -201,7 +201,7 @@ export function ApiKeyConfiguration({
         </AccordionContent>
       </AccordionItem>
 
-      {!isEezi && envVarName && (
+      {!isEasyDyad && envVarName && (
         <AccordionItem
           value="env-key"
           className="border rounded-lg px-4 bg-(--background-lightest)"

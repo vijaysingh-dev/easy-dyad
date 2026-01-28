@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Database, GitBranch } from "lucide-react";
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
 import { useLoadApp } from "@/hooks/useLoadApp";
-import type { GetNeonProjectResponse, NeonBranch } from "@/shared/eeziTypes";
+import type { GetNeonProjectResponse, NeonBranch } from "@/shared/easyTypes";
 import { NeonDisconnectButton } from "@/components/NeonDisconnectButton";
 import api from "@/api";
 

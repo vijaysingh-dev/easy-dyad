@@ -91,15 +91,15 @@ export async function processStreamChunks({
         inThinkingBlock = true;
       }
 
-      chunk += escapeEeziTags(part.text);
+      chunk += escapeEasyTags(part.text);
     } else if (part.type === "tool-call") {
       const { serverName, toolName } = parseMcpToolKey(part.toolName);
-      const content = escapeEeziTags(JSON.stringify(part.input));
-      chunk = `<eezi-mcp-tool-call server="${serverName}" tool="${toolName}">\n${content}\n</eezi-mcp-tool-call>\n`;
+      const content = escapeEasyTags(JSON.stringify(part.input));
+      chunk = `<easy-mcp-tool-call server="${serverName}" tool="${toolName}">\n${content}\n</easy-mcp-tool-call>\n`;
     } else if (part.type === "tool-result") {
       const { serverName, toolName } = parseMcpToolKey(part.toolName);
-      const content = escapeEeziTags(part.output);
-      chunk = `<eezi-mcp-tool-result server="${serverName}" tool="${toolName}">\n${content}\n</eezi-mcp-tool-result>\n`;
+      const content = escapeEasyTags(part.output);
+      chunk = `<easy-mcp-tool-result server="${serverName}" tool="${toolName}">\n${content}\n</easy-mcp-tool-result>\n`;
     }
 
     if (!chunk) {
@@ -166,7 +166,7 @@ export async function replaceTextAttachmentWithContent(
       // Replace the placeholder tag with the full content
       const escapedPath = filePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const tagPattern = new RegExp(
-        `<eezi-text-attachment filename="[^"]*" type="[^"]*" path="${escapedPath}">\\s*<\\/eezi-text-attachment>`,
+        `<easy-text-attachment filename="[^"]*" type="[^"]*" path="${escapedPath}">\\s*<\\/easy-text-attachment>`,
         "g"
       );
 
@@ -259,18 +259,18 @@ export function removeThinkingTags(text: string): string {
 
 export function removeProblemReportTags(text: string): string {
   const problemReportRegex =
-    /<eezi-problem-report[^>]*>[\s\S]*?<\/eezi-problem-report>/g;
+    /<easy-problem-report[^>]*>[\s\S]*?<\/easy-problem-report>/g;
   return text.replace(problemReportRegex, "").trim();
 }
 
-export function removeEeziTags(text: string): string {
-  const eeziRegex = /<eezi-[^>]*>[\s\S]*?<\/eezi-[^>]*>/g;
-  return text.replace(eeziRegex, "").trim();
+export function removeEasyTags(text: string): string {
+  const easyRegex = /<easy-[^>]*>[\s\S]*?<\/easy-[^>]*>/g;
+  return text.replace(easyRegex, "").trim();
 }
 
-export function hasUnclosedEeziWrite(text: string): boolean {
-  // Find the last opening eezi-write tag
-  const openRegex = /<eezi-write[^>]*>/g;
+export function hasUnclosedEasyWrite(text: string): boolean {
+  // Find the last opening easy-write tag
+  const openRegex = /<easy-write[^>]*>/g;
   let lastOpenIndex = -1;
   let match;
 
@@ -285,19 +285,19 @@ export function hasUnclosedEeziWrite(text: string): boolean {
 
   // Look for a closing tag after the last opening tag
   const textAfterLastOpen = text.substring(lastOpenIndex);
-  const hasClosingTag = /<\/eezi-write>/.test(textAfterLastOpen);
+  const hasClosingTag = /<\/easy-write>/.test(textAfterLastOpen);
 
   return !hasClosingTag;
 }
 
-export function escapeEeziTags(text: string): string {
-  // Escape eezi tags in reasoning content
+export function escapeEasyTags(text: string): string {
+  // Escape easy-dyad tags in reasoning content
   // We are replacing the opening tag with a look-alike character
-  // to avoid issues where thinking content includes eezi tags
+  // to avoid issues where thinking content includes easy-dyad tags
   // and are mishandled by:
   // 1. FE markdown parser
   // 2. Main process response processor
-  return text.replace(/<eezi/g, "＜eezi").replace(/<\/eezi/g, "＜/eezi");
+  return text.replace(/<easy/g, "＜easy").replace(/<\/easy/g, "＜/easy");
 }
 
 export function createOtherAppsCodebasePrompt(otherAppsCodebaseInfo: string): string {
@@ -360,43 +360,43 @@ export async function getMcpTools(
   return mcpToolSet;
 }
 
-// e.g. [eezi-qa=add-dep]
+// e.g. [easy-qa=add-dep]
 // Canned responses for test prompts
 const TEST_RESPONSES: Record<string, string> = {
   "ts-error": `This will get a TypeScript error.
 
-  <eezi-write path="src/bad-file.ts" description="This will get a TypeScript error.">
+  <easy-write path="src/bad-file.ts" description="This will get a TypeScript error.">
   import NonExistentClass from 'non-existent-class';
 
   const x = new Object();
   x.nonExistentMethod();
-  </eezi-write>
+  </easy-write>
 
   EOM`,
   "add-dep": `I'll add that dependency for you.
 
-  <eezi-add-dependency packages="deno"></eezi-add-dependency>
+  <easy-add-dependency packages="deno"></easy-add-dependency>
 
   EOM`,
   "add-non-existing-dep": `I'll add that dependency for you.
 
-  <eezi-add-dependency packages="@angular/does-not-exist"></eezi-add-dependency>
+  <easy-add-dependency packages="@angular/does-not-exist"></easy-add-dependency>
 
   EOM`,
   "add-multiple-deps": `I'll add that dependency for you.
 
-  <eezi-add-dependency packages="react-router-dom react-query"></eezi-add-dependency>
+  <easy-add-dependency packages="react-router-dom react-query"></easy-add-dependency>
 
   EOM`,
   write: `Hello world
-  <eezi-write path="src/hello.ts" content="Hello world">
+  <easy-write path="src/hello.ts" content="Hello world">
   console.log("Hello world");
-  </eezi-write>
+  </easy-write>
   EOM`,
   "string-literal-leak": `BEFORE TAG
-  <eezi-write path="src/pages/locations/neighborhoods/louisville/Highlands.tsx" description="Updating Highlands neighborhood page to use <a> tags.">
+  <easy-write path="src/pages/locations/neighborhoods/louisville/Highlands.tsx" description="Updating Highlands neighborhood page to use <a> tags.">
 import React from 'react';
-</eezi-write>
+</easy-write>
 AFTER TAG
 `,
 };
@@ -407,7 +407,7 @@ AFTER TAG
  * @returns The canned response if it's a test prompt, null otherwise
  */
 export function getTestResponse(prompt: string): string | null {
-  const match = prompt.match(/\[eezi-qa=([^\]]+)\]/);
+  const match = prompt.match(/\[easy-qa=([^\]]+)\]/);
   if (match) {
     const testKey = match[1];
     return TEST_RESPONSES[testKey] || null;

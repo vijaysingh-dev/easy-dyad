@@ -7,7 +7,7 @@ import {
   UpdateChatParams,
   TokenCountParams,
   TokenCountResult,
-} from "@/shared/eeziTypes";
+} from "@/shared/easyTypes";
 import {
   ChatSummariesSchema,
   ChatSearchResult,
@@ -16,12 +16,12 @@ import {
   AppChatContext,
 } from "@/shared/schemas";
 import { AxiosRequestConfig } from "axios";
-import eeziClient from "./client";
+import easyClient from "./client";
 import Api from "./api";
 
 class ChatApiService {
   // Get all chats
-  public async getAllChats(appId?: number) {
+  public async getAllChats(appId?: string) {
     const config: AxiosRequestConfig = { params: { appId } };
     if (!appId) delete config.params.appId;
 
@@ -162,11 +162,11 @@ class ChatApiService {
           attachments: fileDataArray,
         })
           .then((res) => {
-            eeziClient.chatStreams.set(chatId, { onUpdate, onEnd, onError });
-            eeziClient.eventSources["chat"]?.close();
+            easyClient.chatStreams.set(chatId, { onUpdate, onEnd, onError });
+            easyClient.eventSources["chat"]?.close();
 
-            const url = eeziClient.baseURL + `/chat/${chatId}/stream`;
-            eeziClient.initChatStreamSSE(url);
+            const url = easyClient.baseURL + `/chat/${chatId}/stream`;
+            easyClient.initChatStreamSSE(url);
           })
           .catch((err) => {
             onError(String(err));
@@ -179,7 +179,7 @@ class ChatApiService {
 
   public cancelChatStream(chatId: number): void {
     Api.delete(`/chat/${chatId}/cancel`);
-    eeziClient.chatStreams.delete(chatId);
+    easyClient.chatStreams.delete(chatId);
   }
 
   // --- Help bot ---
@@ -194,12 +194,12 @@ class ChatApiService {
   ): void {
     Api.post(`/chat/help/${sessionId}/start`, { message })
       .then(() => {
-        eeziClient.helpStreams.delete(sessionId);
-        eeziClient.eventSources["help"]?.close();
+        easyClient.helpStreams.delete(sessionId);
+        easyClient.eventSources["help"]?.close();
 
-        eeziClient.helpStreams.set(sessionId, options);
-        const url = eeziClient.baseURL + `/chat/help/${sessionId}/stream`;
-        eeziClient.initHelpStreamSSE(url);
+        easyClient.helpStreams.set(sessionId, options);
+        const url = easyClient.baseURL + `/chat/help/${sessionId}/stream`;
+        easyClient.initHelpStreamSSE(url);
       })
       .catch((err) => {
         options.onError(String(err));

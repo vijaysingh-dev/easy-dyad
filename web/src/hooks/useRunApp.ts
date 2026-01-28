@@ -10,7 +10,7 @@ import {
 } from "@/atoms/appAtoms";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { showInputRequest } from "@/components/Toast";
-import { AppOutput } from "@/shared/eeziTypes";
+import { AppOutput } from "@/shared/easyTypes";
 import api from "@/api";
 
 const useRunAppLoadingAtom = atom(false);
@@ -26,12 +26,12 @@ export function useRunApp() {
 
   const processProxyServerOutput = (output: AppOutput) => {
     const matchesProxyServerStart = output.message.includes(
-      "[eezi-proxy-server]started=[",
+      "[easy-proxy-server]started=[",
     );
     if (matchesProxyServerStart) {
       // Extract both proxy URL and original URL using regex
       const proxyUrlMatch = output.message.match(
-        /\[eezi-proxy-server\]started=\[(.*?)\]/,
+        /\[easy-proxy-server\]started=\[(.*?)\]/,
       );
       const originalUrlMatch = output.message.match(/original=\[(.*?)\]/);
 
@@ -104,10 +104,10 @@ export function useRunApp() {
         console.error(`Error running app ${appId}:`, error);
         setPreviewErrorMessage(
           error instanceof Error
-            ? { message: error.message, source: "eezi-app" }
+            ? { message: error.message, source: "easy-app" }
             : {
                 message: error?.toString() || "Unknown error",
-                source: "eezi-app",
+                source: "easy-app",
               },
         );
       } finally {
@@ -131,10 +131,10 @@ export function useRunApp() {
       console.error(`Error stopping app ${appId}:`, error);
       setPreviewErrorMessage(
         error instanceof Error
-          ? { message: error.message, source: "eezi-app" }
+          ? { message: error.message, source: "easy-app" }
           : {
               message: error?.toString() || "Unknown error",
-              source: "eezi-app",
+              source: "easy-app",
             },
       );
     } finally {
@@ -192,10 +192,10 @@ export function useRunApp() {
         console.error(`Error restarting app ${appId}:`, error);
         setPreviewErrorMessage(
           error instanceof Error
-            ? { message: error.message, source: "eezi-app" }
+            ? { message: error.message, source: "easy-app" }
             : {
                 message: error?.toString() || "Unknown error",
-                source: "eezi-app",
+                source: "easy-app",
               },
         );
       } finally {

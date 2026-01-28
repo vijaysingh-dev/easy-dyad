@@ -1,5 +1,6 @@
 import settings from "@/config";
 import logger from "@/logger";
+import redis from "@/db/redis";
 import { Response } from "express";
 import util from "util";
 import path from "node:path";
@@ -15,7 +16,7 @@ import {
   FilterLogEventsCommand,
 } from "@aws-sdk/client-cloudwatch-logs";
 
-import { runningApps } from "@/utils/app_utils";
+import { getCommand, runningApps } from "@/utils/app_utils";
 import { safeSend } from "@/utils/safe_sender";
 import { withLock } from "@/utils/lock_utils";
 
@@ -24,7 +25,7 @@ const logsClient = new CloudWatchLogsClient({ region: settings.AWS_REGION });
 
 async function streamEcsLogs({
   logGroup,
-  logPrefix, // e.g. "vite" or "proxy"
+  logPrefix,
   appId,
   isNeon,
   res,
@@ -35,41 +36,37 @@ async function streamEcsLogs({
   appId: string;
   isNeon: boolean;
   res: Response;
-  onProxyStarted?: (proxyUrl: string) => void;
+  onProxyStarted?: () => void;
 }) {
   let nextToken: string | undefined;
   let lastTimestamp = Date.now() - 5000;
+  const seenEventIds = new Set<string>();
 
   while (true) {
     const cmd = new FilterLogEventsCommand({
       logGroupName: logGroup,
       logStreamNamePrefix: logPrefix,
-      startTime: lastTimestamp,
+      startTime: lastTimestamp + 1,
       nextToken,
     });
 
     const out = await logsClient.send(cmd);
 
     for (const event of out.events ?? []) {
+      if (event.eventId && seenEventIds.has(event.eventId)) continue;
+      if (event.eventId) seenEventIds.add(event.eventId);
+
       const message = util.stripVTControlCharacters(event.message ?? "");
-      lastTimestamp = event.timestamp ?? lastTimestamp;
+      if (event.timestamp && event.timestamp >= lastTimestamp) {
+        lastTimestamp = event.timestamp;
+      }
 
-      logger.debug(`App ${appId} (${logPrefix}) stdout: ${message}`);
+      logger.debug(`App (${appId}) ${logPrefix}: ${message}`);
 
-      safeSend(res, "app:output", {
-        type: "stdout",
-        message,
-        appId,
-      });
-
-      // Proxy start detection (same regex as Docker)
+      // Proxy start detection
       if (logPrefix === "proxy") {
         const proxyMatch = message.match(/proxy-server-start url=(.+)/);
-        if (proxyMatch) {
-          const proxyUrl = proxyMatch[1].trim();
-          logger.info(`[proxy] started at ${proxyUrl}`);
-          onProxyStarted?.(proxyUrl);
-        }
+        if (proxyMatch) onProxyStarted?.();
       }
 
       // Drizzle auto-input note
@@ -86,6 +83,12 @@ async function streamEcsLogs({
           message,
           appId,
         });
+      } else {
+        safeSend(res, "app:output", {
+          type: "stdout",
+          message,
+          appId,
+        });
       }
     }
 
@@ -94,52 +97,98 @@ async function streamEcsLogs({
   }
 }
 
-async function waitForEcsTaskExit(taskArn: string, appId: string, res: Response) {
+async function waitForTaskEniIp(taskArn: string): Promise<string> {
+  const timeoutMs = 60_000;
+  const start = Date.now();
+
   while (true) {
-    const d = await ecs.send(
+    const describe = await ecs.send(
       new DescribeTasksCommand({
         cluster: settings.ECS_CLUSTER_NAME,
         tasks: [taskArn],
       }),
     );
 
-    const task = d.tasks?.[0];
-    if (!task) return;
+    const task = describe.tasks?.[0];
 
-    if (task.lastStatus === "STOPPED") {
-      const exitCode =
-        task.containers?.find((c) => c.name === "vite-app")?.exitCode ?? -1;
+    const eniIp = task?.attachments
+      ?.find((a) => a.type === "ElasticNetworkInterface")
+      ?.details?.find((d) => d.name === "privateIPv4Address")?.value;
 
-      logger.log(`App ${appId} (ECS task) exited with status ${exitCode}`);
+    if (eniIp) return eniIp;
 
-      safeSend(res, "app:exit", {
-        appId,
-        code: exitCode,
-      });
-
-      runningApps.delete(appId);
-      return;
+    if (Date.now() - start > timeoutMs) {
+      throw new Error("Timeout waiting for ECS task ENI IP");
     }
 
-    await new Promise((r) => setTimeout(r, 2000));
+    await new Promise((r) => setTimeout(r, 1500));
+  }
+}
+
+async function waitForEcsTaskExit(
+  taskArn: string,
+  appId: string,
+  runId: string,
+  res: Response,
+) {
+  while (true) {
+    try {
+      const d = await ecs.send(
+        new DescribeTasksCommand({
+          cluster: settings.ECS_CLUSTER_NAME,
+          tasks: [taskArn],
+        }),
+      );
+
+      const task = d.tasks?.[0];
+      if (!task) return;
+
+      if (task.lastStatus === "STOPPED") {
+        const exitCode =
+          task.containers?.find((c) => c.name === settings.APP_CONTAINER_NAME_PREFIX)
+            ?.exitCode ?? -1;
+
+        logger.log(`App (${appId}) ECS task exited with status ${exitCode}`);
+
+        const current = runningApps.get(appId);
+        if (!current || current.runtime !== "ecs" || current.runId !== runId) {
+          logger.log(`Stale ECS watcher ignored for ${appId}`);
+          return;
+        }
+
+        safeSend(res, "app:exit", {
+          appId,
+          code: exitCode,
+        });
+
+        runningApps.delete(appId);
+        redis.del(`app:${appId}`);
+        return;
+      }
+
+      await new Promise((r) => setTimeout(r, 2000));
+    } catch (err: any) {
+      logger.error(`Error waiting for ECS task ${taskArn}: ${err.message}`);
+      return;
+    }
   }
 }
 
 export async function executeAppInECS({
-  appPath,
   appId,
   res,
   isNeon,
   installCommand,
   startCommand,
 }: {
-  appPath: string;
   appId: string;
   res: Response;
   isNeon: boolean;
   installCommand?: string | null;
   startCommand?: string | null;
 }): Promise<void> {
+  const runId = crypto.randomUUID();
+
   const run = await ecs.send(
     new RunTaskCommand({
       cluster: settings.ECS_CLUSTER_NAME,
@@ -156,24 +205,26 @@ export async function executeAppInECS({
       overrides: {
         containerOverrides: [
           {
-            name: settings.APP_CONTAINER_NAME_PREFIX,
+            name: "vite-app",
+            command: [
+              "sh",
+              "-c",
+              `cd ${appId} && ${getCommand({ installCommand, startCommand })}`,
+            ],
             environment: [
-              { name: "APP_ID", value: appId },
-              { name: "INSTALL_CMD", value: installCommand ?? "" },
-              { name: "START_CMD", value: startCommand ?? "" },
-              { name: "APP_HOST", value: settings.APP_HOST },
-              { name: "APP_PORT", value: String(settings.APP_PORT) },
+              { name: "HOST", value: settings.APP_HOST },
+              { name: "PORT", value: `${settings.APP_PORT}` },
+              { name: "HMR_PROTOCOL", value: settings.HMR_PROTOCOL },
+              { name: "HMR_HOST", value: `${appId}.${settings.HMR_HOST_SUFIX}` },
+              { name: "HMR_PORT", value: `${settings.HMR_PORT}` },
             ],
           },
           {
-            name: settings.PROXY_CONTAINER_NAME_PREFIX,
+            name: "easy-proxy",
             environment: [
-              { name: "APP_ID", value: appId },
-              {
-                name: "TARGET_ORIGIN",
-                value: `http://${settings.APP_CONTAINER_NAME_PREFIX}:${settings.APP_PORT}`,
-              },
-              { name: "PROXY_PORT", value: String(settings.PROXY_PORT) },
+              { name: "APP_HOST", value: settings.APP_HOST },
+              { name: "PROXY_PORT", value: `${settings.PROXY_PORT}` },
+              { name: "TARGET_ORIGIN", value: `http://localhost:${settings.APP_PORT}` },
             ],
           },
         ],
@@ -183,10 +234,22 @@ export async function executeAppInECS({
 
   const taskArn = run.tasks?.[0]?.taskArn;
   if (!taskArn) throw new Error("Failed to start ECS task");
-
   logger.info(`ECS task started for app ${appId}: ${taskArn}`);
 
-  runningApps.set(appId, { runtime: "ecs", taskArn });
+  const eniIp = await waitForTaskEniIp(taskArn);
+
+  runningApps.set(appId, {
+    runtime: "ecs",
+    runId,
+    taskArn,
+    eniIp,
+  });
+  // publish to redis for nginx
+  await redis.hset(`app:${appId}`, {
+    ip: eniIp,
+    preview: settings.APP_PORT,
+    sandbox: settings.PROXY_PORT,
+  });
 
   safeSend(res, "app:output", {
     type: "stdout",
@@ -194,7 +257,6 @@ export async function executeAppInECS({
     appId,
   });
 
-  // Vite logs
   streamEcsLogs({
     logGroup: settings.ECS_LOG_GROUP,
     logPrefix: "vite",
@@ -203,28 +265,26 @@ export async function executeAppInECS({
     res,
   });
 
-  // Proxy logs + start detection
   streamEcsLogs({
     logGroup: settings.ECS_LOG_GROUP,
     logPrefix: "proxy",
     appId,
     isNeon,
     res,
-    onProxyStarted: (proxyUrl) => {
-      const publicProxyUrl = settings.IS_TEST_BUILD
-        ? proxyUrl.replace(/https?:\/\/[^:]+:/, "http://localhost:")
-        : proxyUrl;
+    onProxyStarted: () => {
+      const publicProxyUrl = `https://${appId}.${settings.HMR_HOST_SUFIX}`;
+      const originalUrl = `https://${appId}.${settings.APP_HOST_SUFIX}`;
 
       safeSend(res, "app:output", {
         type: "stdout",
-        message: `[eezi-proxy-server]started=[${publicProxyUrl}]`,
+        message: `[easy-proxy-server]started=[${publicProxyUrl}] original=[${originalUrl}]`,
         appId,
       });
     },
   });
 
   // Lifecycle watcher
-  waitForEcsTaskExit(taskArn, appId, res);
+  waitForEcsTaskExit(taskArn, appId, runId, res);
 }
 
 /**
@@ -232,7 +292,7 @@ export async function executeAppInECS({
  * Best-effort: resolves even if directory doesn't exist.
  */
 export async function removeEfsPnpmStoreForApp(appId: string): Promise<void> {
-  const pnpmPath = path.join("/efs/eezi-apps", appId, ".pnpm-store");
+  const pnpmPath = path.join("/efs/easy-apps", appId, ".pnpm-store");
 
   try {
     await fsPromises.rm(pnpmPath, { recursive: true, force: true });
@@ -262,16 +322,17 @@ export async function stopEcsTask(appId: string): Promise<void> {
         new StopTaskCommand({
           cluster: settings.ECS_CLUSTER_NAME,
           task: task.taskArn,
-          reason: "Stopped by Eezi control plane",
+          reason: "Stopped by Easy Dyad control plane",
         }),
       );
 
       runningApps.delete(appId);
+      redis.del(`app:${appId}`);
       logger.log(`ECS task for app ${appId} successfully stopped.`);
     } catch (error: any) {
-      logger.error(`Error stopping ECS task for app ${appId} (${task.taskArn}):`, error);
-
+      logger.error(`Error stopping ECS task for app ${appId}:`, error);
       runningApps.delete(appId);
+      redis.del(`app:${appId}`);
       throw new Error(`Failed to stop ECS app ${appId}: ${error.message}`);
     }
   });

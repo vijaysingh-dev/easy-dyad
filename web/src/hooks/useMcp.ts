@@ -6,7 +6,7 @@ import type {
   McpTool,
   McpToolConsent,
   CreateMcpServer,
-} from "@/shared/eeziTypes";
+} from "@/shared/easyTypes";
 import api from "@/api";
 
 export type Transport = "stdio" | "http";

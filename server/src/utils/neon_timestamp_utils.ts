@@ -4,7 +4,7 @@ import { versions, apps } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import fs from "node:fs";
 import git from "isomorphic-git";
-import { getEeziAppPath } from "@/paths";
+import { getEasyAppPath } from "@/paths";
 import { neon } from "@neondatabase/serverless";
 import { getNeonClient } from "@/services/neon_admin/neon_management_client";
 
@@ -58,7 +58,7 @@ export async function storeDbTimestampAtCurrentVersion({
     }
 
     // 2. Get the current commit hash
-    const appPath = getEeziAppPath(app.path);
+    const appPath = getEasyAppPath(app.path);
     const currentCommitHash = await git.resolveRef({
       fs,
       dir: appPath,

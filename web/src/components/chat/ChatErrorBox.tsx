@@ -7,11 +7,11 @@ import api from "@/api";
 export function ChatErrorBox({
   onDismiss,
   error,
-  isEeziProEnabled,
+  isEasyProEnabled,
 }: {
   onDismiss: () => void;
   error: string;
-  isEeziProEnabled: boolean;
+  isEasyProEnabled: boolean;
 }) {
   const { t, dir } = useI18n();
   if (error.includes("doesn't have a free quota tier")) {
@@ -20,7 +20,7 @@ export function ChatErrorBox({
         {error}
         <span dir={dir} className="ml-1">
           <ExternalLink href="https://dyad.sh/pro">
-            {t("Access with Eezi Pro")}
+            {t("Access with Easy Dyad Pro")}
           </ExternalLink>
         </span>{" "}
         <span dir={dir}>{t("or switch to another model.")}</span>
@@ -39,7 +39,7 @@ export function ChatErrorBox({
         {error}
         <span dir={dir} className="ml-1">
           <ExternalLink href="https://dyad.sh/pro">
-            {t("Upgrade to Eezi Pro")}
+            {t("Upgrade to Easy Dyad Pro")}
           </ExternalLink>
         </span>{" "}
         <span dir={dir}>{t("or read the")}</span>
@@ -56,22 +56,22 @@ export function ChatErrorBox({
     return (
       <ChatInfoContainer onDismiss={onDismiss}>
         <span dir={dir}>
-          {t("Looks like you don't have a valid Eezi Pro key.")}{" "}
+          {t("Looks like you don't have a valid Easy Dyad Pro key.")}{" "}
           <ExternalLink href="https://dyad.sh/pro">
-            {t("Upgrade to Eezi Pro")}
+            {t("Upgrade to Easy Dyad Pro")}
           </ExternalLink>{" "}
           {t("today.")}
         </span>
       </ChatInfoContainer>
     );
   }
-  if (isEeziProEnabled && error.includes("ExceededBudget:")) {
+  if (isEasyProEnabled && error.includes("ExceededBudget:")) {
     return (
       <ChatInfoContainer onDismiss={onDismiss}>
         <span dir={dir}>
-          {t("You have used all of your Eezi AI credits this month.")}{" "}
+          {t("You have used all of your Easy Dyad AI credits this month.")}{" "}
           <ExternalLink href="https://academy.dyad.sh/subscription">
-            {t("Upgrade to Eezi Max")}
+            {t("Upgrade to Easy Dyad Max")}
           </ExternalLink>{" "}
           {t("and get more AI credits")}
         </span>

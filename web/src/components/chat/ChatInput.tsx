@@ -51,7 +51,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useVersions } from "@/hooks/useVersions";
 import { useAttachments } from "@/hooks/useAttachments";
 import { AttachmentsList } from "./AttachmentsList";
-import { DragDropOverlay } from "./EeziDropOverlay";
+import { DragDropOverlay } from "./EasyDropOverlay";
 import { FileAttachmentDropdown } from "./FileAttachmentDropdown";
 import { showError, showExtraFilesToast } from "@/components/Toast";
 import { ChatInputControls } from "../ChatInputControls";
@@ -231,7 +231,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
         <ChatErrorBox
           onDismiss={dismissError}
           error={error}
-          isEeziProEnabled={settings.enableEeziPro ?? false}
+          isEasyProEnabled={settings.enableEasyPro ?? false}
         />
       )}
       {/* Display loading or error state for proposal */}
@@ -289,7 +289,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
               onChange={setInputValue}
               onSubmit={handleSubmit}
               onPaste={handlePaste}
-              placeholder="Ask Eezi to build..."
+              placeholder="Ask Easy Dyad to build..."
               excludeCurrentApp={true}
             />
 
@@ -450,7 +450,7 @@ function WriteCodeProperlyButton() {
       return;
     }
     streamMessage({
-      prompt: `Write the code in the previous message in the correct format using \`<eezi-write>\` tags!`,
+      prompt: `Write the code in the previous message in the correct format using \`<easy-write>\` tags!`,
       chatId,
       redo: false,
     });

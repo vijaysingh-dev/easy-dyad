@@ -162,7 +162,7 @@ export function HelpBotDialog({ isOpen, onClose }: HelpBotDialogProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle dir={dir}>{t("Eezi Help Bot")}</DialogTitle>
+          <DialogTitle dir={dir}>{t("Easy Dyad Help Bot")}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3 h-[480px]">
           {error && (
@@ -189,7 +189,7 @@ export function HelpBotDialog({ isOpen, onClose }: HelpBotDialogProps) {
             {messages.length === 0 ? (
               <div className="space-y-3">
                 <div dir={dir} className="text-sm text-muted-foreground">
-                  {t("Ask a question about using Eezi.")}
+                  {t("Ask a question about using Easy Dyad.")}
                 </div>
                 <div
                   dir={dir}

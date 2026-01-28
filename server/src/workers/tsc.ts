@@ -3,13 +3,13 @@ import * as path from "node:path";
 import { Worker } from "node:worker_threads";
 
 import {
-  getEeziDeleteTags,
-  getEeziRenameTags,
-  getEeziWriteTags,
-} from "@/utils/eezi_tag_parser";
-import { getTypeScriptCachePath } from "@/paths";
+  getEasyDeleteTags,
+  getEasyRenameTags,
+  getEasyWriteTags,
+} from "@/utils/easy_tag_parser";
+import { getPath } from "@/paths";
 import { WorkerInput, WorkerOutput } from "./tsc_types";
-import { ProblemReport } from "@/shared/eeziTypes";
+import { ProblemReport } from "@/shared/easyTypes";
 
 export async function generateProblemReport({
   fullResponse,
@@ -56,9 +56,9 @@ export async function generateProblemReport({
       }
     });
 
-    const writeTags = getEeziWriteTags(fullResponse);
-    const renameTags = getEeziRenameTags(fullResponse);
-    const deletePaths = getEeziDeleteTags(fullResponse);
+    const writeTags = getEasyWriteTags(fullResponse);
+    const renameTags = getEasyRenameTags(fullResponse);
+    const deletePaths = getEasyDeleteTags(fullResponse);
     const virtualChanges = {
       deletePaths,
       renameTags,
@@ -69,7 +69,7 @@ export async function generateProblemReport({
     const input: WorkerInput = {
       virtualChanges,
       appPath,
-      tsBuildInfoCacheDir: getTypeScriptCachePath(),
+      tsBuildInfoCacheDir: getPath("typeScriptCache"),
     };
 
     logger.info(`Sending input to TSC worker for app ${appPath}`);
