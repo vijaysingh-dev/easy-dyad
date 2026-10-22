@@ -38,6 +38,7 @@
     "@ai-sdk/mcp": "^0.0.5",
     "@ai-sdk/openai": "^2.0.59",
     "@ai-sdk/openai-compatible": "^1.0.25",
+    "@ai-sdk/provider": "^2.0.0",
     "@ai-sdk/provider-utils": "^3.0.15",
     "@ai-sdk/xai": "^2.0.30",
     "@aws-sdk/client-cloudwatch-logs": "^3.971.0",
@@ -45,12 +46,12 @@
     "@babel/parser": "^7.28.5",
     "@dyad-sh/supabase-management-js": "^1.0.0",
     "@modelcontextprotocol/sdk": "^1.17.5",
-    "@neondatabase/api-client": "^2.2.0",
+    "@neondatabase/api-client": "~2.2.0",
     "@neondatabase/serverless": "^1.0.2",
     "@openrouter/ai-sdk-provider": "^1.2.0",
-    "@vercel/sdk": "^1.16.1",
+    "@vercel/sdk": "~1.17.1",
     "ai": "^5.0.86",
-    "better-sqlite3": "^12.4.1",
+    "better-sqlite3": "^12.11.1",
     "cors": "^2.8.5",
     "cross-env": "^10.1.0",
     "dockerode": "^4.0.9",
@@ -67,6 +68,7 @@
     "magic-string": "^0.30.21",
     "morgan": "^1.10.1",
     "openai": "^6.7.0",
+    "shell-env": "^4.0.3",
     "tree-kill": "^1.2.2",
     "uuid": "^13.0.0",
     "webpack": "^5.102.1",
@@ -78,5 +80,5 @@
       "@modelcontextprotocol/sdk": "^1.17.5"
     }
   },
-  "packageManager": "pnpm@8.8.0+sha1.9922e8b650d393700209ccd81e0ebdbcbe43b0d3"
+  "packageManager": "pnpm@12.4.1"
 }

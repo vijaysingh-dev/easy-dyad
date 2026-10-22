@@ -1,0 +1,10 @@
+allowBuilds:
+  better-sqlite3: true
+  cpu-features: false
+  esbuild: true
+  protobufjs: false
+  ssh2: false
+# pnpm equivalent of the npm "overrides" entry in package.json
+peerDependencyRules:
+  allowedVersions:
+    "@vercel/sdk>@modelcontextprotocol/sdk": "^1.17.5"

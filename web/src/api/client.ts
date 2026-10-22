@@ -30,7 +30,7 @@ export interface GithubStreamCallbacks {
 }
 
 class EasyClient {
-  public baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+  public baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
   // Streams
   public chatStreams = new Map<number, ChatStreamCallbacks>();

@@ -105,11 +105,16 @@ async function waitForViteReady(containerName: string): Promise<void> {
     };
 
     stdout.on("data", onData);
+    stream.on("end", () => {
+      stdout.off("data", onData);
+      reject(new Error("App container exited before Vite was ready"));
+    });
 
+    // Includes the app's dependency install, which can take minutes on a cold pnpm store
     setTimeout(() => {
       stdout.off("data", onData);
       reject(new Error("Timeout waiting for Vite readiness"));
-    }, 30000);
+    }, 5 * 60_000);
   });
 }
 
@@ -191,7 +196,7 @@ export async function executeAppInDocker({
     Image: settings.DOCKER_APP_IMAGE,
     name: appContainerName,
     Cmd: ["sh", "-c", getCommand({ installCommand, startCommand })],
-    WorkingDir: "/workspace",
+    WorkingDir: `/workspace/${appId}`,
     Tty: false,
     HostConfig: {
       NetworkMode: networkName,

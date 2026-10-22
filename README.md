@@ -14,19 +14,22 @@ pnpm i
 pnpm dev
 ```
 
-The server starts on `http://localhost:4000`.
+The server starts on `http://localhost:8000`.
 
 ### Web
 
 ```
+cd web
 pnpm i
 pnpm dev
 ```
 
+The web app starts on `http://localhost:5173`.
+
 ### Health check
 
 ```
-curl http://localhost:4000/health
+curl http://localhost:8000/health
 ```
 
 ## Migrating from Electron IPC to HTTP
